@@ -89,9 +89,6 @@ APPS = helloworld \
 	wlan/p2p_demo
 endif
 
-# add by nzy 20150518 for debug
-APPS = wlan/wm_demo
-
 # add by nzy 20150518
 # usr to decide to make samples or tuya code.
 TUYA_USER ?= 0 

@@ -224,7 +224,7 @@ apps: preq sdk
 	@echo ""
 	@echo "[Building Sample Applications]"
 	${AT}$(MAKE) $(SILENT) $(WMSDK_PARALLEL_MAKE) -C $(SAMPLE_APP_DIR) SDK_PATH=$(SDK_BIN_PATH) BOARD_FILE=$(BOARD_FILE) all $(CYG_COMPAT)
-	${AT}$(MAKE) $(SILENT) -C $(SAMPLE_APP_DIR) SDK_PATH=$(SDK_BIN_PATH) install INSTALL_DIR=$(APP_BIN_PATH) $(CYG_COMPAT)
+	${AT}$(MAKE) $(SILENT) -C $(SAMPLE_APP_DIR) SDK_PATH=$(SDK_BIN_PATH) install INSTALL_DIR=$(APP_BIN_PATH) $(CYG_COMPAT) TUYA_USER=$(TUYA_USER)
 
 # Clean Sample Applications
 apps_clean:

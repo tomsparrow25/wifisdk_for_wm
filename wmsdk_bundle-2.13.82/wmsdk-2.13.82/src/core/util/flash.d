@@ -63,7 +63,4 @@ flash.o: flash.c \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/mdev_iflash.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/mc200/mc200_flash.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/mc200/mc200_qspi0.h \
- /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/mc200/mc200_qspi1.h \
- /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/peripherals/xflash.h \
- /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/mc200/mc200_xflash.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/mc200/mc200_qspi1.h
