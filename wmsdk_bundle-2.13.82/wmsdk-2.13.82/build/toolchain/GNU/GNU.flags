@@ -1,0 +1,28 @@
+# Copyright (C) 2011-2012 Marvell International Ltd.
+# All Rights Reserved.
+
+CROSS_COMPILE=arm-none-eabi
+AS    := $(CROSS_COMPILE)-as
+CC    := $(CROSS_COMPILE)-gcc 
+LD    := $(CROSS_COMPILE)-ld
+AR    := $(CROSS_COMPILE)-ar
+OBJCOPY := $(CROSS_COMPILE)-objcopy
+STRIP := $(CROSS_COMPILE)-strip
+
+LIBSYS_DIR = /
+
+# Common {C/AS}FLAGS across different architectures
+CFLAGS := -mthumb -g -Os -ffunction-sections -ffreestanding -MMD -Wall \
+          -fno-strict-aliasing -fno-common -include $(INC_DIR)/autoconf.h
+ASFLAGS = $(DBGFLAG)  --gdwarf-2 -mthumb-interwork
+
+# Default ARCH TYPE is cortex-m3
+CPU_ARCHTYPE-y=cortex-m3
+
+# Architecture specific flags
+ifeq ($(CPU_ARCHTYPE-y),cortex-m3)
+
+CFLAGS  += -mcpu=cortex-m3 -fdata-sections
+ASFLAGS += -mcpu=cortex-m3
+
+endif

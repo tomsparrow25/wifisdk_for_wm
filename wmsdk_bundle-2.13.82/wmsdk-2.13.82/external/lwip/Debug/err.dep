@@ -1,0 +1,9 @@
+Debug/err.o: \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/src//api/err.c \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/src/include//lwip/err.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/src/include//lwip/opt.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/src/include//lwip/lwipopts.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/src/include//lwip/debug.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/src/include//lwip/arch.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/contrib/port/FreeRTOS/STR91x//arch/cc.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/lwip/contrib/port/FreeRTOS/STR91x//arch/cpu.h

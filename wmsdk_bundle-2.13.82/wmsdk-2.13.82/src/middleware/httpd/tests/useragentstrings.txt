@@ -1,0 +1,247 @@
+ANTFresco	2.20	Mozilla/4.0 (compatible; ANTFresco 2.20; RISC OS 3.11)
+AOL	8.0	AOL/8.0 (Lindows 2003)
+aolbrowser	1.1	aolbrowser/1.1 InterCon-Web-Library/1.2
+Arexx		Arexx (compatible; AmigaVoyager/2.95; AmigaOS
+Arexx		Arexx (compatible; AmigaVoyager/2.95; AmigaOS)
+ARexx		ARexx (compatible; ARexx; AmigaOS)
+Arexx		Arexx (compatible; MSIE 6.0; AmigaOS5.0)
+Arexx		Arexx (compatible; MSIE 6.0; AmigaOS5.0) IBrowse 4.0
+ARexx		Mozilla/4.0 (compatible; ARexx; AmigaOS)
+ARexx		Mozilla/4.0 (compatible; ARexx; AmigaOS; Avant Browser [avantbrowser.com]; .NET CLR 1.1.4322; .NET CLR 1.0.3705)
+MSIE	5.5	Mozilla/4.0 (compatible; MSIE 5.5; arexx)
+ArtfaceBot		ArtfaceBot (compatible; MSIE 6.0; Mozilla/4.0; Windows NT 5.1;)
+Atari	2600b	Atari/2600b (compatible; 2port; Wood Grain)
+Atari	2600	Atari/2600 (GalaxianOS; U; en-US) cartridge/$29.95
+Avant		Avant Browser (http://www.avantbrowser.com)
+AvantGo	5.2	Mozilla/4.0 (compatible; AvantGo 5.2; FreeBSD)
+AvantGo	6.0	Mozilla/4.0 (compatible; AvantGo 6.0; FreeBSD)
+CFNetwork	1.1	CFNetwork/1.1
+SonyEricssonP900	R101	SonyEricssonP900/R101 Profile/MIDP-2.0 Configuration/CLDC-1.0
+SonyEricssonP900	R102	SonyEricssonP900/R102 Profile/MIDP-2.0 Configuration/CLDC-1.0 Rev/MR4
+SonyEricssonT610	R401	SonyEricssonT610/R401 Profile/MIDP-1.0 Configuration/CLDC-1.0 (Google WAP Proxy/1.0)
+SonyEricssonT610	R401	SonyEricssonT610/R401 Profile/MIDP-1.0 Configuration/CLDC-1.0 UP.Link/5.1.1.3 (Google WAP Proxy/1.0)
+SonyEricssonZ600	R401	SonyEricssonZ600/R401 Profile/MIDP-1.0 Configuration/CLDC-1.0 (Google WAP Proxy/1.0)
+SonyEricssonK700i	R2AA	SonyEricssonK700i/R2AA SEMC-Browser/4.0.2 Profile/MIDP-2.0 Configuration/CLDC-1.1 (Google WAP Proxy/1.0)
+SonyEricssonK700i	R2AE	SonyEricssonK700i/R2AE SEMC-Browser/4.0.3 Profile/MIDP-2.0 Configuration/CLDC-1.1 UP.Link/6.2.3.15.0 (Google WAP Proxy/1.0)
+curl	7.10.2	curl/7.10.2 (powerpc-apple-darwin7.0) libcurl/7.10.2 OpenSSL/0.9.7b zlib/1.1.4
+curl	7.10.6	curl/7.10.6 (i386-redhat-linux-gnu) libcurl/7.10.6 OpenSSL/0.9.7a ipv6 zlib/1.1.4
+curl	7.10.6	curl/7.10.6 (i386-redhat-linux-gnu) libcurl/7.10.6 OpenSSL/0.9.7a ipv6 zlib/1.2.0.7
+curl	7.11.2	curl/7.11.2 (i686-pc-linux-gnu) libcurl/7.10.2 OpenSSL/0.9.6i ipv6 zlib/1.1.4
+curl	7.12.0	curl/7.12.0 (i686-pc-linux-gnu) libcurl/7.12.0 OpenSSL/0.9.7e ipv6 zlib/1.2.2
+curl	7.7.2	curl/7.7.2 (powerpc-apple-darwin6.0) libcurl 7.7.2 (OpenSSL 0.9.6b)
+curl	7.7.3	curl/7.7.3 (i686-pc-linux-gnu) libcurl 7.7.3 (OpenSSL 0.9.6)
+curl	7.7.3	curl/7.7.3 (win32) libcurl 7.7.3 (OpenSSL 0.9.6)
+curl	7.9.3	curl/7.9.3 (powerpc-ibm-aix4.3.3.0) libcurl 7.9.3 (OpenSSL 0.9.6m)
+curl	7.9.5	curl/7.9.5 (i386-redhat-linux-gnu) libcurl 7.9.5 (OpenSSL 0.9.6b) (ipv6 enabled)
+curl	7.9.8	curl/7.9.8 (i386-redhat-linux-gnu) libcurl 7.9.8 (OpenSSL 0.9.7a) (ipv6 enabled)
+ELinks	0.9.1	ELinks/0.9.1 (textmode; FreeBSD 4.10-PRERELEASE i386; 132x43)
+ELinks	0.9.1	ELinks/0.9.1 (textmode; Linux; 80x24)
+ELinks	0.9.1	ELinks/0.9.1 (textmode; Linux; 80x25)
+ELinks	0.9.2rc2	ELinks/0.9.2rc2 (textmode; Linux 2.4.26-lck1 i486; 80x25)
+ELinks	0.9.2rc4	ELinks/0.9.2rc4 (textmode; Linux 2.4.20-8 i686; 105x46)
+ELinks	0.9.3	ELinks/0.9.3 (textmode; Linux 2.6.8-mdp04 i686; 80x25)
+EricssonT68	R101	EricssonT68/R101 (;; ;; ;; Smartphone; SDA/1.0 Profile/MIDP-2.0 Configuration/CLDC-1.1)
+FavOrg		FavOrg
+Firefox	1.0	Firefox/1.0 (Windows; U; Win98; en-US; Localization; rv:1.4) Gecko/20030624 Netscape/7.1 (ax)
+Firefox	1.0.1	Firefox/1.0.1 (Windows NT 5.1; U; pl-PL)
+Galeon		Galeon  (PPC; U; Windows NT 5.1; en-US)
+Galeon		Mozilla/4.0 (compatible; Galeon; Windows NT 5.1;)
+Galeon	1.0.2	Mozilla/5.0 Galeon/1.0.2 (X11; Linux i686; U)
+Galeon	1.2.11	Mozilla/5.0 Galeon/1.2.11 (X11; Linux i686; U;) Gecko/20030703
+Galeon	1.3.10	Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.4.1) Gecko/20031114 Galeon/1.3.10
+Galeon	1.3.10	Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.5) Gecko/20031107 Galeon/1.3.10 (Debian package 1.3.10-3)
+Galeon	1.3.11a	Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.5) Gecko/20031107 Galeon/1.3.11a (Debian package 1.3.11a-1)
+GetRight	5.0	GetRight/5.0
+googlebot	2.1	googlebot/2.1 (+http://www.googlebot.com/bot.html
+googlebot	2.1	googlebot/2.1; +http://www.google.com/bot.html
+Googlebot		Googlebot (+http://www.google.com/bot.html)
+Googlebot	2.1	Googlebot/2.1 (compatible; MSIE; Windows)
+Googlebot	2.1	Googlebot/2.1 (+http://www.googlebot.com/bot.html) (compatible; MSIE 6.0; )
+Googlebot	2.1	Googlebot/2.1+(+http://www.google.com/bot.html)
+NetFront	3.0	Mozilla/4.0 (MobilePhone SCP-5500/US/1.0) NetFront/3.0 MMP/2.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+NetFront	3.0	Mozilla/4.0 (MobilePhone SCP-5500/US/1.0) NetFront/3.0 MMP/2.0 FAKE (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+grub-client-2.6.0		Mozilla/4.0 (compatible; grub-client-2.6.0)
+Grubclient-2.2-internal-beta		Mozilla/4.0 (compatible; Grubclient-2.2-internal-beta)
+Grubclient		Mozilla/4.0 (compatible; Grubclient; windows; SV1; .NET CLR 1.1.4322)
+IBrowse		IBrowse (AmigaOS; alpha/06; AmigaOS mod-x)
+IBrowse	2.2	IBrowse/2.2 (Windows V45)
+IBrowse	2.2	IBrowse/2.2 (Windows V50)
+IBrowse	2.3	IBrowse/2.3 (AmigaOS 3.0)
+iCab		iCab
+iCab	2.9.1	Mozilla/4.5 (compatible; iCab 2.9.1; Macintosh; U; PPC; Mac OS X)
+iCab	2.9.5	iCab/2.9.5 (Macintosh; U; PPC; Mac OS X)
+iCab	2.9.6	Mozilla/4.5 (compatible; iCab 2.9.6; Macintosh; U; PPC)
+iCab	2.9.8	iCab/2.9.8 (Macintosh; U; PPC)
+iCab	2.9.8	Mozilla/5.0 (compatible; iCab 2.9.8; Macintosh; U, PPC; Mac OS X)
+iCab	3.0	iCab/3.0 (Macintosh; U; PPC; Mac OS X)
+iCab	3.0	Mozilla/5.0 (compatible; iCab 3.0; Macintosh; U; PPC; Mac OS X)
+itunes		itunes
+iTunes	4.2	iTunes/4.2 (Macintosh; U; PPC Mac OS X 10.2)
+iTunes	4.7	iTunes/4.7 (Macintosh; U; PPC Mac OS X 10.2)
+Java	1.4.1_01	Java/1.4.1_01
+Java	1.4.2	Java/1.4.2
+Java	1.4.2_04	Java/1.4.2_04
+Java	1.5.0-beta2	Java/1.5.0-beta2
+jBrowser		jBrowser
+JoBo	1.4beta	JoBo/1.4beta (http://www.matuschek.net/jobo.html)
+Konqueror		Konqueror
+Konqueror		Mozilla/5.0 (compatible; Konqueror; FreeBSD; http://www.cartedaffaire.net/)
+Konqueror	1.1.2	Konqueror/1.1.2
+Konqueror	2.0.1	Mozilla/5.0 (compatible; Konqueror/2.0.1; X11); Supports MD5-Digest; Supports gzip encoding
+Konqueror	2.2.2	Mozilla/5.0 (compatible; Konqueror/2.2.2; Linux 2.4.14-xfs; X11; i686)
+Konqueror	3	Mozilla/5.0 (compatible; Konqueror/3)
+Konqueror	3.0.0-10	Mozilla/5.0 (compatible; Konqueror/3.0.0-10; Linux)
+Konqueror	3.0.0	Mozilla/5.0 (compatible; Konqueror/3.0.0; FreeBSD)
+Konqueror	3.0-rc4	Mozilla/5.0 (compatible; Konqueror/3.0-rc4; i686 Linux; 20020313)
+Konqueror	3.0	Mozilla/5.0 (compatible; Konqueror/3.0; i686 Linux; 20021215)
+Konqueror	4.2	Mozilla/6.0 (compatible; Konqueror/4.2; i686 FreeBSD 6.4; 20060308)
+Kurzor	1.0	Kurzor/1.0 (Kurzor; http://adcenter.hu/docs/en/bot.html; cursor@easymail.hu)
+Links	0.96	Links (0.96; Unix)
+Links	2.0	Links (2.0; FreeBSD 4.7-RELEASE i386; 80x24)
+Links		Links 2.0 (http://gossamer-threads.com/scripts/links/)
+Links	2.1pre16	Links (2.1pre16; Linux 2.6.9-buz i686; 128x47)
+LinkSweeper	1.1	LinkSweeper/1.1
+Lynx	2.2	Lynx/2.2 libwww/2.14
+Lynx	2.6	Lynx/2.6  libwww-FM/2.14
+MacNetwork	1.0	MacNetwork/1.0 (Macintosh)
+Metager2		Metager2 (http://metager2.de/site/webmaster.php)
+NCSA_Mosaic	1.0	NCSA_Mosaic/1.0 (X11; FreeBSD 1.2.0 i286) via proxy gateway CERN-HTTPD/1.0
+NCSA_Mosaic	2.0	NCSA_Mosaic/2.0 (compatible; MSIE 6.0;Windows XP),gzip(gfe) (via translate.google.com)
+Mosaic	2.1	Mosaic/2.1 (Amiga ARexx)
+Mozilla		Mozilla
+Mozilla	1.000	Mozilla/1.000 (AOS; U; en) Gecko/20050301
+Mozilla		Mozilla 1.75 on Linux: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.6) Gecko/20040113
+Mozilla	2.01	Mozilla/2.01 (Win16; I) via HTTP/1.0 deep.space.star-travel.org/
+Mozilla	3.0	Mozilla/3.0
+Mozilla	3.04	Mozilla/3.04 (X11; I; SunOS 5.5.1 sun4u) via HTTP/1.0 depraved-midget.onlinescanner.com/
+Mozilla	3.0	Mozilla/3.0 (compatible)
+Mozilla	3.0	Mozilla/3.0 [en] (AWV2.20f)
+Mozilla	3.0	Mozilla/3.0 (Windows 98;U) [en]
+Mozilla	3.x	Mozilla/3.x (I-Opener 1.1; Netpliance)
+safari	125.0	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/124 (KHTML, like Gecko) safari/125.0
+Shiira	0.9.2.2	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/125.2 (KHTML, like Gecko, Safari) Shiira/0.9.2.2
+OmniWeb	v563.34	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-US) AppleWebKit/125.4 (KHTML, like Gecko, Safari) OmniWeb/v563.34
+Firefox	1.0.1	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; de-DE; rv:1.7.6) Gecko/20050226 Firefox/1.0.1
+Firefox	1.0	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.7.5) Gecko/20041107 Firefox/1.0 (PowerBook)
+Camino	0.8	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8a5) Gecko/20041114 Camino/0.8+
+Firefox	1.0	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8b2) Gecko/20050317 Firefox/1.0+
+Camino		Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O) Gecko Camino
+Firefox	1.0.2	Mozilla/5.0 (U; en-US; rv:1.7.6) Gecko/20050317 Firefox/1.0.2
+Phoenix	0.1	Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.2b) Gecko/20020923 Phoenix/0.1
+Firefox	1.0	Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.7.5) Gecko/20041209 Firefox/1.0 (Ubuntu) (Ubuntu package 1.0-2ubuntu4-warty99)
+Mozilla	6.0	Mozilla/6.0 [en] (Win32; Escape 5.03; I)
+Camino	0.7	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.0.1) Gecko/20030306 Camino/0.7
+Camino	0.7	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.5b) Gecko/20030917 Camino/0.7+
+Camino	0.8	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.7) Gecko/20040623 Camino/0.8
+Camino	0.8	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.8a2) Gecko/20040602 Camino/0.8+
+Firefox	0.10	Mozilla/5.0 (Windows; U; Win98; rv:1.7.3) Gecko/20040913 Firefox/0.10
+Firefox	0.10	Mozilla/5.0 (Windows; U; Win 9x 4.90; en-US; rv:1.7.3) Gecko/20040925 Firefox/0.10
+Firefox	0.10.1	Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7.5) Gecko/20041107 Firefox/0.10.1 StumbleUpon/1.998
+Firefox	0.10	Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7.5) Gecko/20041107 Firefox/0.10 StumbleUpon/1.998
+Firefox	0.10.1	Mozilla/5.0 (X11; U; Linux i686; rv:1.7.3) Gecko/20040911 Firefox/0.10.1
+Firefox	0.6.1	Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.6) Gecko/20040207 Firefox/0.6.1 StumbleUpon/1.87
+Firefox	0.8	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.6) Gecko/20040206 Firefox/0.8
+Firefox	0.8.0	Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.8a2) Gecko/20040604 Firefox/0.8.0+ (stipe) (Proxomitron Naoko 4.51)
+Firefox	1.0	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; de-DE; rv:1.7.5) Gecko/20041122 Firefox/1.0
+Firefox	1.0	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-GB; rv:1.7.5) Gecko/20041110 Firefox/1.0
+Firefox	1.0RC1	Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; en-US; rv:1.7.3) Gecko/20041026 Firefox/1.0RC1
+Firefox	1.0	Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7.5) Gecko/20050114 Firefox/1.0
+Phoenix	0.3	Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2b) Gecko/20021007 Phoenix/0.3
+MSIE	3.0	Mozilla/2.0 (compatible; MSIE 3.0; Windows 3.1)
+MSIE	3.02	Mozilla/2.0 (compatible; MSIE 3.02; Windows 95)
+MSIE	4.0	Mozilla/4.0 (compatible; MSIE 4.0; Windows 95; FunWebProducts-MyWay)
+MSIE	4.01	Mozilla/4.0 (compatible; MSIE 4.01; AOL 5.0; Mac_PPC)
+MSIE	4.5	Mozilla/4.0 (compatible; MSIE 4.5; Windows 98; )
+MSIE	5.0	Mozilla/4.0 (compatible; MSIE 5.0; Mac_PowerPC; e412357VZ_IE50M)
+MSIE	5.0	Mozilla/4.0 (compatible; MSIE 5.0; Mac_PowerPC),gzip(gfe) (via translate.google.com)
+MSIE	5.01	Mozilla/4.0 (compatible; MSIE 5.01; Windows 95; USA On-Site)
+MSIE	5.5	Mozilla/4.0 (compatible; MSIE 5.5; AOL 6.0; Windows 98)
+MSIE	6.0	Mozilla/4.0 (compatible; MSIE 6.0; AOL 8.0; Windows 98; Win 9x 4.90; H010818)
+MSIE	6.0	Mozilla/4.0 (compatible; MSIE 6.0; AOL 8.0; Windows 98; Win 9x 4.90; OUBrowser)
+MSIE	6.0	Mozilla/4.0 (compatible; MSIE 6.0; Windows NT; MS Search 4.0 Robot)
+MSIE	6.0	Mozilla/6.0 (compatible; MSIE 6.0; Windows 3.11 For workgroups; {6BD3E7C1-0732-43E8-8828-291A709CC070})
+MSIE	6.0	MSIE/6.0
+MSIE	6.0	MSIE 6.0  (compatible; MSIE 6.0; Windows NT 5.1)
+MSIE	6.0	MSIE 6.0 (compatible; MSIE 6.0; Windows NT 5.1)
+MSIE	6.0	MSIE 6.0 (Win XP)
+MSIE	6.01	Mozilla/4.0 (compatible; MSIE 6.01; Windows NT 5.0)
+MSIE	6.02	Mozilla/4.0 (compatible; MSIE 6.02; Windows 98)
+MSIE	7.66	Mozilla/4.0 (compatible; MSIE 7.66; Windows NT 5.1; SV1)
+MSIE	8.0	Mozilla/4.0 (compatible; MSIE 8.0; Windows 94)(2000/08/12-2000/08/24)
+MSIE	7.0a1	Mozilla/4.0 (compatible; MSIE 7.0a1; Windows NT 5.1; SV1; .NET CLR 1.1.4322; MS IdentiServ 1.4.12)
+Netbox	3.5	Mozilla/3.01 (compatible; Netbox/3.5 R92.5; Linux 2.2)
+NetBox	3.5	Mozilla/3.01 (compatible; NetBox/3.5 R92.3; Linux 2.2)
+NetPositive	2.2.1	Mozilla/3.0 (compatible; NetPositive/2.2.1; BeOS)
+Netscape	7.0	Mozilla/4.0 (compatible; Netscape 7.0; Windows 98)
+Netscape		Netscape
+Netscape	1.22	Netscape 1.22 (Win16; I)
+Netscape	2.1	Netscape 2.1 (compatible; MSIE 2.0B1; Windows for Workgroup 3.11; i386; en-US)
+Netscape	4.0	Netscape 4.0
+Mozilla	4.04	Mozilla/4.04 [en]C-WNS2.5  (Wim95; I)
+NetFront	3.1	Mozilla/4.08 (PDA; PalmOS/sony/model luke/Revision:2.0.26 (de)) NetFront/3.1
+Netscape6	6.2	Mozilla/5.0 (Macintosh; U; PPC; en-US; rv:0.9.4) Gecko/20011022 Netscape6/6.2
+Netscape6	6.2.1	Mozilla/5.0 (Windows; U; WinNT4.0; de-DE; rv:0.9.4) Gecko/20011128 Netscape6/6.2.1
+Netscape	7.1	Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20041204 Netscape/7.1 (ax)
+Netscape	7.2	Netscape/7.2
+Netscape	7.2	Netscape 7.2 (X11; I; Linux 2.4.18 i686)
+Nintendo64	1.0	Nintendo64/1.0 (SuperMarioOS with Cray-II Y-MP Emulation)
+Nintendo64	1.7	Nintendo64/1.7 (SuperMarioOS with Sun 15K Y-MP Emulation)
+Nokia3100	1.0	Nokia3100/1.0 (04.01) Profile/MIDP-1.0 Configuration/CLDC-1.0
+Nokia3200	1.0	Nokia3200/1.0 (4.18) Profile/MIDP-1.0 Configuration/CLDC-1.0 (Google WAP Proxy/1.0)
+Nokia3650	1.0	Nokia3650/1.0 SymbianOS/6.1 Series60/1.2 Profile/MIDP-1.0 Configuration/CLDC-1.0 (Google WAP Proxy/1.0)
+Nokia6100	1.0	Nokia6100/1.0 (05.16) Profile/MIDP-1.0 Configuration/CLDC-1.0 UP.Link/1.1 (Google WAP Proxy/1.0)
+Nokia6600	1.0	Nokia6600/1.0 (4.09.1) SymbianOS/7.0s Series60/2.0 Profile/MIDP-2.0 Configuration/CLDC-1.0
+Nokia7250	1.0	Nokia7250/1.0 (3.12) Profile/MIDP-1.0 Configuration/CLDC-1.0 (Google WAP Proxy/1.0)
+NPT	0.0	Mozilla/3.01 (compatible; NPT 0.0 beta)
+ObjectsSearch	0.01	ObjectsSearch/0.01 (ObjectsSearch; http://www.ObjectsSearch.com/bot.html; support@thesoftwareobjects.com)
+OmniWeb	4.1.1-v423	Mozilla/4.5 (compatible; OmniWeb/4.1.1-v423; Mac_PowerPC)
+Opera		Opera
+Opera		Opera/ (X11; Linux i686; U)  [en]
+Opera	3.60	Mozilla/4.0 (BeOS R4.5;US) Opera 3.60  [en]
+Opera	3.62	Mozilla/3.0 (Windows 3.10;US) Opera 3.62  [en]
+Opera	3.62	Mozilla/4.71 (Windows 3.10; US) Opera 3.62 [en]
+Opera	3.62	Mozilla/4.71 (Windows 3.10;US) Opera 3.62  [en]
+Opera	3.62	Mozilla/4.71 (Windows 98;US) Opera 3.62  [en]
+Opera	4.0	Mozilla/4.72 (Windows 98;US) Opera 4.0 Beta 3 [en]
+Opera	4.02	Opera/4.02 (Windows 98; U)  [en]
+Opera	4.03	Opera/4.03 (Windows NT 4.0; U)
+Opera	5.0	Mozilla/5.0 (Macintosh;US;PPC) Opera 5.0  [en]
+Opera	5.01	Opera/5.01 (Windows NT 5.0; U) [en]
+Opera	5.02	Opera/5.02 (alpha 06; AmigaOS)  [en]
+Opera	5.02	Opera/5.02 (Windows 98; U)  [en]
+Opera	5.02	Opera/5.02 (Windows 98; U) [en]
+Opera	5.02	Opera/5.02 (Windows NT 5.0; U) [en]
+Opera	5.02	Opera/5.02 (X11; U; Linux i686; en-US)
+Opera	5.12	Mozilla/5.0 (Windows 98; U) Opera 5.12  [en]
+Opera	7	Opera/7 (Windows 98; U)  [en]
+Opera	7.20	Opera/7.20 (Windows NT 5.1; U)  [røv]
+Opera	7.21	Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1) Opera 7.21  [pl]
+Opera	7.21	Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1) Opera 7.21  [ru]
+Opera	7.23	Mozilla/5.0 (Windows NT 5.1; U) Opera 7.23  [et]
+Opera	7.23	Opera/7.23 (Windows 98; U) [en]
+Opera	7.50	Mozilla/3.0 (X11; SunOS sun4u; U) Opera 7.50  [en]
+Opera	7.53	Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0) Opera 7.53  [en]
+Opera	8.0	Mozilla/4.0 (compatible; MSIE 6.0; X11; Linux i686; pl) Opera 8.0
+Opera	8.4	Mozilla/4.0 (compatible; Opera 8.4; Windows ME; Maxthon; .NET CLR 1.1.4322)
+Safari		Safari
+Safari	01	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/01 (KHTML, like Gecko) Safari/01
+Safari	100	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; cs-cz) AppleWebKit/103u (KHTML, like Gecko) Safari/100
+Safari	100	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; de-de) AppleWebKit/103u (KHTML, like Gecko) Safari/100
+Safari	125.1	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/124 (KHTML, like Gecko) Safari/125.1
+Safari	172	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en) AppleWebKit/172 (KHTML, like Gecko) Safari/172
+Safari	85.8	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; fr) AppleWebKit/85.8.2 (KHTML, like Gecko) Safari/85.8
+Safari	85.8.1	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; sa) AppleWebKit/85.8.5 (KHTML, like Gecko) Safari/85.8.1
+Safari	YY	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppeWebKit/XX (KHTML, like Gecko) Safari/YY
+Safari	YY	Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en-us) AppleWebKit/XX (KHTML, like Gecko) Safari/YY
+SonyEricssonP800		SonyEricssonP800/
+SonyEricssonP900		SonyEricssonP900/
+SonyEricssonT230	R101	SonyEricssonT230/R101 (Google WAP Proxy/1.0)
+WebCapture	2.0	Mozilla/3.0 (compatible; WebCapture 2.0; Windows)
+WebTV	1.2	Mozilla/3.0 WebTV/1.2 (compatible; MSIE 2.0)
+WebTV	2.6	Mozilla/4.0 WebTV/2.6 (compatible; MSIE 4.0)
+WebZIP	4.1	WebZIP/4.1 (http://www.spidersoft.com)
+Wget	1.8.2	Wget/1.8.2 modified
+Wget	1.9	Wget/1.9+cvs-stable (Red Hat modified)
+Safari	419.3	Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1C25 Safari/419.3
+Safari	419.3	Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3
+Safari	419.3	Mozilla/5.0 (iPod; U; CPU like Mac OS X; en) AppleWebKit/420.1 (KHTML,like Gecko) Version/3.0 Mobile/3A100a Safari/419.3

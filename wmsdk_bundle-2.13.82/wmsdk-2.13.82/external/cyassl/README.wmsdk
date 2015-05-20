@@ -1,0 +1,60 @@
+This readme is added for documenting things related to CyaSSL integrated
+for the WMSDK stack.
+
+Build options:
+---------------
+
+# Selecting between hardware or software based AES.
+  - CyaSSL (ctaocrypt actually) has various crypto modules like AES, DES
+    etc. The MC200 micro-controller supports AES encryption/decryption in
+    hardware. We have customized the default AES implementation in
+    ctaocrypt to take advantage of this accelerator. This is optional but
+    enabled by default. If the user wants to disable the hardware
+    accelerator he needs to give the following option to make
+    USE_SOFTWARE_AES_CRYPTO=y
+# Including CyaSSL/ctaocrypt test code
+  - CyaSSL includes a basic test suite for testing various CyaSSL/ctaocrypt
+  API's. If INCLUDE_TEST_CODE=y is passed to the command line this test
+  code is compiled and included into the CyaSSL library. Note that to test
+  the individual functionality you will need to call the test functions,
+  present in test.c of CyaSSL, manually from your own test application.
+# Including AES CCM support
+  	    AES CCM support has been found to use up a lot of RAM. In a
+    particular application it was adding approx 17K to the image
+    size. Hence, it is kept disabled by default. To enable it please pass
+    the following command line option to make or export it to your
+    environment.
+	ENABLE_AES_CCM=y
+
+Debugging:
+-----------
+
+# CyaSSL internal debugging can be enabled by calling the function
+  CyaSSL_Debugging_ON(). This is already done from the WMSDK stack and you
+  just need to enable TLS debugging from 'make menuconfig'
+# Some additional debugging can be enabled by defining DEBUG_CYASSL in the
+  file logging.h.
+
+
+Customization's:
+-------------------
+# The pristine CyaSSL tarball has GNU autoconf based build system. We have
+  replaced it with a simple non-recursive build system. The main motivation
+  was to enable CyaSSL build on Cygwin.
+# WPS requires to generate diffie hellman key pair. DiscreteLogWorkFactor()
+  causes a problem in this process. Hence we have disabled it.
+# CyaSSL requires the current time and some help time functions. It uses
+  standard macros to access this functionality and the macros are then
+  mapped to appropriate functions based on the Rtos used to link with
+  CyaSSL. We have added a FreeRTOS section to asn.c to enable this mapping
+  to WMSDK wmtime functions.
+# CyaSSL requires a good random number generator for TLS
+  connections. Similar to time handling we have added WMSDK random number
+  function mappings.
+# To reduce memory usage we have defined NO_ERROR_STRINGS in file
+  internal.c
+# Some functions required from WPS have been removed from under the flag
+  OPENSSL_EXTRA instead of enabling OPENSSL_EXTRA globally.
+# The error return code (AES_CCM_AUTH_E from error.h) when decryption fails
+  (for e.g. in CCM) is duplicated in WMSDK. Please check its value when
+  upgrading.

@@ -1,0 +1,12 @@
+menu "MDNS"
+
+config MDNS_QUERY
+        bool "mDNS Full-Fledged Query(monitoring) APIs"
+        def_bool n
+       help
+       This option enables the support for querying mDNS-SD
+       services. Enabling this option adds an overhead of about
+       16KB. This includes support for caching two mDNS-SD service
+       entries.
+
+endmenu

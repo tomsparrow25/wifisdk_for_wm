@@ -1,0 +1,3 @@
+obj/hc128.o: ctaocrypt/src/hc128.c \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/cyassl/cyassl/ctaocrypt/settings.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/cyassl/cyassl/ctaocrypt/visibility.h

@@ -1,0 +1,35 @@
+88W8782 WIRELESS FIRMWARE
+========================
+
+Here are the details about the 88W8782 firmware:
+
+1.Firmware Name: SD-UAPSTA-8782-FC13-MMC-14.69.12.p40-M2614353_B0-GPL
+2.Firmware Location: Marvell Extranet >  My Products > Wireless > 88W8782 > Software > AP-STA+P2P Releases
+3.Firmware Link: https://extranet.marvell.com/extranet/dms/download-document.do?id=105718&groupID=4&subGroupID=45815
+
+
+88W8787 WIRELESS FIRMWARE
+========================
+
+Here are the details about the 88W8787 firmware: 
+
+1.Firmware Name: SD-UAPSTA-BT-8787-PXA920-ICS-14.66.9.p97-M3X14337-GPL
+2.Firmware Location: Marvell Extranet > My Products > Wireless > 88W8787 > Software > Linux > PXA9xx
+3.Firmware Link: https://extranet.marvell.com/extranet/dms/download-document.do?id=112949&groupID=4&subGroupID=39420
+
+Note: .xz firmware images are the pre-built compressed firmware images of existing wireless firmwares. 
+Compressed firmware images for new releases can be created using following command.
+
+$./tools/bin/Windows/xz --check=crc32 --lzma2=dict=16KiB /path/to/uncompressed-wlan-firmware
+
+88W8787 MANUFACTURING FIRMWARE
+==============================
+
+Here are the details of the 88W8787 manufacturing firmware:
+
+1. Firmware Name:      MFG-MF-8787-FC8-SYSKT-1.2.7.50-14.0.34.p3
+2. Firmware Location:  Marvell Extranet > My Product > wireless > 88W8787 > Software > Manufacturing and Labtool
+3. Firmware Link:      https://extranet.marvell.com/extranet/dms/download-document.do?id=125982&groupID=4&subGroupID=33369
+ 
+
+

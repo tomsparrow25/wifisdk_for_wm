@@ -1,0 +1,2 @@
+Make sure php, apache are installed.
+Copy files 408.php, 409.php, 410.php, 500.php, 503.php in /var/www folder (root folder for apache).

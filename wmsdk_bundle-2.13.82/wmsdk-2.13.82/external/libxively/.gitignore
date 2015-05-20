@@ -1,0 +1,12 @@
+*.a
+*.o
+*.so
+*.sw?
+*~
+*.zip
+
+obj/
+bin/
+doc/html
+libxively.sublime-project
+libxively.sublime-workspace

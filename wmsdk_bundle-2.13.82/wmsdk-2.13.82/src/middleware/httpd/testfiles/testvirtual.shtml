@@ -1,0 +1,8 @@
+<!--#include virtual=foobar-->
+<!--#include virtual=foobar-->
+<!--#include virtual=foobar-->
+<!--#include virtual=foobar-->
+<!--#include virtual=nosuchhandler-->
+<!--#include virtual=-->
+<!--#include virtual=""-->
+<!--#include virtual= ""-->

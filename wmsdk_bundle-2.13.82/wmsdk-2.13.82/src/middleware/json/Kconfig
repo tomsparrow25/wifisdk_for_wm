@@ -1,0 +1,11 @@
+menu "JSON"
+config JSON_FLOAT
+       prompt "Enable Float support"
+       bool
+       default n
+       help
+       	    Selecting this enables support for float values in JSON
+	    input/output. Selecting this pulls in float operation functions
+	    that may result in footprint increase (~2KB).
+
+endmenu

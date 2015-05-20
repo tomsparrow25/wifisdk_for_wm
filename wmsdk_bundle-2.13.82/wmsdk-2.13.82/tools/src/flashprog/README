@@ -1,0 +1,80 @@
+
+Semihosted Flash Programming Utility
+====================================
+
+Semihosted Flash Programming Utility (aka. flashprog) provides interactive
+environment for reading/writing/erasing internal and/or external flash
+provided on 88MC200 based development boards. For more details on usage,
+please refer to the SDK user guide.
+
+Some important facts:
+1. Standalone semihosted application
+2. No operating system involved
+
+Source code structure
+=====================
+
+flashprog.c
+-----------
+Main program execution handling and provides functions like batch processing,
+flash layout handling and user visible menu options. This file should be
+edited to achieve:
+  -- User visible changes in menuconfig options
+  -- Formatting/parsing changes in layout/batch files
+  -- Stylistic changes in prints etc.
+
+flash.c
+-------
+Flash driver routines are abstracted here, to add support or make any changes
+in flash driver access routines, this file should be modified. This file
+should be edited to achieve:
+  -- Addition of new flash driver
+  -- Change in flash driver routines
+  -- Change in layout handling/parsing/formatting etc.
+
+crc32.c
+-------
+CRC32 helper program.
+
+firmware.c
+----------
+firmware verification code.
+
+Compilation
+===========
+Run following commands -
+
+$ cd sdk-x.x.x/
+$ make
+$ make tools_install
+
+This will make and copy updated flashprog.axf to its destination location,
+i.e. sdk-x.x.x/tools/mc200/OpenOCD/ which can be further be used with the
+help of helper script flashprog.sh.
+
+Flash Layout
+============
+Stored in internal flash of development board/device and can be modified using
+flash layout file.
+
+Semihosting
+===========
+
+To write to internal/external QSPI flash of 88MC200 based development
+boards, flash programming utility makes use of Semihosting.
+Semihosting is a mechanism for development boards to communicate
+input/output requests with their development hosts. For example, calls
+like open, read, write, printf or scanf are translated into the
+corresponding function calls on the host system by means of a
+debugger.
+
+Internally, the library call is converted to generate software
+interrupt (essentially breakpoint instruction) which can be trapped by
+the debugger and emulated to read/write from host machine. This really
+proves handy as one can have the application (flashprog) running in
+internal ram of processor and able to accept input from host machine
+(read file from disk) and write to processors internal/external flash.
+
+For Code-Sourcery toolchain, the semihosting functionality can be
+enabled by using the CS3 libraries (CodeSourcery Common Startup Code
+Sequence) provided by the toolchain.

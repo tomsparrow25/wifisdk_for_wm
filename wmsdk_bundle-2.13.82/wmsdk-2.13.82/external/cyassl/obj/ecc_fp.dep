@@ -1,0 +1,1 @@
+obj/ecc_fp.o: ctaocrypt/src/ecc_fp.c

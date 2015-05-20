@@ -1,0 +1,42 @@
+#                Copyright 2008-2013, Marvell International Ltd.
+# This code contains confidential information of Marvell Semiconductor, Inc.
+# No rights are granted herein under any patent, mask work right or copyright
+# of Marvell or any third party.
+# Marvell reserves the right at its sole discretion to request that this code
+# be immediately returned to Marvell. This code is provided "as is".
+# Marvell makes no warranties, express, implied or otherwise, regarding its
+# accuracy, completeness or performance.
+
+###################################
+# Makefile for build of SSL
+###################################
+
+
+
+include $(SDK_PATH)/build/env/common.mak
+
+
+SRCS = tls_common.c tls_cyassl.c
+
+
+DST_NAME = libtls.a
+
+
+ifeq ($(CONFIG_CYASSL), y)
+SRCS +=
+
+all: lib
+
+else
+all:
+endif # CONFIG_CYASSL
+
+
+
+
+
+
+
+
+
+include $(SDK_PATH)/build/env/rules.mak

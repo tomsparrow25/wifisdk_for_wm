@@ -1,0 +1,4 @@
+PERI-$(CONFIG_MRVL_DRV_TUNL_DRIVER)     += $(CURDIR)/drivers/peripherals/dtp_driver
+PERI-$(CONFIG_LCD_DRIVER)     += $(CURDIR)/drivers/peripherals/lcd
+PERI-$(CONFIG_XFLASH_DRIVER)     += $(CURDIR)/drivers/peripherals/xflash
+PERI-$(CONFIG_SPI_FLASH_DRIVER)     += $(CURDIR)/drivers/peripherals/spi_flash

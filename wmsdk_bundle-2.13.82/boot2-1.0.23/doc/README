@@ -1,0 +1,150 @@
+
+R E A D M E
+===========
+
+Boot2
+=====
+
+Boot2 serves as secondary stage boot-loader and is responsible for following
+operations:
+
+* Sets up its own stack pointer, initialize bss and starts execution in sram.
+  (first bank to be specific)
+* Initialize flash power domain and reset internal and external flash.
+* Check for reset-to-factory event.
+* Check for other events at bootup.
+* Verify partition tables to decide which firmware image has higher
+  generation number.
+* Check crc32 of partition table headers.
+* Load firmware image depending on generation number from sram into flash.
+  This flash address and length is specified into partition table.
+* Hand over control to firmware passing boot flag (4 bytes stored in fixed
+  address in ram) storing generation level, reset to factory or any such
+  event to firmware.
+
+
+Dependancies
+============
+
+* WMAPPS/BOARD: Boot2 needs some APIs which are located in the board specific
+files. They are
+- board_gpio_power_on() - Needed to do early board specific inits
+- board_button_pressed() - Needed to detect key press at boot-up time
+- board_button_1() - Needed to detect key press at boot-up time
+* WMSDK: Boot2 needs to be provided the path to compiled WMSDK folder for,
+- Peripheral drivers like GPIO, PinMux, UART, Flash, etc.
+- NVRAM address which is used to pass information to the application (see below
+for details)
+- Location of partition table in flash. FL_PART1_START/FL_PART2_START located
+in flash_layout.h
+- The structure of partition table and firmware binary present in
+firmware_structure.h
+
+Configurations
+==============
+
+Following are the configurable parameters in boot2 (Done from top level
+Make file):
+* OVERRIDE_BACKUP_FIRMWARE_DELAY
+- This is the delay (in ms) for which the boot override button is sampled.
+- A flag is set if the button is found pressed for a duration longer than this.
+- The button can be specified in board file (board_button_1())
+* SECURE_BOOT_PASSWORD
+- This is used to choose the secure/non-secure mode for bootloader.
+- Password is maximum 4 bytes.
+- Default is nonsecure mode.
+- For details on secure mode see "Secure boot.pdf" in doc folder.
+* DEBUG
+- This is used to create a semi-hosting based debug image for boot2.
+- After compilation it is installed in the WMSDK/tools/mc200/OpenOCD folder.
+- boot2-semihost.sh can be used to execute this.
+- Debug prints are sent over JTAG so no need for UART.
+
+Compilation
+===========
+
+To compile
+* make BOARD_FILE=<board/file/with/absolute/path> SDK_PATH=<absolute/path/to/sdk>
+- Binary image for the specified board will be created in bin folder
+To clean
+* make clean
+
+
+Flash Layout
+============
+
+Boot2 is located (with bootrom header) in first sector or first 4KiB in
+internal flash or MC200. For future requirement additional 20KiB is reserved in
+flash layout. Entire flash layout can be found in mc200_flash_layout.h header
+file in WMSDK.
+
+Boot2 Detailed Workflow
+=======================
+
+boot2: partition, boot override and segment loading support
+
+There is a partition table with following format to assist firmware bootup
+(by default located at 0x7000 offset in internal flash):
+
+Each partition contains the following information:
+
+byte offset    data
+-----------    ----
+0x00	      magic number (32 bits, defined as 0x54504d57)
+0x02  	      version number
+0x04	      number of partition entries to follow
+0x08	      CRC of the above (32 bits)
+
+Then from 0xc is a list of partition entries as follows:
+
+0xc		type of partition
+0xd	  	flash device identifier
+0x14	  	name of flash component
+0x18	  	start address in flash
+0x1c	  	length
+0x20		generation level
+...
+
+Then boot2 reads the first 12 bytes of each partition table, validates
+the magic number and CRC, and determines number of partition table entries.
+Boot2 then reads firmware partition entries and determines which one is the
+most recent according to the generation number, or which one is
+the oldest if the boot override condition was detected during at least
+8 seconds.  The latest is called the "main" partition and the oldest the
+"alternate" partition.
+
+Next, boot2 reads the segment entry array and validates its CRC. If that
+fails then a fallback to the alternate partition should be attempted.
+
+Next, boot2 reads and executes commands from the firmware data blocks.
+The reading of those blocks is performed according to the segment list
+previously read. If that fails then the alternate partition should be
+considered.
+
+Before attempting to load firmware from a partition, boot2 stores
+in memory (NVRAM location 0x480C0024 is currently used) This can
+be found in boot_flags.h (BOOT_FLAGS)
+some boot flags as follows:
+
+- Bits 0 to 1 indicate the number of the partition currently booted.
+
+- Bit 5 (BOOT_BACKUP_FIRMWARE_FORCED) is set when the alternate firmware
+  partition was used due to a manual override.  The manual override
+  condition has to be set for at least 8 seconds for the alternate
+  firmware to be considered.
+
+- Bit 6 (BOOT_MAIN_FIRMWARE_BAD_CRC) is set when the alternate firmware
+  partition was used due to a CRC error in either the main partition or the
+  firmware data it refers to.
+
+- Bit 8 indicates active partition table number
+
+- Bit 9 indicates main partition table state, 0 = Ok, 1 = Corrupted
+
+- Bit 10 indicates redundant partition table state, 0 = Ok, 1 = Corrupted
+
+- Bits 16 to 31 carry a value in miliseconds corresponding to the delay
+  the boot override condition was detected.  This can be used by the
+  firmware to implement functions such as a reset to factory defaults or
+  similar.  If the delay is greater than 8 seconds then the
+  BOOT_BACKUP_FIRMWARE_FORCED bit is set instead.

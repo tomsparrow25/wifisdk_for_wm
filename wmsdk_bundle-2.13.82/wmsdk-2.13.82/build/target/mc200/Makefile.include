@@ -1,0 +1,63 @@
+#
+# Copyright (C) 2011-2012, Marvell International Ltd.
+# All Rights Reserved.
+#
+
+# Override the LDFLAGS from common.mak
+
+## Variables that should be defined are:
+# LIBFREERTOS_PATH  - points to the directory where the library files are present
+
+# Board specific include directories.
+#INCLUDE_DIRS +=
+
+
+# Libraries that we will link with. This should be configurable and CAN be moved out
+# from here. Keeping it until we start working with all the available .a files.
+SDK_LIBS = libcli.a libdrv.a libwmstdio.a libwmtime.a libwlcmgr.a libos.a libc.a \
+		libnet.a libwifidriver.a libmdev.a libpwrmgr.a libhealthmon.a libarch.a
+
+ifeq ($(CONFIG_XFLASH_DRIVER), y)
+SDK_LIBS += libxflash.a
+endif
+
+# Ideally, the different options for selection of OS, Network Stack may not be visible.
+# Boards can select whatever they want and use it here accordingly.
+#
+# If required, there can always be sub-configuration option once the board is selected.
+#
+FREERTOS_LIBS = libfreertos.a
+
+ifeq ($(LIBFREERTOS_PATH),)
+  $(error Please Specify path to the MC200 artifacts, gcc/, using LIBFREERTOS_PATH variable)
+endif
+# Override LIB_LIST
+LIB_LIST = $(addprefix $(SDK_PATH)/$(LIB_DIR_PREFIX)/$(LIBSYS_DIR)/, $(SDK_LIBS))
+LIB_LIST += $(addprefix $(LIBFREERTOS_PATH), $(FREERTOS_LIBS))
+LIB_LIST += $(addprefix $(SDK_PATH)/$(LIB_DIR_PREFIX)/$(LIBSYS_DIR)/, $(SDK_LIBS_EXTRA))
+LIB_LIST += $(addprefix $(LWIPLIB_PATH), liblwip.a)
+ifeq ($(CONFIG_ENABLE_TLS), y)
+LIB_LIST += $(addprefix $(CYASSL_BASEDIR)/lib/, libctaocrypt.a)
+LIB_LIST += $(addprefix $(CYASSL_BASEDIR)/lib/, libcyassl.a)
+endif
+LIB_LIST += -lm
+
+exe: axf flashimage
+
+axf: $(EXE_NAME)
+
+$(EXE_NAME):  $(FTFS_FILES) $(OBJ_LIST) $(LIB_LIST) $(EXTRA_SHARED_LIBS_LIST)
+	$(AT)echo " [axf] $(subst $(ZAP_PATH)/, ,$(MOD)/$@)"
+	$(AT)$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ_LIST) -Xlinker --start-group $(LIB_LIST) -Xlinker --end-group
+flashimage: $(FLASH_NAME)
+
+BREAKSIZE:=512
+
+$(FLASH_NAME):  $(EXE_NAME)
+	@echo " [fls] $(subst $(ZAP_PATH)/, ,$(MOD)/$@)"
+ifeq ($(OS), Linux)
+	$(AT)$(TOOLS_DIR)/$(OS)/axf2firmware $(BREAKSIZE) $(EXE_NAME) $@
+else
+	$(AT)$(TOOLS_DIR)/Windows/axf2firmware.exe $(BREAKSIZE) $(EXE_NAME) $@
+endif
+	@echo "-----"

@@ -1,0 +1,272 @@
+menu "WLAN"
+
+menu "Wifi driver"
+config HOST_SUPP
+       bool "Host Supplicant Support"
+       def_bool n
+       help
+         This option enables the use of host based supplicant support.
+	 Say Y if you wish to enable this feature.
+
+config EXT_SCAN
+       bool "Extended Scan Support"
+       def_bool n
+       help
+         This option enables the use of extended scan support. Say Y if you
+	 wish to enable this feature.
+
+config WMM
+       bool "802.11 WMM Support"
+       def_bool y
+       help
+         This option enables the use of 802.11 WMM support. Say Y if you
+	 wish to enable this feature.
+
+config 11N
+       bool "802.11n support"
+       def_bool y
+       help
+         This option enables the use of 802.11n support. Say Y if you
+	 wish to use this feature. Please note that this feature
+	 does not provide all 11n functionality. As of now only the
+	 association with 11n-only APs is supported.
+
+config 11D
+       bool "802.11d support"
+       def_bool n
+       help
+	This flag enables 802.11d support in the stack.
+        11D adds support for additional regulatory domains.
+        Enabling this flags increases memory usage especially
+	in the BSS segment.
+
+config WLAN_FW_HEARTBEAT
+	bool "WLAN FW Heartbeat Event Support"
+	def_bool y
+	help
+	  This option enables support for heartbeat event to be sent to the
+	  WLAN firmware periodically. This helps in identifying and taking
+	  corrective action in case the WLAN firmware is inactive or
+	  unresponsive.
+
+config 5GHz_SUPPORT
+       bool "5GHz Support(Band A)"
+       def_bool y
+       help
+         This option enables the use of 5GHz. Say Y if you
+	 wish to enable this feature.
+
+config WLAN_FAST_PATH
+       bool "WiFi Fast Path"
+       def_bool y
+       help
+	 This option helps fast WiFi connection by caching earlier scan result.
+
+config MAX_AP_ENTRIES
+       int  "Maximum scan entries"
+       range 1 30
+       default 20
+       help
+	This is the maximum number of entries in the
+	list of APs stored by wifi driver. Each entry takes
+	about 400 bytes of RAM. The value should
+	be decided based on number of AP's expected
+	to be present in the end user environment.
+	Note that the wifi driver automatically keeps
+	only the highest signal strength APs in the list.
+
+config WLAN_KNOWN_NETWORKS
+       int "Max Network Profiles"
+       range 1 10
+       default 5
+       help
+		WLC manager keeps a list of known networks.
+		 These include the ones added using the wlan-add
+		 command and one loaded from the psm. This
+		 configuration defines the size of that list. Note
+		 that this is not the size of the scan entries.
+
+menu "uAP configuration"
+config WIFI_UAP_WORKAROUND_STICKY_TIM
+       def_bool y
+       help
+	This config enables the workaround of a
+	particular firmware issue which causes packets
+   	being sent on air even if STA is in IEEE PS. When
+	enabled this will enable the sticky TIM bit
+ 	workaround. A downside of this is that the STA
+	client of the uAP will not be able to go in IEEE PS.
+endmenu
+
+menu "Wifi extra debug options"
+config WIFI_EXTRA_DEBUG
+       bool "Enable extra debug"
+       default n
+       help
+	This macro helps you to get additional debugging
+	information from the wifi driver. For e.g. more
+	detailed reason will be given if an assoc failure
+	happens.
+
+config WIFI_UAP_DEBUG
+       bool "Enable uAP debug"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will print out logs related
+		to the uAP. This is enable to developer
+		to localize issues related to uAP. Apart from
+		other logs, uAP initialization and configuration
+		logs are printed out.
+
+config WIFI_EVENTS_DEBUG
+       bool "Dump event information"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will dump event codes of
+		events received on from the firmware.
+		This helps the developer to checks the
+		events received from the firmware along
+		with their timestamp.
+
+config WIFI_CMD_RESP_DEBUG
+       bool "Dump command and response codes"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will dump command and response
+		codes send to and received from firmware
+		respectively. Timestamp will also be printed
+		help localize timing issues.
+
+config WIFI_SCAN_DEBUG
+       bool "Scan debug"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will enable scan code logs
+		This helps the developer to localize wlan
+		scan related issues like split scan, channel
+		selections, etc
+
+config WIFI_IO_DEBUG
+       bool "Input-Output debug"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will enable I/O debugging
+		of wifi driver. This enables you to see
+		how the driver is interacting with the
+		SDIO bus.
+
+config WIFI_IO_DUMP
+       bool "Hex Dump packets"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will enable I/O debugging
+		of wifi driver. This enables you to see
+		all the packets that are received/sent from/to
+		the SDIO bus.
+
+config WIFI_MEM_DEBUG
+       bool "Allocations debug"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will enable monitoring
+		memory allocations and free's done by
+		the wifi driver. This enables you to gauge
+		and/or debug heap memory used by the driver.
+
+config WIFI_AMPDU_DEBUG
+       bool "AMPDU debug"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+		Enabling this will help you to  monitor what
+		is happening to AMPDU Rx packets. Note
+		that AMPDU Tx is not supported by the driver. Note that
+		you will need to enable timer debug separately to see
+		timer activity going on during out of order packets
+		handling.
+
+config WIFI_TIMER_DEBUG
+       bool "Timers debug"
+       default n
+       depends on WIFI_EXTRA_DEBUG
+       help
+       	 Enable this to monitor timer activity of the
+	 driver. Timers are generally used for AMPDU out of
+	 order packet handling. It is also used for command
+	 timeout related functionality.
+
+endmenu
+
+endmenu
+
+config P2P
+       bool "WiFi Direct support (P2P)"
+       select WPS2
+       def_bool n
+       help
+	This option enables the use of P2P APIs. Say Y if you
+	wish to enable this feature.  This is a standard that
+	allows Wi-Fi devices to connect to each other
+	without the need for a wireless access point.
+
+config WPS2
+       bool "WPS 2.0 support"
+       def_bool n
+       help
+         This option enables the use of WPS 2.0 APIs.
+	 Say Y if you wish to enable this feature. This is
+	 a computing standard that attempts to allow
+	 easy establishment of a secure wireless home network.
+
+menu "WPA2 Enterprise Support"
+config WPA2_ENTP
+       bool "WPA2 Enterprise (EAP-TLS)"
+       select WPS2
+       select ENABLE_TLS
+       def_bool n
+       help
+	This option enables the use of WPA2 Enterprise EAP-TLS security
+	support. Say Y if you wish to enable this feature.
+	This is a standard that	allows Wi-Fi devices to connect to
+	WPA2 Enterprise	enabled wireless access points.
+choice
+	prompt "RADIUS Server"
+	default FREE_RADIUS
+
+config HOSTAPD_RADIUS
+       bool "HostapdRADIUS"
+       depends WPS2
+       depends ENABLE_TLS
+       depends WPA2_ENTP
+       help
+	Select this option if you want to use Hostapd based RADIUS server
+	 for EAP-TLS authentication
+
+config FREE_RADIUS
+       bool "FreeRADIUS"
+       depends WPS2
+       depends ENABLE_TLS
+       depends WPA2_ENTP
+       help
+	Select this option if you want to use FreeRADIUS server for
+	 EAP-TLS authentication
+
+endchoice
+endmenu
+
+config MLAN_WMSDK
+       def_bool y
+       help
+	This macro helps enable a subset of MLAN
+	 part needed for us. This macro is not user.
+	 visible. Please ensure that this macro
+	 is always enabled.
+
+endmenu

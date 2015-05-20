@@ -1,0 +1,113 @@
+#
+# Automatically generated make config: don't edit
+# WMSDK version:
+
+#
+# System Type
+#
+CONFIG_CPU_MC200=y
+CONFIG_OS_FREERTOS=y
+CONFIG_LWIP_STACK=y
+
+#
+# Application Framework
+#
+# CONFIG_APP_FRM_PROV_WPS is not set
+
+#
+# Modules
+#
+
+#
+# WLAN
+#
+# CONFIG_P2P is not set
+# CONFIG_WPS2 is not set
+# CONFIG_WMM is not set
+# CONFIG_11N is not set
+# CONFIG_WLAN_FW_HEARTBEAT is not set
+# CONFIG_5GHz_SUPPORT is not set
+CONFIG_WLAN_KNOWN_NETWORKS=2
+CONFIG_MAX_AP_ENTRIES=10
+
+#
+# MDNS
+#
+# CONFIG_MDNS_QUERY is not set
+
+#
+# TLS
+#
+# CONFIG_ENABLE_TLS is not set
+# CONFIG_CYASSL is not set
+
+#
+# HTTP Server
+#
+CONFIG_ENABLE_HTTP=y
+# CONFIG_ENABLE_HTTPS is not set
+
+#
+# XZ Decompression
+#
+# CONFIG_XZ_DECOMPRESSION is not set
+
+#
+# Peripheral Drivers
+#
+# CONFIG_MRVL_DRV_TUNL_DRIVER is not set
+# CONFIG_LCD_DRIVER is not set
+CONFIG_XFLASH_DRIVER=y
+# CONFIG_USB_DRIVER is not set
+
+#
+# Miscellaneous
+#
+# CONFIG_UART_RS485 is not set
+# CONFIG_UART_LARGE_RCV_BUF is not set
+# CONFIG_SW_WATCHDOG is not set
+CONFIG_HW_RTC=y
+
+#
+# Command Line Interface support
+#
+
+#
+# Development and Debugging
+#
+# CONFIG_ENABLE_ERROR_LOGS is not set
+# CONFIG_ENABLE_WARNING_LOGS is not set
+# CONFIG_DEBUG_BUILD is not set
+# CONFIG_ENABLE_ASSERTS is not set
+# CONFIG_DEBUG_OUTPUT is not set
+# CONFIG_WLCMGR_DEBUG is not set
+# CONFIG_HEALTHMON_DEBUG is not set
+# CONFIG_HTTPD_DEBUG is not set
+# CONFIG_TLS_DEBUG is not set
+# CONFIG_WIFI_DEBUG is not set
+# CONFIG_WPS_DEBUG is not set
+# CONFIG_P2P_DEBUG is not set
+# CONFIG_DHCP_SERVER_DEBUG is not set
+# CONFIG_PROVISIONING_DEBUG is not set
+# CONFIG_HTTPC_DEBUG is not set
+# CONFIG_CRC_DEBUG is not set
+# CONFIG_RFGET_DEBUG is not set
+# CONFIG_CRYPTO_DEBUG is not set
+# CONFIG_JSON_DEBUG is not set
+# CONFIG_FLASH_DEBUG is not set
+# CONFIG_MDNS_DEBUG is not set
+# CONFIG_MDNS_CHECK_ARGS is not set
+# CONFIG_APP_DEBUG is not set
+# CONFIG_LL_DEBUG is not set
+# CONFIG_HEAP_DEBUG is not set
+# CONFIG_ENABLE_TESTS is not set
+# CONFIG_HTTPD_TESTS is not set
+# CONFIG_JSON_TESTS is not set
+# CONFIG_CLI_TESTS is not set
+# CONFIG_SYSINFO_TESTS is not set
+# CONFIG_MDNS_TESTS is not set
+# CONFIG_EZXML_TESTS is not set
+# CONFIG_BA_TESTS is not set
+# CONFIG_MDEV_TESTS is not set
+# CONFIG_HEAP_TESTS is not set
+# CONFIG_AUTO_TEST_BUILD is not set

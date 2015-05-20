@@ -1,0 +1,85 @@
+R E A D M E
+===========
+
+Following guide can be used to build a sample application to demonstrate
+wireless video streaming capability (88MC200 acting as USB-Host) using camera
+module interfaced over USB-OTG interface.
+
+Compiling usb-host/video application
+====================================
+
+1. Untar all source tarballs
+	$ tar -xzf usb-host-x.x.x.tar.gz
+	$ tar -xzf wmsdk_bundle-x.x.x.tar.gz
+2. cd wmsdk_bundle-x.x.x/wmsdk-x.x.x/
+3. Enable CONFIG_USB_DRIVER and CONFIG_USB_DRIVER_HOST options from menuconfig
+	a. Peripheral Drivers ---> USB Driver support (Experimental)
+	b. Peripheral Drivers ---> USB Host Driver support (Experimental)
+4. make USB_HOST_PATH=</path/to/usb-host-x.x.x/>
+5. cd ../sample_apps/
+6. make SDK_PATH=</path/to/wmsdk> USB_HOST_PATH=</path/to/usb-host-x.x.x/>
+7. USB video application should be ready in io_demo/usb/usb_host_uvc/bin dir
+
+Note: Make sure you build application for correct BOARD.
+
+Setup
+=====
+
+1. Camera module connected to USB-OTG interface of 88MC200 Dev. Board V2
+2. Following camera modules are tested:
+   a. Microsoft LifeCam Cinema (Preferred)
+   https://www.microsoft.com/hardware/en-in/p/lifecam-cinema/H5D-00005
+   b. Microsoft LifeCam VX-2000 (Some issues with streaming at higher rates)
+   https://www.microsoft.com/hardware/en-in/p/lifecam-vx-2000/YFC-00006
+
+
+Application usage
+=================
+
+1. Setup mc200_dev-v2 board with usb_video_demo.bin
+2. USB device should get enumerated with following log on minicom:
+	# [uvcvideo] USB Video Class driver inited
+	# [usb-video-app] USB Video Class demo application started
+	# [uvcvideo] USB Root hub device found
+	# [uvcvideo] New USB device found, idVendor=045e, idProduct=075d
+	# [uvcvideo] Found UVC Device with video streaming interface
+	# [uvcvideo] Selected endpoint with wMaxPacketSize: 928
+3. Add WLAN network using following command on minicom
+   $ wlan-add new ssid <ssid> wpa2 <passphrase>
+   $ wlan-connect
+4. Streaming can be started using any http client with ip address of device
+   e.g. $ curl http://<ip-address-of-mc200>/video
+OR
+4. VLC player can also be used with "Open Network Stream" option and
+specifying following URL, http://<ip-address-of-mc200>/video
+5. Successful start of streaming should be indicated on console as below:
+	# [uvcvideo] Configured for 320 x 240, ~30fps
+6. To observe throughput and other streaming details, type following command
+on console,
+	# uvc_stats
+	usb uvc statistics =========:
+	total rx bytes:          1529892
+	no. of frames:           156
+	throughput (~):          2.349959 Mbps
+	overflow count:          7
+	rx error count:          0
+
+
+Limitations
+===========
+
+1. As of now streaming is done using http based WSGI handler and hence
+underlying protocol is tcp, ideally this should be done using udp based
+protocol like RTSP.
+2. USB Host Controller in 88MC200 can handle USB2.0 Full/Low Speed devices
+only. For Full-Speed USB maximum bandwidth is 12Mbps and hence we can do VGA
+(640x480) @15fps at the maximum. By default application is configured for
+QVGA (320x240) @30fps resolution, higher resolution (can be configured in
+application) may affect streaming experience because of tcp re-transmissions
+delays etc.
+3. Throughput observed in uvc_stats command is approximate USB transaction
+throughput only, WiFi streaming/transfer throughput is not considered here.
+4. Initial streaming through VLC player takes some time to start (order of
+few seconds).
+5. Terminating VLC player or any other http client may generate few http
+connection termination error messages on console. This can be neglected.

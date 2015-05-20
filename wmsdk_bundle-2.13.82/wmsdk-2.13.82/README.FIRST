@@ -1,0 +1,144 @@
+Upgrading from Release 2.12 or below
+====================================
+
+Please note that the WMSDK now officially supports GNU ARM
+Toolchain. You may install this toolchain from this location:
+https://launchpad.net/gcc-arm-embedded
+
+The WMSDK continues to build with the CodeSourcery toolchain, but it
+is no longer the primary test platform.
+
+Upgrading from Release 2.9 or below
+===================================
+
+Please take note of the following changes:
+
+1. The support for redundant partition tables introduced in the 2.10
+release warrants a change in the boot2 and the partition layout.
+
+Please update the flash layout on your boards as follows:
+
+ a. Goto tools/mc200/OpenOCD
+ b. Execute
+    ./flashprog.sh --new-layout layout.txt
+ c. Flash boot2, firmware and filesystem and new wireless firmware
+    images generated with the WMSDK 2.10 release
+
+ Note: All settings stored in psm will be lost.
+
+
+Upgrading from Release 2.8 or below
+===================================
+
+Please take note of the following changes:
+
+1. The 2.9 release changes the format of the firmware binary. The new
+format makes it easier to implement features like overlays and XIP,
+that assist in better RAM utilization.
+
+The entities that should be aware of the image format are boot2,
+flashprog and the firmware upgrades code. Thus,
+  - the boot2 code from 2.8 will not be able to boot images generated
+  from 2.9.
+  - the firmware upgrade code from 2.8 will not be able to upgrade to
+  images from 2.9.
+
+Please reflash the boot2 generated from WMSDK-2.9 for booting
+application images.
+
+Upgrading from Release 2.7 or below
+===================================
+
+Please take note of the following changes:
+
+1. The 2.8 release uses a compressed WLAN firmware image in order to
+use lesser flash space.
+
+2. The 2.8 release modifies the flash layout such that the ftfs
+partitions are moved to the external flash, and the wireless firmware
+image is moved into the internal flash. Such a layout allows for
+maximum flexibility for sizes of various components in the system.
+
+Please update the flash layout on your boards as follows:
+
+ a. Goto tools/mc200/OpenOCD
+ b. Execute
+    ./flashprog.sh --new-layout layout.txt
+ c. Flash boot2, firmware and filesystem and new wireless firmware
+    images.
+ Note: All settings stored in psm will be lost.
+
+
+Upgrading from Release 2.5 or below
+===================================
+
+Please take note of the following changes:
+
+1. This Wireless Firmware available with this release includes the
+support for P2P. This increases the wireless firmware size. The same
+has been updated in the default flash layout. Please update the flash
+layout on your boards as follows:
+
+ a. Goto tools/mc200/OpenOCD
+ b. Execute
+    ./flashprog.sh --new-layout layout.txt
+ c. Flash boot2, firmware and filesystem and new wireless firmware
+    images.
+ Note: All settings stored in psm will be lost.
+
+Upgrading from Release 2.3 or below
+===================================
+
+Please take note of the following changes:
+
+1. This release changes the flash layout configuration. It is
+recommended that you take the following steps:
+ a. Goto tools/mc200/OpenOCD
+ b. Execute
+    ./flashprog.sh --new-layout layout.txt
+ c. Flash boot2, firmware and filesystem and wireless firmware
+    images.
+ Note: All settings stored in psm will be lost.
+
+2. The format of the batch configuration file for flashprog has also
+changed. Please refer to the WMSDK User Guide for more details.
+
+Upgrading from Release 2.2 or below
+===================================
+
+Please take note of the following changes:
+
+1. This release changes the on-flash signature of some components. It
+is recommended that you take the following steps:
+ a. Using flashprog erase entire internal/external flash (advanced
+    menu option).
+ b. Flash boot2, firmware and filesystem and wireless firmware
+    images.
+ Note: All settings stored in psm will be lost.
+
+2. The default name of the generated flash binary is now changed to
+only say project_name.bin as against project_name_flash.bin
+
+3. flash_pack.py now by-default compresses all .html/js/css files in
+the directory before generating the ftfs image
+
+Upgrading from Release 2.1 or below
+===================================
+
+It is recommended that users should update their cross toolchain to
+the atleast version 4.6.1 (CodeSourcery v2011.09). The older tool
+chain generates (a) builds that are larger in size and hence do not
+fit in the flash and (b) erroneous binaries that fail when certain
+power-save features are used.
+
+Upgrading from Release 2.0
+==========================
+
+This release incorporates change to use hardware crc engine and hence
+while upgrading from older 2.0 release, following steps should be
+carried out:
+
+1. Using flashprog erase entire internal flash (advanced menu option).
+2. Flash boot2, firmware and filesystem images.
+Note: All settings stored in psm will be lost.
+

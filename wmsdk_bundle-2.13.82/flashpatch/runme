@@ -1,0 +1,3 @@
+#!/bin/sh
+./flashpatch -l layout.txt -b config.txt
+rm -f flashprog.config  flashprog.layout

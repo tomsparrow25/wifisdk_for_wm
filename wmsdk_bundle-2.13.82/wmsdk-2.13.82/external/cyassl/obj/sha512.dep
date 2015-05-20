@@ -1,0 +1,3 @@
+obj/sha512.o: ctaocrypt/src/sha512.c \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/cyassl/cyassl/ctaocrypt/settings.h \
+ /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/external/cyassl/cyassl/ctaocrypt/visibility.h

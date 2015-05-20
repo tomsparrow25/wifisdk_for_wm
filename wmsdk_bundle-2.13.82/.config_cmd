@@ -1,0 +1,5 @@
+SDK_DIR ?= /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82
+BOOT2_DIR ?= 
+SAMPLE_APP_DIR ?= /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/sample_apps
+REF_APPS_DIR ?= 
+S_BOARD ?= mc200_8801

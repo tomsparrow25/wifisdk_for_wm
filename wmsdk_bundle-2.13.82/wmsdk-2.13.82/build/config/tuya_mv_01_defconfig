@@ -1,0 +1,68 @@
+#
+# Automatically generated make config: don't edit
+# WMSDK version:
+
+#
+# System Type
+#
+
+CONFIG_CPU_MC200=y
+CONFIG_WiFi_8801=y
+
+#
+# Command Line Interface support
+#
+
+#
+# Peripheral Drivers
+#
+
+#
+# Modules
+#
+
+#
+# WLAN
+#
+CONFIG_HOST_SUPP=y
+# CONFIG_WPS2 is not set
+CONFIG_11N=y
+# CONFIG_WLAN_FAST_PATH is not set
+
+#
+# MDNS
+#
+# CONFIG_MDNS_QUERY is not set
+
+#
+# Application Framework
+#
+CONFIG_APP_FRM_PROV_WPS=y
+
+#
+# Miscellaneous
+#
+# CONFIG_UART_RS485 is not set
+# CONFIG_SW_WATCHDOG is not set
+
+#
+# Development and Debugging
+#
+# CONFIG_WLCMGR_DEBUG is not set
+# CONFIG_HTTPD_DEBUG is not set
+# CONFIG_DHCP_SERVER_DEBUG is not set
+# CONFIG_PROVISIONING_DEBUG is not set
+# CONFIG_MDNS_DEBUG is not set
+# CONFIG_MDNS_CHECK_ARGS is not set
+# CONFIG_HEAP_DEBUG is not set
+# CONFIG_ENABLE_TESTS is not set
+# CONFIG_HTTPD_TESTS is not set
+# CONFIG_JSON_TESTS is not set
+# CONFIG_CLI_TESTS is not set
+# CONFIG_SYSINFO_TESTS is not set
+# CONFIG_MDNS_TESTS is not set
+# CONFIG_EZXML_TESTS is not set
+# CONFIG_BA_TESTS is not set
+# CONFIG_MDEV_TESTS is not set
+# CONFIG_HEAP_TESTS is not set
+# CONFIG_AUTO_TEST_BUILD is not set

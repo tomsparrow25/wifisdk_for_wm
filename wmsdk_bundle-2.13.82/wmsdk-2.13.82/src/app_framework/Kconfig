@@ -1,0 +1,14 @@
+menu "Application Framework"
+
+
+config APP_FRM_PROV_WPS
+       bool "WPS Provisioning support"
+       select WPS2
+       help
+         This option enables the use of WPS in Provisioning in addition
+	 to the provisioning network selected above.
+	 Say Y if the application framework should also enable WPS in
+	 provisioning mode.
+
+
+endmenu

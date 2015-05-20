@@ -1,0 +1,3 @@
+name=wpa2-enterprise-network
+identity=client1
+ssid=wpa2-ent-ap

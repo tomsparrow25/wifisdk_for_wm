@@ -1,0 +1,1191 @@
+version 2.13
+-----------
+
+Enhancements:
+============
+1. Support for AB-88MC200-W8801-V1 boards
+2. Third-Party Cloud Support:
+   - Support for Xively cloud
+   - Support for Arrayent cloud
+3. EZConnect provisioning: significantly reduces the provisioning UI
+   complexity
+4. Include Phone (Android/iOS) apps and source code for:
+   - Marvell Provisioning
+   - EZConnect Provisioning
+5. Support for the GNU ARM Toolchain
+6. Support for Mac OS-X as Development Host
+7. Support for Mixed WPA/WPA2 mode security in Marvell Provisioning
+8. WiFi:
+   - Support to limit the number of clients that can connect to the
+     micro-AP interface
+   - Support for external authenticator/supplicant while working
+     with 8801
+   - Include support for including vendor-specific custom IEs in
+     micro-AP beacons
+   - Connect to the network with best signal strength, when
+     multiple networks with the same name are detected
+   - Sniffer-mode Support
+9. footprint.pl:
+   - Sort symbols in descending order of size
+   - Provide option to shows symbols based on section instead of
+   library
+   - Include heap size in the output
+10. Marvell Provisioning modified to also support on-demand scan
+   (previously only periodic scan was supported)
+11. FreeRTOS: Include support for displaying runtime CPU statistics
+12. Provisioning: Include support for 'wildcard' security type in the
+    /sys/network API, for use when the client isn't aware of the
+    security of the target Access Point
+
+Bugfixes:
+=========
+1. Fix erroneous buffer write after timeout in I2C Slave mode
+2. In PM2, current consumption changes significantly with temperature
+   (Vfl is now in deep off)
+3. WiFi scan fails after exit from WiFi PDN
+4. Fix memory leak in websockets/long-polling cloud code in case of
+   error conditions
+5. Cannot connect to hidden SSID with 802.11d is enabled
+
+API Changes
+===========
+1. New API wlan_sniffer_start/stop for starting and stopping the
+   sniffer mode
+2. os_init() is now a weak function. This can be overridden by
+   applications' that wish to use no OS
+3. New API os_get_runtime_stats() can be used for getting runtime
+   statistics of various threads
+4. New API in the application framework:
+   app_ezconnect_provisioning_start/stop for starting and stopping the
+   EZConnect provisioning. Lower level APIs prov_ezconnect_start/stop
+   are also exposed by the provisioning module for EZConnect
+   provisioning. APIs prov_ezconn_set_device_key /
+   prov_ezconn_unset_device_key for setting and unsetting encryption
+   key during EZConnect provisioning
+5. New APIs app_mdns_add_service/app_mdns_remove_service to add or
+   remove mDNS/SD services. While the earlier API
+   app_mdns_add_service_iface provides the entire set of services to
+   be advertised in a single go, the new APIs allow for incrementally
+   adding to or removing from the existing set of mDNS/SD services to
+   be announced
+6. New APIs i2c_drv_set_clkcnt for I2C clock configuration
+7. New API httpd_send_response_301() for sending an HTTP 301 response
+   to the client
+8. New API prov_set_scan_policy() that can switch the scanning policy
+   in Marvell provisioning between periodic and on-demand
+9. New APIs wlan_set_11d(), wlan_set_region_code() and
+   wlan_set_domain_params() for 802.11d support in the station mode
+10. New security type WLAN_SECURITY_WILDCARD for cases where the user
+   is not aware of the security type of the target network
+11. New APIs wlan_{set|get|clear}_mgmt_ie() for managing the IEs
+   (Information Elements) in the micro-AP's beacons
+12. New APIs wlan_get_sta_tx_power() and wlan_set_sta_tx_power() to
+   control the transmit power of the station interface
+
+version 2.12
+-----------
+
+Enhancements:
+============
+1. USB Host CDC Support
+2. WebSockets Support
+3. Support for P2P in application framework
+4. Support for the external flash of the High-Flying module HF
+   LPB-200. The flash id 2 should be used in the layout files for
+   referring to this flash
+5. Driver Enhancements:
+   UART: Support for configuring Parity, Stop-bits and DMA read block
+   size
+   ADC: DMA support for ADC driver
+
+Bugfixes:
+=========
+1. When WPA2 Enterprise is enabled, the normal TLS functionality was
+   not available.
+2. HTTP Client can now differentiate between socket time out, socket
+   errors and peer disconnected scenarios.
+
+
+API Changes
+===========
+1. New API os_total_ticks_get() is added which returns a 64 bit OS
+   tick counter value. The current applications which use
+   os_ticks_get() for delay measurement, are vulnerable to wrap around
+   problems. The internal tick counter value returned by
+   os_ticks_get() wraps around after approximately 49 days. This new
+   API is safer to use as it is 64 bit.
+2. New member HDR_ADD_CONTENT_TYPE_JSON is now included in
+   http_hdr_field_sel_t.
+3. If a NULL passphrase is passed to app_uap_start* functions the
+   micro-AP network comes up in Open mode.
+4. Earlier, two variants of the data type tls_init_config_t were used,
+   one when WPA2-Enterprise was enabled, and the other
+   otherwise. Now the same structure is used in both the cases.
+5. The file wmutils.h is now renamed to wm_utils.h.
+6. New APIs adc_drv_calib(), adc_modify_default_config() and
+   adc_get_config() are included for calibrating the ADC, modifying
+   the ADC configuration and retrieving the ADC configuration
+   respectively.
+7. The values of the UAP Power Save enum are updated to be exclusive
+   from those of the Station Power Save enum.
+8. New API http_getsockopt() to get socket options related to the
+   HTTP Client's socket.
+9. HTTP Client APIs now return two additional error values:
+   - WM_E_HTTPC_SOCKET_SHUTDOWN: if the peer end has closed the
+   connection
+   - WM_E_HTTPC_SOCKET_ERROR: for any socket error. The corresponding
+   error should be looked up in 'errno'
+   This now solves the problem of not being able to distinguish
+   between a peer-closed and timed-out for HTTPC Client connections.
+10. New API uart_drv_dma_rd_blk_size() is included to configure the
+   UART DMA's read block length.
+11. New API uart_drv_set_opts() to control the parity and stop-bits
+   option of the UART driver.
+12. New APIs for websockets are introduced:
+    - ws_upgrade_socket() to upgrade the HTTP request to websocket
+    - ws_frame_send() to send a frame over WebSocket
+    - ws_frame_recv() to received a frame over WebSocketn
+    - ws_close_ctx() to close the Websocket context
+13. Members server_cert and server_cert_size are now removed from the
+   tls_init_config_t data type. Server certificate validation can be
+   performed using the ca_cert and ca_cert_size members of the same
+   data type.
+14. New API app_ctrl_event_name() that converts an application
+   framework event id to a string representation.
+15. New API adc_drv_get_samples() introduced to read n samples of
+   analog input over DMA.
+16. usb_host_drv_*() APIs now enable USB Host CDC read/writes
+17. enum wlan_mode is no longer used. enum wlan_bss_role is used to
+   indicate the role of the interface (station and micro-AP). And
+   enum wlan_bss_type is used to indicate whether this is WiFi-Direct
+   interface or the standard interface. WLAN_MODE_INFRASTRUCTURE is
+   changed to WLAN_BSS_ROLE_STA and WLAN_MODE_UAP is changed to
+   WLAN_BSS_ROLE_UAP. WLAN_MODE_P2P* are no longer used. This
+   information is provided using the enum wlan_bss_type as mentioned
+   above.
+18. WLAN_REASON_P2P_* events are now deprecated. The events for the
+   station and micro-AP themselves are used to indicate success or
+   failure of the P2P interface.
+19. The libctaocrypt.a is now a separate library instead of being a
+   part of the libcyassl.a. The rest of the licensing requirements
+   stay the same.
+20. New APIs app_p2p_start(), app_p2p_stop(), app_p2p_disconnect(),
+   app_p2p_session_start() and app_p2p_scan() are introduced to use
+   P2P from the application framework.
+21. The wlan_connect API now cannot be used with a NULL profile name.
+
+
+version 2.11
+-----------
+
+Enhancements:
+============
+1. Support for association with WPA2-Enterprise AP using EAP-TLS
+authentication
+2. USB Driver Support:
+   - USB Host driver
+   - USB Video class driver
+3. WiFi Driver
+   - Cleanups and refactoring
+   - Support for association with stealth mode AP
+   - Support for non-HT association with 11n AP when the security
+   specified is WEP, WPA-TKIP or WPA-AES
+   - Support for Open security in micro-AP mode
+   - Support for handling multiple credentials returned after a
+   successful WPS session
+   - Handle disconnect events in 'connecting' state
+   - Support for configuration of null packet interval in IEEEPS mode
+   - Support for configuration of region/domain codes required for
+   802.11d
+4. mDNS-SD
+  - finer grained application control on the services to monitor using
+  mDNS querier
+  - Subtype based discovery support
+5. uaputl CLI: get/set channel, get/set tx power, get/set data rates
+6. Support for revision A1 of the 88MC200 chip
+7. TLS
+   - Support for server-side verification of client certificates
+   - CyaSSL library upgraded to version 2.7.0 from 2.5.0
+8. A New Provisioning Protocol is now implemented that is more robust
+and handles most common scenarios
+9. DHCP Server: Support for MAC-IP Address affinity. For the first few
+devices, the IP Addresses assigned to them will be remembered and the
+same address will be assigned for lease renewal
+10. HTTPd WSGI Refactoring
+  - Updated to make it much easier for applications to write WSGI
+  handlers
+  - Offer greater flexibility to advanced users
+11. CLI: Remove WMSDK configuration options for all CLIs, provide the
+capability to the application to decide what should be initialized by
+directly calling the corresponding module_cli_init() function
+12. FTFS: More efficient file serving
+13. TCP transmit performance improvements especially when WiFi PS is
+  enabled
+14. Debugging: Sempahore debugging support
+
+Bugfixes:
+=========
+1. The httpc client lowlevel read/write would not work when 0 or more
+ http transactions are complete. After this fix, lowlevel read/write
+ can be done immediately after http_open_session()
+2. PM4 + DS wakeup is not reliable
+3. In case of WPS Provisioning -> Reset to Provisioning -> WPS
+ Provisioning, the second WPS provisioning does not return the correct
+ credentials
+4. Race condition in UART driver leads to data lock ups after large
+ data transfer
+5. Dynamic Frequency Selection (DFS) doesn't work correctly in 5GHz
+ mode. Probe requests were being sent on channels where radar
+ interference was detected
+6. Incorrect security type reported in output of wlan-scan
+7. Power Manager framework with PM3 hangs after a certain data
+ transfer is performed
+8. Get/Set Antenna Diversity does not work correctly
+9. With some APs, entering incorrect passphrase causes (i) infinite
+ looping between connecting and link-loss events or (ii) the wlcmgr
+ state machine to stall
+10. Sometimes DHCP client stalls infinitely while trying to acquire
+ the DHCP address
+11. BSS section not initialized correctly in overlays
+12. Memory leak after i2c_close
+13. UART communication with baud rates greater than 115200 does not
+ work when 88MC200 is running at 32MHz frequency
+14. WPS Interoperability issue with some APs
+
+API Changes
+===========
+1. The HTTPD WSGI handler interface has undergone a major change. The
+older APIs HTTPD_WSGI_CALL(), pattern_http_common_handler() are
+removed. The following new APIs are introduced:
+ - httpd_register_wsgi_handler()/unregister_wsgi_handler() - for
+ registering WSGI handlers
+ - httpd_send_response() to send the complete response of a WSGI
+ handler
+ - httpd_get_data()/httpd_get_data_json() to read data received in a
+ POST request
+2. Support for the EEPROM driver, I2C-based GPIO expander and the
+I2C-based UART is removed
+3. The application framework event AF_EVT_NORMAL_AUTH_FAILED is no
+ longer available in the application framework. Instead the single
+ event AF_EVT_NORMAL_CONNECT_FAILED is used to report all the
+ connection failures types. A new data type app_conn_failure_reason_t
+ is passed as the 'data' for this event that describes the exact
+ reason for failure (like authentication failed, network not found
+ etc.)
+4. In case of AF_EVT_NORMAL_CONNECT_FAILED event from the application
+ framework, returning non-zero value from event handler causes auto
+ reconnection to stop.
+5. The command line interface of various modules is no longer a
+ build-time configuration option. Applications can determine which
+ CLIs to include by calling the corresponding module_cli_init()
+ function. New APIs wlan_cli_init(), wlan_enhanced_cli_init(),
+ wlan_iw_cli_init(), wlan_uaputl_cli_init(), pm_cli_init(),
+ wmtime_cli_init() and ftfs_cli_init() are introduced for this
+ purpose
+6. In mDNS-SD, the DEFINE_TXT_REC API is removed. Users should directly
+ pass the string buffer to SET_TXT_REC
+7. AES CCM is disabled by default in CyaSSL configuration
+8. app_httpd_with_fs_start() is modified to include an additional
+ parameter. This is an out parameter that returns the filesystem that
+ is initialized by the HTTPd server
+9. The first parameter of http_lowlevel_write() is changed from
+ 'http_session_t *' to 'http_session_t'
+10. The behaviour of mdns_query_cb() is modified to provide applications
+ with a finer control of what entries the mDNS should cache. If the
+ query callback returns WM_SUCCESS in response to a MDNS_DISCOVERED or
+ MDNS_UPDATED events, then the service is deemed to be of interest to
+ the query callback and hence is cached. If any value other than
+ WM_SUCCESS is returned, then the service is not cached/monitored.
+11. TLS_USE_CLIENT_CERT is introduced in tls_session_flags. When
+ enabled, the client's  certificate is passed to the server. This
+ enables server to perform client certificate validation. Members are
+ also introduced in tls_init_config_t to make a note of the client
+ certificate and key that can then be passed to the server
+12. mdns_query_monitor() now includes support for sub-type based service
+ discovery as well. The fqst parameter can now include a sub-type
+ based service as well
+13. New API app_sta_stop() is introduced to stop the station
+ interface. This disconnects the station and makes it idle. The
+ station can be started again using app_sta_start()
+14. New API app_sta_start_by_network() is introduced to start a station on the
+ network that is provided as a parameter instead of the one in the
+ PSM
+15. New API app_ctrl_notify_application_event() is introduced. This
+ allows the application to send events to itself. This is useful when
+ the application wishes to perform some action in the context of the
+ app_framework's thread itself.
+16. New API app_uap_start_with_dhcp() is introduced to start the
+ micro-AP interface, and starting the DHCP Server on this interface
+17. New APIs are introduced for the USB Host driver. The APIs
+ usb_host_drv_init(), usb_host_drv_open(), usb_host_drv_start(),
+ usb_host_drv_stop(), usb_host_drv_read(), usb_host_drv_write(),
+ usb_host_drv_close() are introduced to work with the USB Host driver
+18. New APIs for the I2C driver are introduced:
+  - i2c_drv_get_status_bitmap() - Get status of the I2C Controller
+  - i2c_drv_enable() - Enable the I2C port
+  - i2c_drv_disable() - Disable the I2C port
+  - i2c_drv_timeout() - Set timeout for I2C read/write for I2C master
+19. New API os_mem_calloc() introduced to allocate and clear the allocated
+ heap memory in a single call
+20. New API wlan_configure_null_pkt_interval() is introduced to
+ configure the NULL packet interval when the WiFi station interface
+ is in the IEEEPS mode
+21. New APIs wlan_get_region_code(), wlan_set_region_code() and
+ wlan_uap_set_domain_params() are introduced for control over the
+ region and country code settings as per 802.11d
+22. New API wlan_set_mac_addr() introduced to optionally set the MAC
+ Address of the WiFi interface at runtime
+23. New API wlan_set_cal_data() introduced to optionally set the
+ calibration data of the WiFi interface at runtime
+24. New API dhcp_server_lease_timeout() is introduced to configure the
+ lease duration that is offered by the DHCP server
+25. New API http_setsockopt() is introduced to set socket options for
+ the socket associated with the HTTP client
+26. New API cli_stop() is introduced to stop the CLI module
+
+
+
+version 2.10
+-----------
+Enhancements
+============
+1. CyaSSL library upgraded to version 2.5.0
+2. AES CCM and CTR mode support
+3. Power Manager Framework (PMF) robustness. This is no longer a
+compilation option. Applications call pm_mc200_cfg/pm_ieeeps_hs_cfg
+to use PMF
+   - re-factoring of the IEEEPS and deepsleep state machines
+   - timer and thread wakeup optimizations to ensure that the
+   processor stays in PS modes for longer durations
+   - provisioning changes to facilitate connection status indicator
+   when PMF is used
+   - PM4+deepsleep and PM2+IEEEPS power states are reliably supported
+4. PSM: Support for erasing single partition
+5. Blocking UART read support
+6. Faster ram loading support via OpenOCD
+7. Brown-out detection and reset support
+8. Support for WiFi Firmware upgrades
+9. Support for redundant partition tables
+10. Optimize association time with WPS and WiFi-Direct
+11. Driver Changes:
+    - Receive/Transmit DMA Support for UART
+    - I2C 10-bit address mode support
+    - User configurable receive buffer for I2C
+12. /sys/perf HTTP API for quickly getting a sense of network
+performance
+13. Seperate linker section for peripheral DMA I/O buffers
+
+API Changes
+===========
+1. New board API board_32k_osc that informs whether a 32KHz
+oscillator is available and functioning on the board
+2. http_add_header() takes additional parameter http_req_t
+3. The wmtime module now uses standard "struct tm". All the members
+   are of the type int
+4. New Application framework event:
+   - AF_EVT_PROV_CLIENT_DONE: an indication that the http provisioning
+   client has acknowledged successful provisioning
+5. pm_mc200_state_hs, wlan_ieeeps_on, wlan_ieeeps_off are deprecated
+   since they are potentially unsafe to use. Prefer to use
+   pm_ieeeps_hs_cfg for configuration of IEEEPS and hostsleep.
+6. WAKE_ON_BROADCAST wakeup condition is modified. It is now split
+into two separate wakeup conditions:
+     - WAKE_ON_ALL_BROADCAST: Wake the host processor on any broadcast
+     request
+     - WAKE_ON_ARP_BROADCAST: Wake the host processor only when an ARP
+     request for the device's IP Address is received
+7. New API uart_drv_blocking_read() that configures the UART such that
+reads will be blocking
+8. wakelock_get/put calls now take an additional string
+parameter. This string is used to match corresponding get/put requests
+for debugging purposes
+9. New APIs for AES aes_drv_ccm_setkey, aes_drv_ccm_encrypt,
+aes_drv_ccm_decrypt for AES CCM based operations
+10. New API uart_drv_xfer_mode to enable DMA for UART data transfers
+11. New APIs uart_drv_rxbuf_size, i2c_drv_rxbuf_size to change the rx
+ring buffer size of UART/I2C
+12. New Application framework API app_sys_register_perf_handler for
+applications that wish to register performance measurement HTTP
+handlers
+13. New PSM API psm_get_partition_id and psm_erase_partition for
+selectively erasing partitions
+
+
+Bugfixes
+========
+Following bugs were fixed:
+1. After scanning, the first association attempt may fail
+2. Device doesn't get DHCP address after link-loss (Power Manager
+Framework)
+3. Sometimes MC200 does not wake from PM2/4 even after wakeup is
+received
+4. Device doesn't associate with WEP mode AP, if previously associated
+with WPA2 mode AP
+5. Association doesn't work with Open mode AP
+6. System stops entering PM1 opportunistically when pm_mc200_cfg is
+called with PM2/3
+7. WPS is not robust when link is lost with the AP during initial
+handshake
+8. ssp_drv_pio_write sometimes corrupts SPI read data in full-duplex
+mode
+9. Hardfault during association with 11n is disabled
+
+version 2.9
+-----------
+Enhancements
+============
+1. Power Manager Framework support (Experimental)
+2. Support for Overlays (overlays.h)
+3. Overhauling of the WLAN driver
+4. Support for Hardware RTC (A0 chips only)
+5. Limited XIP Support
+6. Support for IAR toolchain/IDE
+7. Modular web applications for wm_demo
+8. OpenOCD updated to latest version 0.6.1
+9. Device driver enhancements:
+   - new APIs to modify clock frequency/buffer size for SSP
+   - DMA support for SPI slave read
+10. Support for chunked transfer encoding in HTTP Client
+
+Bugfixes
+========
+Fixed the following:
+1. httpd url parsing doesn't stop at '?'
+2. multi-byte read issue in mdev I2C driver
+3. Webserver hangs sometimes when the client closes connection
+abruptly
+4. Ring-buffer full condition incorrect in SSP, UART and I2C
+drivers
+5. ssp_drv_read() needs to disable interrupts
+6. CRC calculation APIs (block/stream mode) truncate data length to
+256KB
+
+API Changes
+===========
+1. i2c_drv_{read/write} APIs no longer contain the flags parameter
+2. New API for overlay management (overlays.h)
+3. The APIs  httpd_parse_post_form()/httpd_lookup_tag() are now deprecated
+4. httpd_get_tag_from_post_data()/httpd_get_tag_from_url() are
+available for querying tag/value pairs in GET/POST requests
+5. New APIs for power manager framework introduced: pm_mc200_cfg() and
+pm_ieeeps_cfg()
+6. The security type WLAN_SECURITY_WPA_WPA2_MIXED is available for
+network profiles
+7. Additional events AF_EVT_PROV_WPS_SUCCESSFUL and
+AF_EVT_PROV_WPS_UNSUCCESSFUL are added in the application framework to
+indicate intermediate steps during provisioning
+8. New APIs ssp_drv_set_clk() and ssp_drv_rxbuf_size() for modifying
+SSP clock frequency and receive buffer size
+9. New APIs httpc_write_chunked(), for chunked transfer encoding and
+http_get_response_hdr_all() for reading HTTP response header
+name-value pairs
+10. rtc_drv_config() is replaced by rtc_drv_set() that correctly
+describes the API. New API rtc_drv_get() for querying the uppval
+11. Power Manager APIs pm_mc200_{standby|sleep|shutdown|idle} replaced
+by a single API pm_mc200_state(). APIs pm_mc200_{sleep|standby}_hs
+replaced by single API pm_mc200_state_hs()
+
+Known Issues
+============
+1. Very infrequently, Power Manager Framework, if already in IEEE power
+save mode, fails to re-enter it after link loss event. The current
+workaround is to disable and enable Power Manager Framework upon
+detection of a link loss event to resume IEEE power save operation.
+This issue is not deterministically reproducible.
+2. pm3_ieeeps_hs_demo works for around 200 ping packets. It might
+fail after that. This issue is under debug.
+
+
+version 2.8
+-----------
+
+Enhancements
+============
+1. Drop PMU clock to 1MHz in low-power modes. This results in better
+current consumption
+2. Support for PM3 + IEEEPS with hostsleep
+3. Support for PM4 + Deepsleep power save
+4. Provisioning changes:
+   - Provisioning is now a pure service. WLAN state management is
+   managed by the application
+   - Provisioning success/failure result available in the UI pages
+   - Avoid reboot for reset-to-provisioning
+5. WMSDK internally uses a CMSISv3.0-compliant 88mc200 driver API
+6. WLAN firmware compression support. Compressed WLAN firmware images
+consume lesser flash space
+7. Support for new boards:
+   - Lark mini Development Board v2
+   - Azurewave AW-CU2XX
+8. USB Mass Storage Client Demo
+
+Bugfixes
+========
+1. Change network in normal does not always work
+
+API Changes
+===========
+1. Provisioning changes:
+   - prov_start: The member 'struct wlan_network' has been removed
+   from the struct prov_config. Connection mgmt is now left upto the
+   application
+   - PROV_NETWORK_START/PROV_NETWORK_STOP/PROV_SUCCESSFUL events are
+   now removed
+   - app_provisioning_start/app_provisioning_with_fs_start are
+   replaced by a single API app_provisioning_start. The only
+   parameter that is accepted is the provisioning mode
+   - AF_EVT_PROV_NW_START/AF_EVT_PROV_NW_STOP events are
+   removed. AF_EVT_PROV_WPS_START event is introduced to indicate the
+   start of WPS session
+2. The application framework doesn't start the station interface by
+default. A new API app_sta_start() is introduced for allowing the
+applications to control when to start the station interface
+3. New application framework event AF_EVT_NORMAL_AUTH_FAILED to
+indicate and authentication failure with the AP
+4. board_gpio_power_on is now used such that boards can perform any
+boot-time GPIO settings in this function
+5. New APIs json_set_val_uint/json_set_val_uint_64 are available to
+set unsigned 32/64-bit integer values
+6. The board_led and board_button API names are modified as follows:
+Old name  -  New name
+board_led_green  -  board_led_1
+board_led_yellow  -  board_led_2
+board_led_white  -  board_led_3
+board_led_blue  -  board_led_4
+board_button_wps  -  board_button_1
+board_button_reset_prov  -  board_button_2
+board_button_boot_override  -  board_button_3
+7. New board API added for 32 KHz crystal, board_32k_xtal
+8. The values of the enum power_save_event_t have been changed from
+lower case to upper case
+9. The wlan_callback, that is registered with the wlan_start() now
+also accepts a 'data' pointer parameter
+
+Known Issues
+============
+1. The USB Mass Storage Client demo doesn't work on Windows 7
+
+
+version 2.7
+-----------
+
+Enhancements
+============
+1. Power management changes:
+   - switch off all I/O domains in low power mode
+   - wifi host-wakeup pulse duration is reduced
+   - optimized pm2+ieeeps power consumption in low_power_demo
+2. Enable fast wlan connection on link-loss
+2. Allow apps to create local sockets even for wifi is initialized
+3. p2p_disconnect() support
+4. httpc: function to read individual http headers
+
+Bugfixes
+========
+1. Fix a race condition in wlan_stop
+2. Interoperability fixes for P2P
+3. Fix i2c driver for multibyte reads
+4. Fix ieeeps wakeup-sleep logic in conjunction with hostsleep
+
+API Changes
+===========
+1. The p2p_disconnect() API is now available to disconnect from an
+existing P2P session
+2. The WPS APIs are updated to be consistent with the P2P APIs. Thus,
+the wps_send_command API has been replaced with the wps_connect API
+3. The sdio_drv_deinit function is available to de-initialize the SDIO
+driver
+4. http_get_response_hdr_value API is now available that allows apps
+to read various fields in the HTTP response
+
+Version 2.6
+-----------
+
+Enhancements
+============
+1. Support for receiving A-MPDU and A-MSDU frames
+2. Support for 802.11d region codes
+3. Support for 5GHz band in 802.11n mode
+4. Support for WiFi-Direct (P2P)
+5. USB CDC Driver support
+6. DMA support in SSP mdev driver
+7. LWIP sources updated to 1.4.1-rc1
+8. Provide APIs such that HTTPD WSGI handlers can be interface-aware
+9. Refactoring of the SDIO driver. This is now mdev-based
+
+
+Bugfixes
+========
+1. Multiple failures are observed before wlan_connect() can connect to
+a configured network
+2. WPS reliability fixes
+3. Race-condition in the heap allocator observed under heavy load
+4. Data communication when IEEPS mode on causes firmware hang
+
+API Changes
+===========
+1. SSP mdev driver init API accepts an additional parameter for dma
+2. New APIs introduced for SDIO driver, USB CDC driver and WiFi P2P
+3. main() is also now available as an application entry point
+4. pm_mc2k_sleep, pm_mc2k_shutdown, pm_mc2k_standy, pm_mc2k_idle,
+   pm_mc2k_standby_hs are changed to pm_mc200_sleep,
+   pm_mc200_shutdown, pm_mc200_standy, pm_mc200_idle,
+   pm_mc200_standby_hs
+5. All the APIs for the DTP driver
+
+version 2.5
+-----------
+
+Enhancements
+============
+1. Include support for hostsleep and waking up the host using events
+   on the WLAN interface
+2. Partial 802.11n support. 802.11n rx-side aggregation (AMPDU/AMSDU)
+   not yet supported
+3. Display scan results in decreasing order of strength with better
+   granularity
+4. Support for new CodeSourcery toolchain 2012.03-56
+5. Support for Lark-mini (LK20) Development Board
+6. Added multiple interface support in mDNS
+7. WMM: For APs that support WMM, traffic is classified as AC_BE
+   (Best Effort)
+8. Enhancement to 'sysinfo thread' output to show thread priorities
+
+Bugfixes
+========
+1. hardfault when cloud enable-disable sequence is called frequently
+2. pings with size greater than 2048 fail
+3. association with an AP with incorrect security settings. If the
+   device is configured to associate with an WPA2 AP, it shouldn't
+   associate with an AP in open mode having the same SSID
+
+API Changes
+===========
+1. 88MC200 power management APIs which put system in low power mode
+   accepts time duration in milliseconds
+2. JSON get_val_str APIs do not truncate the string to the buffer size
+   but return an error instead
+3. New API pm_mc2k_standby_hs() for entering standby mode with
+   hostsleep (wake-on-wlan) feature
+4. SSP mdev based driver APIs for driver init and and driver write
+   operations
+
+Known Issues
+============
+1. The device hangs in IEEE-PS mode after a certain while because of
+an SDIO CRC error
+
+version 2.4
+-----------
+
+Enhancements
+============
+1. micro-AP power save support (along with a sample application)
+2. PWM support in GPT driver
+3. Interrupt-based SSP slave driver
+4. Enhanced script for footprint analysis
+5. wlan-scan improvements
+   - preference to networks with better signal strength
+   - separate scanning on channel sets to ensure connected stations
+   aren't dropped
+6. Improved flash layout configuration
+7. I2C slave mode support in I2C driver
+8. Add back-pressure handling support in LWIP. Improves TCP tx
+   performance
+9. I2C support in DTP driver
+10. API to modify multicast filters by applications
+11. Support for auto-channel in micro-AP
+12. Upgrade CyaSSL to version "2.2.0-Commercial"
+13. Power Save callback infrastructure for device drivers
+14. Support for MC200 Development Board V2
+
+Bugfixes
+========
+1. Reliable association of Windows-7 devices with the micro-AP mode
+2. memory corruption while loading axf
+3. 'uaputl bss_stop' doesn't stop micro-AP network
+4. Incorrect time representation (and hence incorrect invalidation of
+   TLS certificates)
+5. WPS:
+   - Corruption of the scan list
+   - Synchronization errors with some Access Points
+6. Alignment fixes while freeing memory in ttcp
+7. Fix hang-ups in Wi-Fi Power Down (PDN) mode (a WLAN Firmware
+   command was being sent in PDN mode)
+
+API Changes
+===========
+1. rfget_server_mode_update/client_mode_update now accept a passive
+   partition entry instead of the type of upgrade
+2. ftfs_init/psm_init/wlan_init now accept a flash descriptor that
+   informs their corresponding flash locations
+3. New APIs rfget_update_begin/data/complete for implementing upgrades
+   for your own flash component
+4. New APIs for maintaing multicast filters for the wireless interface
+5. app_httpd_with_fs_start and app_provisioning_with_fs_start now
+   accept the filesystem's friendly name as a parameter
+6. The cloud middleware is no longer available. This functionality is
+   now quite straight-forward and hence moved into wm_demo
+
+version 2.3
+-----------
+Apart from minor bugfixes and cleanups, this release includes the
+following:
+
+Enhancements
+============
+1. HTTPD TLS support added
+2. Random Number generator seed derived from system params like signal
+strength etc.
+3. Reorg: Board-bring up files, boot2 are now available in wmapps
+4. mdev based drivers for: ADC, SSP (I2S and SPI), DAC
+5. WiFi firmware heartbeat handler to take care of situations when the
+WiFi firmware has crashed
+6. If-None-Match/Cache-Control support in HTTPD. Supports client-side
+caching
+7. Support for building images for standalone Lark Module V2, Lark
+Module V3 and Lark Development Board V2
+8. PM3 Power Save mode support and demo application
+9. Application Framework state machine refactored. More flexibility to
+applications to decide what should be done on various events
+10. JQuery based UI for wm_demo
+
+Bugfixes
+========
+1. Broken routing when uAP-STA are simultaneously activated
+2. uAP settings overwrite the default DNS settings
+3. Sometimes device hangs in obtaining address state after association
+with the AP
+4. Zero-initialize allocated memory to fix WPS-not working cases on
+some boards
+
+
+API Changes
+============
+1. wmstdio_printf is renamed to wmprintf
+2. Changes in mdev APIs: acomp_drv_init, gpt_drv_open, gpt_drv_init,
+i2c_drv_open, uart_drv_{init|open|read|write|ioctl|close}. Please
+refer to the reference manual for more information
+3. dhcp_server_start() no longer accepts a name_to_spoof
+parameter. Name resolution is taken care of by mDNS
+4. Application Framework only manages the state machine now. More APIs
+are available for applications to have a greater control
+5. Modules initialize the drivers that they are dependent on. No need
+to take care of this in the application
+6. Default binary for a project is now project_name.bin (the _flash is
+removed)
+
+version 2.2
+-----------
+Apart from minor bugfixes and cleanups, this release includes the
+following:
+
+Bugfixes
+========
+Fixes the following issue:
+1. Fixes in ttcp and network stack to address performance issues
+2. Conflict during parallel usage of AES operations
+3. mDNS correctly responds to requests without being case-sensitive
+4. Provision to update IP Address and hostname in the mDNS service
+
+Enhancements
+============
+1. Flashprog
+   - Flashprog utility modified to have consistent entry point address
+     across changes in source code
+   - Batch processing support to flash all binaries (boot2, fw, ftfs,
+     wlanfw) in single step
+2. Added support for AES hardware accelerator
+3. CyaSSL v2.0.8 (Commercial version) TLS library integrated with
+   WMSDK
+4. Mdev abstraction layer for following drivers
+   - General purpose timers (GPT)
+   - CRC
+   - AES
+   - RTC
+   - Watchdog
+   - Analog Comparator
+5. TLS (https) support in http client
+6. Application Framework: enable mdns service in provisioning mode
+7. Flash Layout Selection
+   - Enable per-application flash layout configuration
+   - flashprog refers to the application specific flash layout
+8. Support for multiple FTFS partitions
+9. Antenna Diversity support: select best possible antenna
+10. Demo applications are split into separate wmapps tarball
+11. mDNS is enabled in provisioning mode
+12. Choice of long-listen interval (upto 65 seconds) for IEEE PS
+13. Cloud communication support
+
+version 2.1
+-----------
+
+Note:
+
+This release incorporates change to use hardware crc engine and hence
+while migrating from older 2.0 release, following steps should be
+carried out:
+1. Using flashprog erase entire internal flash (advanced menu option).
+2. Flash boot2, firmware and filesystem images.
+Note: All settings stored in psm will be lost.
+
+Bugfixes
+========
+1. http client chunked encoding handling issue solved
+2. Fixed reset to factory issue with boot2
+3. Include GPT and GPIO IRQs in vector table
+
+Enhancements
+============
+1. Hardware CRC support
+2. 88MC200 Power management support for PM1 (idle),PM2 (standby)
+   and PM4 (shutdown)
+3. Simultaneous micro-AP + STA support
+4. Support for uaputl and more options in iwpriv (getsignal,
+   getdatarate, antcfg)
+5. Easy-to-use API for all device drivers
+6. WiFi Power Management support
+7. Use optimized versions of memset/memcpy/memmove calls
+
+Deprecated
+==========
+1. Support for 8688 is removed. freertos and lwip are the only supported
+   OS and networking stack now.
+2. Support for AdHoc network is removed
+
+Known Issues
+============
+1. Hardware RTC is not supported
+2. Cloud communication is not supported
+
+version 2.0
+-----------
+This is the first general release for the Wireless Microcontroller SDK
+that supports Marvell's Microcontroller 88MC200 along with Marvell's
+Wireless Microcontroller SoC (88W8688). 
+
+Release Contents
+================
+Supported Platforms:
+
+1. Marvell's 88MC200 Development Kit + 8782
+2. Marvell's 88MC200 Development Kit + 8787
+3. Marvell's 88W8688 Development Kit (Mfg: Pactron/iWave)
+
+
+Supported Features:
+
+1. Core Run-Time Software Environment that can work with freeRTOS +
+   lwIP networking Stack (88MC200 only) or ThreadX RTOS + Treck
+   network stack (88W8688 only)
+2. WLAN: SDIO WLAN Driver for 8782/7 includes manufacturing mode
+   support, micro-AP Support, WPS2.0 Support
+3. WLAN Connection Manager
+4. CLI over serial console (stdout) and network (telnet)
+5. Time Management (Software-based)
+6. Watchdog Support
+7. Middleware components: HTTP Client/Server, DHCP Server, JSON/XML
+    Parser/Generator, Marvell Secure Provisioning, Redundant Partition
+    based Upgrades, Marvell SSDP, mDNS/DNS-SD full functionality
+    querier/responder, FTFS including flash_pack.py, WPS2.0-based
+    provisioning, Marvell Lightweight mDNS Querier, 2-layer Driver
+    Tunneling, support for association with 11-n only APs  {Data
+    transfer in 11n mode rates, No aggregation (AMSDU/AMPDU) support,
+    No Block Acknowledgement support}
+8. Application Layer software: Application Framework, helloworld and
+   wm_demo sample applications, Driver Tunnelling Protocol sample
+   application.
+9. mdev-based Device Drivers for 88MC200: UART (8/9bit), QSPI, Flash,
+   GPIO, SDIO, I2C, PINMUX, Hardware Watchdog, RTC (@32Hz), LCD
+10. mdev-based Device Drivers for 88W8688: UART (8/9bit), SPI_Flash,
+   GPIO, I2C, GSPI, SPI_GPIO, LCD, I2C_GPIO, EEPROM
+
+Development Options:
+
+1. Codesourcery gcc toolchain support (gcc version 4.4.1 (Sourcery G++
+   Lite 2010q1-188))
+2. Flash programming utility
+3. Kconfig based configuration options
+
+
+Debug and Diagnostics:
+
+1. Diagnostics hooks and end user visible API, Telnet Server,
+    Stack Overflow Detection, ttcp, nettest, sysinfo, Footprint
+    Analysis Script
+
+Documentation:
+
+1. SDK User Guide
+2. WMSDK Reference Manual
+3. 88MC200/88W8688 Board Setup Guides
+4. Marvell System API Guide
+5. Application Notes
+
+Updates from 1.x Releases
+=========================
+This release includes
+bugfixes, cleanups and enhancements through the various modules of the
+SDK. A brief list of new additions is as follows.
+
+Newly Supported Platforms:
+
+1. Marvell's 88MC200 Development Kit + 8782
+2. Marvell's 88MC200 Development Kit + 8787
+3. Marvell's 88W8688 Development Kit (Mfg: Pactron)
+
+
+Feature Enhancements:
+
+1. SDIO WLAN Driver for SD8782/7 (WLAN Manufacturing Mode Support)
+2. micro-AP Support (88MC200 only)
+3. WPS2.0 Support (88MC200 only)
+4. Additional middleware components: mDNS/DNS-SD querier and
+   responder, XML Parser/Generator
+5. Support for the freeRTOS Operating System and the lwIP networking
+   stack
+6. Flash Programming Utility for 88MC200
+7. mdev-based Device Drivers for 88MC200: UART (8/9bit), QSPI, Flash,
+   GPIO, SDIO, I2C, PINMUX, Hardware Watchdog, RTC (@32Hz), LCD
+8. mdev-based Device Drivers for 88W8688: UART (8/9bit), SPI_Flash,
+   GPIO, I2C, GSPI, SPI_GPIO, LCD, I2C_GPIO, EEPROM
+9. 2-layer Driver Tunnelling Protocol Driver and Demo
+10. 11n compatibility mode {Data transfer in 11n mode rates, No
+   aggregation (AMSDU/AMPDU) support, No Block Acknowledgement
+   support}
+11. Code Refactoring of modules: Provisioning, Application Framework,
+   HTTP Server, HTTP Client
+
+
+version 1.3
+-----------
+This version includes bugfixes and enhancements throughout the modules, and
+includes the following updates:
+
+Bug Fixes:
+==========
+1. JSON parser buffer overflow bugfix.
+2. Fix Web server behavior to close socket if client is not initiaing FYN
+   after idle timeout of 60 seconds.
+3. Fix network stack resource leakage issue on WLAN link loss event.
+4. Fix issue where null character in WEP key causes problem with WLAN
+   authentication.
+5. Fix buffer overflow by 1 character in ssdp.
+6. Make telnet socket non blocking as its used from interrupt context.
+7. Fix ftfs creation problem on ubuntu-11.04
+
+Feature Enhancements:
+=====================
+1. uart_rx485_drv: 9bit UART driver.
+2. SC16IS750: UART over I2C chip driver.
+3. Add support for RVCT4.1 compilation.
+3. Misc code cleanups, validation checks and documentation updates.
+
+version 1.2
+-----------
+This version includes bugfixes and enhancemnets throughout the modules, and
+includes the following updates:
+
+Bug Fixes:
+==========
+1.  Allow WPA2 passphrase length of upto 63 characters.
+2.  Include support for 128-bit WEP. Update the provisioning page verbiage to
+    indicate what type of keys to enter. WEP-40 and WEP-104 are supported in
+    Open Mode. WEP-Shared is NOT supported.
+3.  Fix issue of failure in getting DHCP address assignment from Airport Express
+    access point.
+4.  Include cloud-thread watchdog support.  If no cloud POST happens for more
+    than the duration (15 minutes + cloud_interval), then the WiFi module is
+    automatically rebooted.
+5.  Include watchdog support. The cloud or local network (from http API) can
+    configure the timeout for this watchdog. The cloud or local network can
+    periodically strobe this watchdog. If no strobe is received within the
+    timeout interval a reboot is triggered.
+6.  Add bootup robustness -
+    a. If any FTFS partitions with corrupt headers exist, ignore these.
+    b. Boot-up the system even if no suitable FTFS partition is found. Report
+       this event to the cloud.
+7.  HTTPD Web server Robustness -
+    a. If more than 2 sockets were opened with HTTPD, it entered an
+       infinite loop and took up all the CPU. Fix this erroneous behavior.
+    b. Clear state information before every request.
+    c. Allow case-insensitive HTTP headers like Content-Type and Content-Length.
+       This is required for some Android apps.
+8.  Treck Fixes: After a certain period of operation, the memory would be too
+    fragmented for successful allocations. This would result in the entire
+    network being inaccessible.
+       a. Make the buffer pool larger.
+       b. Configure treck such that it uses large memory block more efficiently,
+          thus optimising the memory usage.
+9.  Fix issue of handling of DHCP event in case device failed to renew lease.
+10. Add graceful shutdown for cloud thread so that it makes sure that it has
+    released acquired resources.
+
+Feature Enhancements:
+=====================
+1.  TCP/IP Enhancements -
+    a. Enable more number of socket descriptors. Applications have ability to
+       use up-to 8 TCP sockets now.
+    b. Limit httpd, http-client and cloud sockets send/receive queue to 2KB for
+       allowing more number of concurrent sockets for application usage.
+2.  Scan Improvements:
+    a. Include RSSI field in scan results API
+    b. Include /sys/scan/config (3 parameters, channel, dwell-time, scan-interval)
+3.  Provision to reboot from the cloud.
+4.  Report the hostname to the AP in DHCP request.
+5.  Cleanups -
+    a. Remove SSI Handlers from the web pages.
+    b. Do not use hard-coded salt for secure provisioning.
+    c. All POST responses are JSON formatted.
+    d. Use gzip compression for large files: prov.js and crypto.js in FTFS.
+       This uses the flash layout in a better manner. Load times are faster too.
+6.  Report diagnostics to the cloud. Report the following fields:
+    a. If the device was rebooted because of the cloud-thread watchdog.
+    b. If no suitable FTFS partition was found.
+    c. If the FTFS image was successfully upgraded.
+    d. If errors occur when performing writes to the SPI flash.
+7.  HTTP API Changes -
+    a. API which conforms to more RESTful standard in an improved manner:
+       renaming and re-organisation
+    b. Provide GET /cloud/authkey . When cloud communication is failing this
+       will let the user know if wrong authkey is the reason behind it.
+    c. Remove passphrase from GET /sys/networks
+    d. Use Multicast Addresses for SSDP instead of Broadcast Addresses.
+    e. Remove /sys/info.
+    f. Change product specific SSDP services to /sys/services.
+    g  Include rssi value in /sys/network GET.
+    h. Add a provision to specify DNS addresses while using static IP,
+       in /sys/network and from Advanced page in Web-UI.
+    i. Add /sys/watchdog for periodic reboot.
+    j. Cloud APIs modified to have a single /cloud API with the original
+       functionality being available as fields under /cloud.
+8.  Provisioning Changes -
+    a. SSIDs are listed in the sorted order of signal strength.
+    b. Signal strength indicators are included on the provisioning page.
+9. Debugging Enhancements -
+    a. Rename txinfo (debugging utility) to sysinfo.
+    b. Provide additional information for socket usage statistics with command
+       `sysinfo socket`.
+10. spi_gpio driver -
+    a. Add CLI support.
+    b. Update to support simultaneous read and write.
+    c. Enable use of a second spi_gpio port.
+
+
+Version 1.1
+-----------
+This version includes bugfixes throughout the modules, and includes
+the following updates:
+1. Fix Wifi-certification related issues:
+   a. allow 32-byte SSID
+   b. when WPA and WPA2 both are available, choose WPA2
+   c. Include a WLAN firmware version which is distinct from the
+   firmware version.
+   d. Include fix to send deauth to handle Bad MIC scenario as per the
+   specification.
+2. Service Discovery module to include service discovery in normal
+mode. 
+4. JSON Parsing and Generation Support
+   a. Most of the APIs use JSON
+5. HTTP client support for GET as well as POST requests
+6. Crypto Support: Software AES/HMAC-MD5 support
+7. Enhanced build configuration support
+8. Provisioning
+   a. Include secure provisioning support
+   b. faster and more reliable provisioning mode on Windows
+   c. Cleanups and Re-org
+9. httpd can now serve gzip-compressed files
+10. Upgrades Enhancement
+    a. DNS resolution for upgrade URLs
+    b. Enhanced FS upgrades (active-passive)
+11. Multicast send/receive support
+12. G-SPI driver support
+13. Ready-to-use Application Framework
+    a. provisioning/normal mode state transitioning
+    b. cloud communication support
+    c. wm_demo now uses the application framework
+
+
+Version 1.0
+-----------
+This version includes bugfixes throughout the modules, and includes
+the following updates:
+
+1. Enhanced wm_demo application for end-to-end workflow. This
+   application includes
+   a. provisioning support (default AP configuration)
+   b. firmware and filesystem upgrade support
+   c. temperature sensor
+   d. AJAX based UI 
+2. Easier to understand directory organisation
+3. Improved build system structure especially for building 
+   sample_apps/ and custom applications
+4. CPU Frequency scaling support
+5. Support for updating FTFS filesystem
+6. ttcp utility
+7. Updated 8688 firmware support
+8. Improved memory layout to enable more memory space for custom
+   applications. 
+
+Version 0.95
+------------
+This is the first general release of the Wireless Microcontroller
+SDK supporting Marvell's Wireless Microcontroller SoC (88W8688)
+based solutions for creating autonomous, IP-connected, devices. 
+
+Supported Features: 
+===================
+
+1.  Core Run-Time Software Environment that includes ThreadX
+    RTOS, Treck TCP/IP Stack, and Marvell IEEE 802.11 Stack. 
+2.  Wireless LAN Connection Manager 
+3.  Power Manager
+4.  Device Drivers for UART, I2C, Software SPI, Software I2C,
+    using Marvell Device Framework (mdev)
+5.  SPI Flash Support
+6.  Simple, Read-only, Flash File System (FTFS)
+7.  Persistent Storage Manager (for configuration data)
+8.  Standard I/O over Serial Console 
+9.  Command Shell and Extensible Command Line Interface (CLI)
+10. Web-Server and Web-Services Framework
+11. DHCP Server with DNS Spoofing
+12. Provisioning Framework
+13. Remote Firmware Upgrade (over the air) Framework
+14. Configurable Build Framework
+15. Automated Testing Framework
+16. OpenOCD Support for JTAG operations including reading and
+    writing to SPI Flash and EEPROM, and JTAG debugging. 
+17. Manufacturing utility to burn bootloader (in EEPROM), 
+    firmware images and file system images in SPI Flash. 
+
+Compiler Toolchain Support: 
+===========================
+
+1. GNU Compiler Tools
+
+   Tested with following toolchains from codesourcery -
+   a. Sourcery G++ Lite 2009q1-161  - gcc version 4.3.3
+   b. Sourcery G++ Lite 2009q3-68   - gcc version 4.4.1
+   c. Sourcery G++ Lite 2010q1-188  - gcc version 4.4.1
+
+2. RealView Compiler Tools (RVCT) v3.1 or later
+
+
+Platform Support: 
+=================
+
+1. Marvell Wireless Microcontroller Development Kit
+2. Marvell USNAP Module 
+
+Documentation: 
+===============
+
+1. Developer Reference Manual
+2. ThreadX User Guide
+3. Treck TCP/IP API Guide
+
+The SDK User Manual and the Development User Manuals are
+delivered separately via Marvell Extranet. 
+
+
+
+

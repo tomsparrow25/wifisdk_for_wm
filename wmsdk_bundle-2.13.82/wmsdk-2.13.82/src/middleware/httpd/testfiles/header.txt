@@ -1,0 +1,8 @@
+<html>
+<head>
+  <title>This is the static shtml test</title>
+</head>
+<body>
+<hr>
+<h1> This is the header </h1>
+<hr>

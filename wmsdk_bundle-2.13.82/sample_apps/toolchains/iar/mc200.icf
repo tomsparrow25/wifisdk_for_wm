@@ -1,0 +1,62 @@
+/*
+ * Copyright (C) 2008-2012, Marvell International Ltd.
+ * All Rights Reserved.
+ */
+
+define symbol VECTOR_BASE	 	= 0x00100000;
+
+define symbol BOOT_ROM_BASE	 	= 0x00000000;
+define symbol BOOT_ROM_SIZE	 	= 0x00001000;
+
+define symbol RAM0_BASE		 	= 0x00100000;
+define symbol RAM0_SIZE          	= 0x00060000;   /* 384KB */
+
+define symbol RAM1_BASE          	= 0x20000000;
+define symbol RAM1_SIZE          	= 0x00020000;   /* 128KB */
+
+/* Start NVRAM at offset of 64 bytes, used by BootROM */
+define symbol NVRAM_BASE                = 0x480C0040;
+define symbol NVRAM_SIZE                = 0x00001000;
+
+define symbol CSTACK_SIZE        	= 0x00002000;
+define symbol HEAP_SIZE          	= (72 * 1024);  /* 72KB */
+define exported symbol _heap_start	= 0x0014e000;
+define exported symbol _heap_end	= 0x00160000;
+define exported symbol _nvram_start     = 0x480C0000;
+define exported symbol _estack		= 0x20020000;
+
+/* memory range */
+define memory mem with size = 4G;
+
+define region ROM_region         = mem:[from BOOT_ROM_BASE size BOOT_ROM_SIZE];
+define region RAM0_region        = mem:[from RAM0_BASE size RAM0_SIZE];
+define region RAM1_region        = mem:[from RAM1_BASE size RAM1_SIZE];
+define region NVRAM_region       = mem:[from NVRAM_BASE size NVRAM_SIZE];
+
+/* definition of RAM blocks */
+define block CSTACK    with size = CSTACK_SIZE, alignment = 4 { };
+define block HEAP      with size = HEAP_SIZE, alignment = 4  { };
+
+/* Intialize this manually to make it NOLOAD */
+initialize  manually { section .nvram, section .nvram_uninit, section .iobufs };
+do not initialize  { section .noinit };
+
+place at address mem:VECTOR_BASE { readonly section .isr_vector };
+
+place in RAM0_region  { section .text.Reset_IRQHandler };
+place in RAM0_region  { readonly };
+place in RAM0_region  { block HEAP };
+
+place in RAM1_region  { readwrite };
+place in RAM1_region  { section _iobufs_start };
+place in RAM1_region  { section .iobufs };
+place in RAM1_region  { section _iobufs_end };
+place in RAM1_region  { section _bss_start };
+place in RAM1_region  { zeroinit };
+place in RAM1_region  { section _bss_end };
+place in RAM1_region  { block CSTACK };
+
+place in NVRAM_region  { section _nvram_begin };
+place in NVRAM_region  { section .nvram };
+place in NVRAM_region  { section _nvram_end };
+place in NVRAM_region  { section .nvram_uninit };

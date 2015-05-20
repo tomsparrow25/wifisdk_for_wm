@@ -1,0 +1,8 @@
+
+Please use layout-fcc.txt available inside src/ folder to flash binaries on the board.
+
+FCC App requires using manufacturing WiFi firmware.
+For lk20-v3 board, 88W8787 manufactring firmware is to be used.
+Location: wifi-firmware/sd8787_mfg.bin inside wmsdk_bundle-x.y.z.
+
+Please refer to Application Note for Enabling FCC certification testing using WMSDK.

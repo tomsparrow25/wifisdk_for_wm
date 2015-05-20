@@ -1,0 +1,12 @@
+menu "HTTP Server"
+config ENABLE_HTTP
+       prompt "Enable HTTP support (port 80)"
+       bool
+       default y
+
+config ENABLE_HTTPS
+       prompt "Enable HTTPS support (port 443)"
+       bool
+       depends on ENABLE_TLS
+       default n
+endmenu

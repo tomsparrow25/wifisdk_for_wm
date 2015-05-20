@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title style="color:red;">WMCloud</title>
+		<meta charset=UTF-8>
+		<link type="text/css" href="css/jquery-ui.css" rel="Stylesheet" />	
+		<link type="text/css" href="css/jquery.multiselect.css" rel="Stylesheet" />
+		<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+		<script type="text/javascript" src="js/jquery-ui.js"></script>
+		<script type="text/javascript" src="js/jquery.multiselect.js"></script>
+		<script type="text/javascript" src="js/underscore-min.js"></script>
+		<script type="text/javascript" src="js/backbone-min.js"></script>
+		<script type="text/javascript" src="js/raphael.js"></script>
+		<script type="text/javascript" src="js/g.raphael.js"></script>
+		<script type="text/javascript" src="js/g.line.js"></script>
+</head>
+<body>
+<script type="text/javascript" src="js/wmcloud.js"></script>
+<!-- font-family:Trebuchet MS,Tahoma,Verdana,Arial,sans-serif; -->
+<div style='text-align:center;padding-top:10px;padding-bottom:10px;' class="ui-widget-header ui-widget">
+<span>WM Cloud</span>
+</div>
+		<div id="accordion">
+			<h3 id="select-title"></h3>
+			<div id="dvselectdev"></div>
+		</div>
+	<script type="text/template" id="devicelist-template">
+		<select class="selectdevtype" multiple="multiple" size="3"></select>
+		<select class="selectdev" multiple="multiple" size="5"></select>
+	</script>
+	<script type="text/template" id="power_switch-app-template">
+		<div>
+		<label>Power Switch State</label>
+		<br><br>
+		<div id="toggle_switch" class="toggle_switch"></div>
+		<br>
+		<span class="post_status"></span>
+		</div>
+	</script>
+	<script type="text/template" id="wm_demo-app-template">
+		<div>
+		<label>LED State</label>
+		<br><br>
+		<div id="toggle_led" class="toggle_switch"></div>
+		<br>
+		<span class="post_status"></span>
+		</div>
+	</script>
+	<script type="text/template" id="device-template">
+		<div id="dev_mgmt_div">
+		<h3>Device Info</h3>
+			<label>Device UUID: </label>
+			<span>{{ uuid }}</span>
+		<br>
+			<label>Device Name: </label>
+			<span>{{ name }}</span>
+		<br>
+			<label>Device Type: </label>
+			<span>{{ type }}</span>
+		<br>
+			<label>Epoch: </label>
+			<span class="epoch">{{ latest.epoch }}</span>
+		<br>
+			<label>Sequence: </label>
+			<span class="sequence">{{ latest.sequence }}</span>
+		<br>
+		<label>Time: </label>
+			<span class="cur_time">{{ time }}</span>
+		<br>
+		<label>RSSI: </label>
+			<span class="cur_rssi">{{ rssi }}</span>
+		<br>
+		<hr>
+		<input type="checkbox" class="selectdevoperations" id="upgrade_check" />
+		<label for="upgrade_check">Upgrades</label>
+		<label>Upgrades</label>
+		<br>
+			<table><tr>
+			<td><label>Wi-Fi Firmware URL</label></td>
+			<td><input class="wififw_url ui-corner-all"></input></td>
+			</tr><tr>
+			<td><label>FTFS URL</label></td>
+			<td><input class="fs_url ui-corner-all"></input></td>
+			<tr></tr>
+			<td><label>Firmware URL</label></td>
+			<td><input class="fw_url ui-corner-all"></input></td>
+			</tr></table>
+		<hr>
+		<input type="checkbox" class="selectdevoperations" id="time_check" />
+		<label for="time_check">Set Time</label>
+		<label>Set Time</label>
+			<br>
+			<label>Date</label>
+			<select class="day_select"></select>
+			<label>Month</label>
+			<select class="month_select"></select>
+			<label>Year</label>
+			<select class="year_select"></select>
+			<label>Hours</label>
+			<select class="hr_select"></select>
+			<label>Minutes</label>
+			<select class="min_select"></select>
+		<hr>
+		<input type="checkbox" class="selectdevoperations" id="cloud_url_check" />
+		<label for="cloud_url_check">Cloud URL</label>
+		<label>Cloud URL</label>
+			<input class="cloud_url ui-corner-all"></input>
+		<hr>
+		<input type="checkbox" class="selectdevoperations" id="reboot_check"/>
+		<label for="reboot_check">Reboot</label>
+		<label>Reboot</label>
+		<hr>
+		<input type="checkbox" class="selectdevoperations" id="getinfo_check"/>
+		<label for="getinfo_check">Get Additional Info</label>
+		<label>Get Additional Info (Select information to be queried)</label>
+		<div class="info_buttons">
+			<input type="checkbox" id="rssi" /><label for="rssi">RSSI</label>
+			<input type="checkbox" id="time" /><label for="time">Time</label>
+			<input type="checkbox" id="diag_live" /><label for="diag_live">Diagnostics-Live</label>
+			<input type="checkbox" id="diag_history" /><label for="diag_history">Diagnostics-History</label>
+		</div>
+		<hr>
+		<button class="submit_cloud_request"></button>
+		<span class="post_status"></span>
+		</div>
+	    </script>
+	</body> 
+</html>

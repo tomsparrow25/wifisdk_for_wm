@@ -1,0 +1,115 @@
+Introduction
+============
+
+OpenOCD is an open-source tool that can be used to connect 
+to a CPU's JTAG interface. In conjunction with a physical 
+JTAG connection, OpenOCD can be used to read and write 
+from memory or flash. It can also be used for debugging via
+GDB or other debuggers. 
+
+OpenOCD is often used in conjunction with Future Device 
+International's (FTDD) FT2232 chips that enable a JTAG 
+connection via a convenient USB interface. 
+
+The Wireless Microcontroller Development Kit includes an 
+FT2232D chip on the Debug module, which is interfaced via
+the USB Type-B port on the debug module. This allows for
+convenient access to JTAG functions via the USB port. 
+
+Using OpenOCD
+=============
+
+A pre-built version of OpenOCD is bundled with the SDK for
+convenient use. The binaries can be found in tools/bin. 
+The binaries are provided for Windows/Cygwin and Linux hosts. 
+
+The SDK also bundles the configuration files that are needed
+to work with OpenOCD. The file openocd.cfg should be used 
+to work with OpenOCD on the development kit. If you use a
+different board, or if you use a separate USB-JTAG dongle, 
+then you may need to modify the configuration files. 
+
+For instructions on how to use OpenOCD to perform various 
+tasks, consult the documentation provides with the SDK. 
+
+Building OpenOCD
+================
+
+These instructions are provided if you need to re-build or
+upgrade OpenOCD. Please see Build Dependencies (below) 
+before you build OpenOCD. 
+
+1. Obtain the OpenOCD Sources (version 0.4) from the OpenOCD
+   web-site: http://openocd.berlios.de/web/. Untar the 
+   sources. 
+
+2. To build OpenOCD (on both Linux and Cygwin), do the 
+   following from within the OpenOCD directory. 
+   
+   # ./configure --enable-ft2232_libftdi
+   # make
+
+   This will create an openocd executable in the src directory
+   that you can use. 
+
+Building OpenOCD with FTD2xx drivers
+====================================
+
+These instructions are provided if you need to build OpenOCD with 
+proprietary FTD2xx drivers. You can skip this if you are using
+the open source libftdi drivers. 
+
+1. Obtain the OpenOCD Sources (version 0.4) from the OpenOCD
+   web-site: http://openocd.berlios.de/web/. Untar the
+   sources.
+
+2. Obtain the D2xx drivers from FTDI web-site: 
+   http://www.ftdichip.com/Drivers/D2XX.htm. Untar the sources. 
+
+3. To build OpenOCD on Cygwin, execute the following commands
+   from the OpenOCD directory
+
+   # ./configure --disable-werror --enable-ft2232_ftd2xx \
+     --with-ftd2xx-win32-zipdir=/path/to/ftd2xx/driver
+   # make
+
+   This will create an openocd executable in the src directory
+   that you can use. 
+
+
+Build Dependencies
+==================
+
+OpenOCD has been built to use libusb and libftdi.
+
+To build on Linux, you will need to install the development
+packages for libusb and libftdi. These packages are bundled
+with many recent Linux distributions including Fedora and 
+Ubuntu. 
+
+To build on Cygwin, you will need to install libusb-win32 
+package from Cygwin packages. For libftdi, do the following
+from your cygwin console (from a suitable work directory).
+
+   # wget http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.16.tar.gz
+   # tar xvfz libftdi-0.16.tar.gz
+   # cd libftdi-0.16
+   # ./configure
+   # make
+   
+   The build process will not succeed completely, but it will
+   build the libftdi.a library that is needed. Now, do the 
+   following:
+   
+   # cp src/ftdi.h /usr/include
+   # cp src/.libs/libftdi.a /lib
+   
+In addition to libusb and libftdi, you will need many standard
+development tools including gcc, g++, autconf, automake, libtool,
+make, etc. 
+
+For More Information: 
+=====================
+
+Please consult OpenOCD Documentation available with the OpenOCD
+source package as well as from the official web-site. 

@@ -1,0 +1,498 @@
+<!DOCTYPE html> 
+<html> 
+    <head> 
+        <title>Wireless Microcontroller</title> 
+        <meta name="viewport" content="width=device-width, initial-scale=1"> 
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="white" />
+        <link rel="stylesheet" href="jquery.mobile.css" />
+        <link rel="stylesheet" href="my.css" />
+        <script src="jquery.js"></script>
+        <script src="jquery.mobile.js"></script>
+        <script src="provisioning.js"></script>
+
+    </head>
+    <body onload="load()">
+	<!-- dummy landing page -->
+        <div data-role="page" id="page0">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+            </div>
+	     <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top"> 
+                            <ul>
+                                    <li><a href="#page1" data-icon="search">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Page - Scan results -->
+        <div data-role="page" id="page1">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+            </div>
+
+            <div data-role="content" data-theme="c" id="div_scanlist"> 
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><h3>Scan Results:</h3></div>
+                        <div class="ui-block-b">
+                            <a href='#' id='refreshbtn' data-role='button' data-icon='refresh' data-inline="true" data-mini="false" style="float:right;">Refresh</a>
+                        </div>
+                </div> 
+                <ul data-role="listview" data-inset="true" id="list-scan"></ul>
+            </div>
+            <div data-role="content" data-theme="c" id="div_provisioned"> 
+                    <h3> Device is already provisioned.</h3>
+                    <p> If you wish to reset to provisioning, please click <a href="#page3_4" onClick="select_resetprov(1)">here</a>.</p>
+            </div>
+
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top"> 
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" class="ui-btn-active ui-state-persist" onClick="select_provisioning(1)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(1)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" onClick="select_advanced(1)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Dialog for WPA Password -->
+        <div data-role="dialog" id="enterwpapass" data-theme="c">
+            <div data-role="header" data-theme="b">
+                <h1 id="netname0_h1"></h1>
+            </div>
+
+            <div data-role="content">
+                <p> Security: WPA/WPA2 PSK </p>
+                <label for="basic">Passphrase:</label>
+                <div id="div_wpa_pass_plain" class="ui-hide-label"> <input type="text" id="wpa_pass_plain" value="" placeholder="Passphrase"/> </div>
+                <div id="div_wpa_pass_crypt"> <input type="password" id="wpa_pass_crypt" value="" placeholder="Passphrase"/> </div>
+                <input type="checkbox" name="checkbox-1" id="show_pass" data-mini="true" class="custom"/>
+                <label for="show_pass">Unmask Passphrase</label>
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><a href="#" id="btn_wpapass_ok" data-role="button" data-rel="#" onClick="wpapass_ok(1)">OK</a></div>
+                    <div class="ui-block-b"><a href="#" data-role="button" data-rel="back">Cancel</a></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dialog for WEP Key -->
+        <div data-role="dialog" id="enterwepkey" data-theme="c">
+            <div data-role="header" data-theme="b">
+                <h1 id="netname1_h1"></h1>
+            </div>
+
+            <div data-role="content">
+                <h3> Security: WEP (Open mode) </h3>
+                <label for="basic">WEP Key:</label>
+                <div id="div_wep_key_plain"> <input type="text" id="wep_key_plain" value="" placeholder="WEP Key"/> </div>
+                <div id="div_wep_key_crypt"> <input type="password" id="wep_key_crypt" value="" placeholder="WEP Key"/> </div>
+                <input type="checkbox" name="checkbox-1" id="show_key" data-mini="true" class="custom"/>
+                <label for="show_key">Unmask Key</label>
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><a href="#" id="btn_wepkey_ok" data-role="button" data-rel="#" onClick="wepkey_ok(1)">OK</a></div>
+                    <div class="ui-block-b"><a href="#" data-role="button" data-rel="back">Cancel</a></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dialog for Open Network -->
+        <div data-role="dialog" id="enteropen" data-theme="c">
+            <div data-role="header" data-theme="b">
+                <h1 id="netname2_h1"></h1>
+            </div>
+
+            <div data-role="content">
+                <h3> Security: Open </h3>
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><a href="#" id="btn_open_ok" data-role="button" data-rel="#" onClick="open_ok(1)">OK</a></div>
+                    <div class="ui-block-b"><a href="#" data-role="button" data-rel="back">Cancel</a></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Provisioning Status Page -->
+        <div data-role="page" id="status_page">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_provisioning(2)">Back</a>
+            </div>
+
+            <div data-role="content" data-theme="c"> 
+            <h3 id="prov_status"></h3>
+            <p id ="prov_status_details"></p>
+            </div>
+
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" class="ui-btn-active ui-state-persist" onClick="select_provisioning(2)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(2)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" onClick="select_advanced(2)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Sysinfo Page -->
+        <div data-role="page" id="page2">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+            </div>
+            <div data-role="content" data-theme="c"> 
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><h3>Status:</h3></div>
+                </div> 
+                <ul data-role="listview" data-inset="true">
+                        <li data-icon="false"><h3>Packets Count:</h3><p id="p_packet_ct"></p></li>
+                        <li data-icon="false" id="li_conn_cli"><h3>Connected Clients:</h3><p id="p_conn_cli"></p></li>
+                        <li data-icon="false" id="li_rssi"><h3>RSSI:</h3><p id="p_rssi"></p></li>
+                        <li data-icon="false"><h3>Firmware Version:</h3><p id="p_fw_ver"></p></li>
+                        <li data-icon="false"><h3>Heap Usage:</h3><p id="p_heap"></p></li>
+                        <li data-icon="false" id="li_dhcpcount"><h3>DHCP Leases Served:</h3><p id="p_dhcpcount"></p></li>
+                        <li data-icon="false"><h3>CPU Frequency:</h3><p id="p_cpufreq"></p></li>
+			<li data-icon="arrow-r"><a href="#" onClick="select_dev_time(3)"><h3>Device Time:</h3><p id="p_time"></p></a></li>
+                </ul>
+            </div>
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(3)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" class="ui-btn-active ui-state-persist" onClick="select_sysinfo(3)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" onClick="select_advanced(3)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+	<!-- Sysinfo Time set page -->
+	<div data-role="page" id="page2_1">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_sysinfo(4)">Back</a>
+            </div>
+
+            <div data-role="content" data-theme="c">
+            <h3 id="set-time"></h3>
+            <p>Enter 24 hour time to be set on the device</p>
+            <label>Device Time:</label>
+            <div class="ui-grid-a">
+		<div class="ui-block-a hour"> <input type="number" name="name" id="hr" value="18" max="23" min="0"/></div>
+                <div class="ui-block-b min"> <input type="number" name="name" id="min" value="50" max="59" min="0"/></div>
+	    </div>
+                <fieldset class="ui-grid-a">
+                        <div class="ui-block-a"><a href="#" data-role="button" data-theme="c" onClick="select_sysinfo(4)">Cancel</a></div>
+                        <div class="ui-block-b"><a href="#" data-role="button" data-theme="b" onClick="submit_time(4)">Submit</a></div>
+                </fieldset>
+            </div>
+
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(4)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" class="ui-btn-active ui-state-persist" onClick="select_sysinfo(4)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" onClick="select_advanced(4)">Advanced</a></li>
+                            </ul>
+		    </div><!-- /navbar -->
+            </div>
+        </div>
+
+        <!-- Advanced Page -->
+        <div data-role="page" id="page3">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+        </div>
+        <div data-role="content" data-theme="c">
+                <h3> Advanced Options:</h3> 
+                <ul data-role="listview" data-inset="true">
+                        <li><a href"#page3_1" data-icon="arrow-r" data-iconpos="right" onClick="select_change_nw(5)"><h3>Change Network</h3></a></li>
+                        <li><a href"#page3_2" data-icon="arrow-r" data-iconpos="right" onClick="select_fw_upgrade(5)"><h3>Firmware Upgrade</h3></a></li>
+                        <li><a href"#page3_3" data-icon="arrow-r" data-iconpos="right" onClick="select_reboot(5)"><h3>Reboot Device</h3></a></li>
+                        <li><a href"#page3_4" data-icon="arrow-r" data-iconpos="right" onClick="select_resetprov(5)"><h3>Reset to Provisioning</h3></a></li>
+                        <li><a href"#page3_5" data-icon="arrow-r" data-iconpos="right" onClick="select_cloud(5)"><h3>Cloud Settings</h3></a></li>
+                </ul>
+        </div>
+        <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(5)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(5)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" class="ui-btn-active ui-state-persist" onClick="select_advanced(5)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Advanced Page - Change Network -->
+        <div data-role="page" id="page3_1">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_advanced(6)">Back</a>
+        </div>
+        <div data-role="content" data-theme="c">
+                <h3>Change Network:</h3>
+                 <label for="basic">Network Name (SSID):</label>
+                 <input type="text" name="name" id="pg31_ssid" value="" placeholder="SSID"/>
+                 <br>
+
+                 <label for="select-security" class="select">Security:</label>
+                 <select name="select-security" id="select-security">
+                         <option value="open">Open</option>
+                         <option value="wep">WEP (open)</option>
+                         <option value="wpa">WPA-PSK</option>
+                         <option value="wpa2">WPA2-PSK</option>
+                 </select>
+                 <br>
+                 <div id="div_sel_sec_pass">
+                        <div id="div_pass_plain" class="ui-hide-label"> <input type="text" id="pass_plain" value="" placeholder="Passphrase"/> </div>
+                        <div id="div_pass_crypt"> <input type="password" id="pass_crypt" value="" placeholder="Passphrase"/> </div>
+                        <input type="checkbox" name="checkbox-1" id="adv_show_pass" data-mini="true" class="custom"/>
+                        <label for="adv_show_pass">Unmask Passphrase</label>
+                        <br>
+                 </div>
+                 <br>
+                 <label for="select-ip" class="select">IP Address Type:</label>
+                 <select name="select-ip" id="select-ip">
+                         <option value="dhcp">DHCP</option>
+                         <option value="static">Static</option>
+                 </select>
+                 <br>
+                 <div id="div_static_ip">
+                        <label>IP Address:</label>
+                        <div class="ui-grid-c ip-addr">
+                                <div class="ui-block-a"> <input type="number" name="name" id="ip1" value="192" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="ip2" value="168" maxlength="3"/></div>
+                                <div class="ui-block-c"> <input type="number" name="name" id="ip3" value="2" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="ip4" value="" maxlength="3"/></div>
+                        </div>
+                        <label>Netmask:</label>
+                        <div class="ui-grid-c ip-addr">
+                                <div class="ui-block-a"> <input type="number" name="name" id="nm1" value="255" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="nm2" value="255" maxlength="3"/></div>
+                                <div class="ui-block-c"> <input type="number" name="name" id="nm3" value="255" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="nm4" value="0" maxlength="3"/></div>
+                        </div>
+                        <label>Gateway:</label>
+                        <div class="ui-grid-c ip-addr">
+                                <div class="ui-block-a"> <input type="number" name="name" id="gw1" value="192" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="gw2" value="168" maxlength="3"/></div>
+                                <div class="ui-block-c"> <input type="number" name="name" id="gw3" value="2" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="gw4" value="1" maxlength="3"/></div>
+                        </div>
+                        <label>Primary DNS (optional):</label>
+                        <div class="ui-grid-c ip-addr">
+                                <div class="ui-block-a"> <input type="number" name="name" id="pd1" value="0" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="pd2" value="0" maxlength="3"/></div>
+                                <div class="ui-block-c"> <input type="number" name="name" id="pd3" value="0" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="pd4" value="0" maxlength="3"/></div>
+                        </div>
+                        <label>Secondary DNS (optional):</label>
+                        <div class="ui-grid-c ip-addr">
+                                <div class="ui-block-a"> <input type="number" name="name" id="sd1" value="0" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="sd2" value="0" maxlength="3"/></div>
+                                <div class="ui-block-c"> <input type="number" name="name" id="sd3" value="0" maxlength="3"/></div>
+                                <div class="ui-block-b"> <input type="number" name="name" id="sd4" value="0" maxlength="3"/></div>
+                        </div>
+                </div>
+                <fieldset class="ui-grid-a">
+                        <div class="ui-block-a"><a href data-role="button" data-theme="c" onClick="select_advanced(6)">Cancel</a></div>
+                        <div class="ui-block-b"><a href data-role="button" id="btn_change_nw" data-theme="b" onClick="submit_change_nw(6)">Submit</a></div>         
+                </fieldset>
+           </div>
+	  
+	   <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(6)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(6)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" class="ui-btn-active ui-state-persist" onClick="select_advanced(6)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Advanced status page -->
+        <div data-role="page" id="adv_status_page">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_advanced(7)">Back</a>
+            </div>
+
+            <div data-role="content" data-theme="c"> 
+            <h3 id="adv_status"></h3>
+            <p id ="adv_status_details"></p>
+            </div>
+
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(7)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(7)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" class="ui-btn-active ui-state-persist" onClick="select_advanced(7)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+
+        <!-- Advanced Page - Firmware Upgrade -->
+        <div data-role="page" id="page3_2">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_advanced(6)">Back</a>
+            </div>
+            <div data-role="content" data-theme="c">
+                <div class="form1" id="non_ie_client" ><h3>Upgrade your firmware or filesystem image here</h3>
+			<form action="javascript:processPost(document.getElementById('fsname'), '/sys/filesystem')">
+                          <p>
+			    <small>Choose file system image</small>
+			    <br>
+			    <input type="file" id="fsname" name="fsupdate" size="40">
+			    <br class="clear" />
+                            <input type="submit" value="Upgrade file system image">
+                          </p>
+                        </form>
+
+			<form action="javascript:processPost(document.getElementById('fwname'), '/sys/firmware')">
+                          <p>
+			    <small>Choose firmware image</small>
+			    <br>
+			    <input type="file" id="fwname" name="fwupdate" size="40">
+			    <br class="clear" />
+			    <input type="submit" value="Upgrade firmware image">
+			  </p>
+
+			  <p id="upload-status"></p>
+			  <p id="progress"></p>
+			  <p id="result"></p>
+			</form>
+
+		</div>
+
+		<div id="ie_client">
+		  <h3 id="note_h3"></h3>
+		  <p id="note_p"></p>
+		</div>
+
+            </div>
+
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(6)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(6)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" class="ui-btn-active ui-state-persist" onClick="select_advanced(6)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Advanced Page - Reboot -->
+        <div data-role="page" id="page3_3">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_advanced(6)">Back</a>
+            </div>
+            <div data-role="content" data-theme="c">
+                    <h3>Reboot Device</h3>
+                    <p>Please press "Reboot" button to reboot the device. Launch the application again when device boots up successfully.</p>
+                    <fieldset class="ui-grid-a">
+                        <div class="ui-block-a"><a href="#" data-role="button" data-theme="c" onClick="select_advanced(6)">Cancel</a></div>
+                        <div class="ui-block-b"><a href="#" data-role="button" id="btn_reboot" data-theme="b" onClick="reboot_device(6)">Reboot</a></div>         
+                    </fieldset>
+            </div>
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(6)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(6)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" class="ui-btn-active ui-state-persist" onClick="select_advanced(6)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Advanced Page - Reset to Provisioning -->
+        <div data-role="page" id="page3_4">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_advanced(6)">Back</a>
+            </div>
+            <div data-role="content" data-theme="c">
+                    <h3>Reset to Provisioning</h3>
+                    <p>Please press "Reset" button to reset the device to provisioning mode. Launch the application again when device boots up successfully.</p>
+                    <fieldset class="ui-grid-a">
+                        <div class="ui-block-a"><a href="#" data-role="button" data-theme="c" onClick="select_advanced(6)">Cancel</a></div>
+                        <div class="ui-block-b"><a href="#" data-role="button" id="btn_reset_to_prov" data-theme="b" onClick="reset_to_prov(6)">Reset</a></div>         
+                    </fieldset>
+            </div>
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(6)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(6)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" class="ui-btn-active ui-state-persist" onClick="select_advanced(6)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+        <!-- Advanced Page - Cloud Setting -->
+        <div data-role="page" id="page3_5">
+            <div data-role="header" data-theme="b" data-position="fixed">
+                <!-- <img src="logo.png" class="ui-bar"/> -->
+                <h3></h3>
+                <a href="#" data-icon="back" class="ui-btn-left" onClick="select_advanced(6)">Back</a>
+            </div>
+            <div data-role="content" data-theme="c">
+		    <h3>Cloud Service Settings:</h3>
+		    <div class="ui-grid-a">
+			<p class="ui-block-a">Cloud Service Status:</p>
+			<p class="ui-block-b" id="cloud-status"></p>
+		    </div>
+		    <br>
+		    <div class="ui-grid-a">
+			<p class="ui-block-a">Device UUID:</p>
+			<p class="ui-block-b" id="dev-uuid"></p>
+		    </div>
+		    <div id="reg-authkey">
+		      <p></p>
+		      <fieldset class="ui-grid-b">
+			<div class="ui-block-b"><a href="#" data-role="button" id="btn_submit_enable_cloud" data-theme="b" onClick="submit_cloud_operation(6, 1)">Enable Cloud</a></div>
+		      </fieldset>
+		      <fieldset class="ui-grid-b">
+			<div class="ui-block-b"><a href="#" data-role="button" id="btn_submit_disable_cloud" data-theme="b" onClick="submit_cloud_operation(6, 0)">Disable Cloud</a></div>
+		      </fieldset>
+		    </div>
+            </div>
+            <div data-role="footer" data-theme="b" data-position="fixed">
+                    <div data-role="navbar" data-iconpos="top">
+                            <ul>
+                                    <li><a href="#page1" data-icon="search" onClick="select_provisioning(6)">Provisioning</a></li>
+                                    <li><a href="#page2" data-icon="info" onClick="select_sysinfo(6)">System Info</a></li>
+                                    <li><a href="#page3" data-icon="gear" class="ui-btn-active ui-state-persist" onClick="select_advanced(6)">Advanced</a></li>
+                            </ul>
+                    </div><!-- /navbar -->   
+            </div>
+        </div>
+
+
+
+
+    </body>
+</html>

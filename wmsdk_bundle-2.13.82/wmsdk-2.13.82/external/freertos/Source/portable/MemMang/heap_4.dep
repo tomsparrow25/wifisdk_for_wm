@@ -1,0 +1,23 @@
+Source/portable/MemMang/heap_4.o: Source/portable/MemMang/heap_4.c \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdlib.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/ieeefp.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/_ansi.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/newlib.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/config.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/features.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/reent.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/_ansi.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/_types.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_types.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/lock.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/cdefs.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/stdlib.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/alloca.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/string.h \
+ /usr/bin/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/string.h \
+ Source/include/FreeRTOS.h Source/include/projdefs.h FreeRTOSConfig.h \
+ Source/include/portable.h Source/portable/GCC/ARM_CM3/portmacro.h \
+ Source/include/mpu_wrappers.h Source/include/task.h \
+ Source/include/list.h Source/portable/MemMang/memdebug.h

@@ -1,0 +1,249 @@
+#!/bin/bash
+
+function err()
+{
+	echo "Error:" $* 1>&2;
+}
+
+
+function max_of_parts()
+{
+	local_var=$*
+	operator=""
+	echo -n "MAX("
+	for i in $local_var; do
+		echo -n $operator"SIZEOF($i)"
+		operator=","
+	done
+	echo ")"
+	unset local_var
+}
+
+function sum_of_parts()
+{
+	local_var=$*
+	operator=""
+	for i in $local_var; do
+		echo -n $operator"SIZEOF($i) "
+		operator=" + "
+	done
+	unset local_var
+}
+
+function overlay_end()
+{
+	echo "$cur_ov_ram_end = $cur_ov_ram_start + "$(max_of_parts $part_list)";"
+	unset part_list
+}
+
+cur_ov_ram_end=0x00100000;
+cur_part_flash_end=.;
+
+function err_if_null()
+{
+	if [ -z "`eval echo "$"$1`" ]; then
+		err "Variable $1 is not set";
+		exit
+	fi
+}
+
+function for_all_select()
+{
+	select=$*
+	for i in $part_val; do
+		if echo $i | grep \\.a > /dev/null; then
+			is_archive=":"
+		fi
+		echo -e "\t\t*$i$is_archive $select"
+		unset is_archive
+	done
+}
+
+function handle_range()
+{
+	part_val=`eval echo "$"part$part`
+	echo -e "\t.ol_${overlay_name}${part} {"
+
+	# Dump .text and .data
+	for_all_select "(.text .text.* .data .data.*)"
+	# Dump bss
+	echo -e "\t\t_ol_${overlay_name}${part}_bss_start = .;"
+	for_all_select "(.bss .bss.* COMMON)"
+	echo -e "\t\t_ol_${overlay_name}${part}_bss_end = .;"
+	echo -e "\t}\n"
+
+	part_list="$part_list .ol_${overlay_name}${part}"
+}
+
+function linker_handle_overlay()
+{
+	err_if_null overlay_name;
+	err_if_null no_parts;
+
+# Same the cur_ov_ram_end before overwriting it
+	start_addr=$cur_ov_ram_end
+	cur_ov_ram_end=_ol_${overlay_name}_text_end
+	cur_ov_ram_start=_ol_${overlay_name}_text_start
+	echo "_ol_${overlay_name}_text_start = $start_addr;"
+	echo "_ol_${overlay_name}_flash_start = ALIGN($cur_part_flash_end, 4);"
+	echo "OVERLAY _ol_${overlay_name}_text_start : NOCROSSREFS AT(_ol_${overlay_name}_flash_start)"
+	echo "{"
+        part=0;
+	for i in `seq 0 $((no_parts - 1))`; do
+		err_if_null part$i
+		handle_range;
+		part=$((part+1))
+	done
+	echo "}"
+	echo "_ol_${overlay_name}_flash_end = _ol_${overlay_name}_flash_start + "$(sum_of_parts $part_list)";"
+	cur_part_flash_end="_ol_${overlay_name}_flash_end"
+	overlay_end;
+	echo -e "\n"
+}
+
+function generate_c_file()
+{
+	echo -e "\n/** Overlay: ${overlay_name} */"
+	echo "extern char _ol_${overlay_name}_text_start;"
+	for i in `seq 0 $((no_parts - 1))`; do
+		err_if_null part$i
+		echo -e "extern char _ol_${overlay_name}${i}_bss_start, _ol_${overlay_name}${i}_bss_end,\n\t __load_start_ol_${overlay_name}$i, __load_stop_ol_${overlay_name}$i;"
+		struct_member="$struct_member \t{ &__load_start_ol_${overlay_name}$i, &__load_stop_ol_${overlay_name}$i,\n\t  &_ol_${overlay_name}${i}_bss_start, &_ol_${overlay_name}${i}_bss_end},\n"
+		part=$((part+1))
+	done
+
+	echo "struct overlay_ranges o_range_${overlay_name}[] = {"
+	echo -e "$struct_member";
+	echo "};";
+
+	echo "struct overlay ${overlay_name} = {"
+	echo -e "\t.o_name = \"${overlay_name}\","
+	echo -e "\t.o_ram_start = &_ol_${overlay_name}_text_start,"
+	echo -e "\t.o_no_parts = $no_parts,"
+	echo -e "\t.o_range = o_range_${overlay_name}"
+	echo "};"
+	unset struct_member
+}
+
+function get_address()
+{
+	symbol=$1
+	echo 0x`arm-none-eabi-readelf -a $axf | grep $symbol | awk '{print $2;}'`;
+}
+
+function ov_analyse()
+{
+	ram_start=`get_address _ol_${overlay_name}_text_start`
+	ram_end=`get_address _ol_${overlay_name}_text_end`
+	ol_size=$((ram_end - ram_start));
+	echo "Overlay: ${overlay_name}"
+	echo "Total Overlay RAM: "$ol_size;
+
+	for i in `seq 0 $((no_parts - 1))`; do
+		err_if_null part$i
+		flash_start=`get_address __load_start_ol_${overlay_name}$i`
+		flash_end=`get_address __load_stop_ol_${overlay_name}$i`
+		size=$((flash_end - flash_start))
+		if [ $size != $ol_size ]; then
+			free_text=" + $((ol_size - size))(free)";
+		else
+			unset free_text;
+		fi
+		echo "Part $i: $size $free_text";
+	done
+	echo "-------------"
+}
+
+function read_input()
+{
+	while read line
+	do
+		if [ -z "$line" ]; then
+			$action
+			unset not_handled;
+		else
+			eval $line
+			not_handled=1;
+		fi
+	done < $src
+
+	if [ ! -z "$not_handled" ]; then
+		$action
+	fi
+
+}
+
+function dump_usage()
+{
+	echo "Usage:  ov_utl <option> <filename>"
+        echo "        -l ov.cfg   (generate linker script stub)"
+        echo "        -c ov.cfg   (generate C code stub)"
+        echo "        -u ov.cfg app.axf  (display overlay utilization information)"
+}
+# Usage ov_utl <option> <filename>
+#             -l ov.cfg   (generate linker script stub)
+#             -c ov.cfg   (generate C code stub)
+#             -u ov.cfg app.axf  (display overlay utilization information)
+while [ -n "$1" ]; do
+	case "$1" in
+		-l)
+			action=linker_handle_overlay
+			src=$2
+			if [ -z "$src" ]; then
+				dump_usage;
+				exit 1;
+			fi
+			if [ ! -f $src ]; then
+				err "$src: No such file or directory";
+				exit 1;
+			fi
+			read_input;
+			echo "NOTE TO USER: Copy the above stub to the start"
+			echo "of your SECTIONS in your linker script."
+			echo "Please use the '$cur_ov_ram_end' as  "
+			echo "the load and the virtual address of the"
+			echo "following section in your linker script."
+			break
+			;;
+		-c)
+			echo "/** This is a file auto-generated by ov_utl */"
+			echo "#include <overlays.h>"
+			action=generate_c_file
+			src=$2
+			if [ -z "$src" ]; then
+				dump_usage;
+				exit 1;
+			fi
+			if [ ! -f $src ]; then
+				err "$src: No such file or directory";
+				exit 1;
+			fi
+			read_input;
+			break
+			;;
+		-u)
+			action=ov_analyse
+			src=$2
+			axf=$3
+			if [ -z "$src" ] || [ -z "$axf" ]; then
+				dump_usage;
+				exit 1;
+			fi
+			if [ ! -f $src ]; then
+				err "$src: No such file or directory";
+				exit 1;
+			fi
+			if [ ! -f $axf ]; then
+				err "$axf: No such file or directory";
+				exit 1;
+			fi
+			read_input;
+			break
+			;;
+		*)
+			dump_usage;
+			exit 1;
+	esac
+done
+
+

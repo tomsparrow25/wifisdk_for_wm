@@ -1,0 +1,46 @@
+1. Select WMSDK configuration
+-----------------------------
+
+$ make <defconfig>
+
+All the supported defconfigs can be found at wmsdk-x.y.z/build/config
+By default the WMSDK come pre-configured with mc200_defconfig. If you wish to
+continue using this configuration, you may skip this step.
+
+If you wish to build your own SDK configuration, you can do so by running
+
+$ make menuconfig (UI driven; only supported on Linux platform)
+or
+$ make config
+
+If you have configuration file saved somewhere
+
+$ cp <config file> wmsdk-x.y.z/.config
+$ make oldconfig
+
+2. Compile SDK, boot2 and sample applications
+---------------------------------------------
+
+$ make [BOARD=<board_name>|BOARD_FILE=<absolute path to board.c>] [sdk | boot2 | apps]
+
+Supported boards can be found in wmsdk-x.y.z/src/boards/. By default the WMSDK
+bundle come pre-configured for Marvell LK20-V3 (board_name=lk20-v3) board.
+
+Note: <board_name> should just be name of the board without .c suffix.
+
+sdk				Builds only SDK; BOARD or BOARD_FILE is not required for this.
+boot2			Builds SDK and boot2
+apps			Builds SDK and sample apps. APPS=<appname> option can be used to
+				compile a single application where appname is relative path of the
+				application in sample_apps (e.g. "wlan/wm_demo")
+<none>			Builds everything (SDK, boot2 and available sample applications)
+
+3. Clean SDK, boot2 and sample applications
+-------------------------------------------
+
+$ make clean		- Cleans up everything
+$ make sdk_clean	- Cleans up WMSDK
+$ make boot2_clean	- Cleans up boot2
+$ make apps_clean	- Cleans up applications; APPS variable can be used to clean up a
+					  particular application.
+

@@ -1,0 +1,21 @@
+menu "TLS"
+config ENABLE_TLS
+       prompt "Enable TLS library"
+       bool
+       default n
+       depends on OS_FREERTOS && LWIP_STACK
+
+if ENABLE_TLS
+choice
+	prompt "TLS library"
+	default CYASSL
+
+config CYASSL
+       prompt "CyaSSL"
+       bool
+
+endchoice
+
+endif
+
+endmenu

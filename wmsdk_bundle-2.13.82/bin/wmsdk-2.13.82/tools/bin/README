@@ -1,0 +1,69 @@
+flash_pack.py
+-------------
+Utility to generate the ftfs images from a directory. This can be used as:
+  flash_pack.py <backend_api_version> <image> <sourcedir>
+
+Sample usage:
+$ flash_pack.py 112 ftfs.img /path/to/html
+
+This will generate the ftfs image ftfs.img from /path/to/html.
+
+footprint.pl
+------------
+Utility to look at the footprint impact of various components in the
+generated image. The build system generates a linker map file, called
+map.txt, for all the ouput images (.axf, .bin) that are
+generated. footprint.pl parses this map.txt file and shows a list of
+libraries that contribute to the footprint impact. 
+
+Sample usage:
+$ ./footprint.pl -m wmapps/module_demo/psm_demo/src/map.txt
+
+This will print the list of libraries and the corresponding footprint
+impact. Additionally, you can look at the exact symbols from a library
+that contribute to this footprint impact using the '-l' option.
+
+Same usage:
+$ ./footprint.pl -m wmapps/module_demo/psm_demo/src/map.txt -l libpsm.a
+
+This will print a list of all the symbols that were contributed by
+libpsm.a to the final image. Instead of libpsm.a you can specify any
+library name from the first column of the first list.
+
+ov_utl
+-------
+Utility to assist in overlay mgmt. This utility accepts an overlay
+configuration of the format:
+
+overlay_name=my_overlay
+no_parts=2
+part0=libwps.a
+part1=wm_demo_cloud.o
+
+From this description it can generate a linker stub and a C file that
+can be used by projects.
+
+# Linker script stub can be generated as:
+$ ov_utl -l my_overlay-cfg.sh
+
+# C file can be generated as:
+$ ov_utl -c my_overlay-cfg.sh
+
+The utility can also be used to analyse the space consumption by
+various parts of the overlay.
+
+# Overlay Utilization Information can be found as:
+$ ov_utl -u my_overlay-cfg.sh app.axf
+
+
+heap_analyse.pl
+---------------
+
+flash_check.py
+--------------
+This utility checks the correctness of an FTFS image and shows the
+files and their corresponding offsets.
+
+crc32.py
+--------
+This is internally used by other scripts for CRC calculations.

@@ -1,0 +1,12 @@
+<!--#include virtual=echo-->
+<!--#include virtual=echo    -->
+<!--#include virtual=echo 1 2 3 4 5-->
+<!--#include virtual="echo 1 2 3 4 5"-->
+<!--#include virtual=echo     1 2 3 4 5-->
+<!--#include virtual=echo 1 2 3 "4 5"-->
+<!--#include virtual=echo list exactly HTTPD_MAX_SSI_ARGS -->
+<!--#include virtual=echo        leading space doesn't count-->
+<!--#include virtual=echo    trailing space does count       -->
+<!--#include virtual=echo this list should be truncated because it exceeds HTTPD_MAX_SSI_ARGS -->
+<!--#include virtual= -->
+<!--#include virtual="" -->

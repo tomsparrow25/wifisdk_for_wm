@@ -1,0 +1,145 @@
+#!/bin/bash
+function usage {
+
+    echo "Wrapper for Marvell Test Framework"
+    echo
+    echo "When invoked with no arguments, this utility searches for all"
+	echo "subdirectories called 'tests' and invokes mtfterm to run any .py"
+    echo "files in those subdirectories.  When invoked with a testlist, only"
+    echo "the tests specified in the testlist will be run.  A testlist is"
+    echo "a space-separated list of 'tests' suitable to pass to mtfterm's"
+	echo "-t option and directories containing 'tests/' subdirectories."
+    echo "See README.mtf for information on how to create tests."
+    echo
+    echo "Usage:"
+    echo "$0 [options] [testlist]"
+    echo
+    echo "    -h           print this message"
+	echo
+	echo "    -c <file>    pass this test config to mtfterm.  Note that"
+	echo "                 ./mtf.cfg is used if it exists and no -c option"
+	echo "                 is provided."
+	echo
+	echo "    -l           You're testing a build with debug logging.  Log"
+	echo "                 messages will be printed mixed with test output."
+	echo "                 see mtfterm for more detail on getting this to"
+	echo "                 work properly"
+        echo "    -a           This option should be used only when you want to"
+        echo "                  run the tests by scheduling it as a cron task"
+	echo
+    echo "EXAMPLES"
+    echo
+    echo "Run all tests in the SDK:"
+    echo "$ cd /path/to/SDK/root/"
+    echo "$ mtf"
+    echo
+    echo "Run all of the tests in the wlcmgr module:"
+    echo "$ mtf /path/to/SDK/root/src/core/wlcmgr/"
+	echo
+    echo "Run only the TestMTF.testHelpCommand test of the mtfTests"
+    echo "$ mtf /path/to/src/core/cli/tests/mtfTests.py:TestMTF.testHelpCommand"
+}
+
+CONFIGFILE=""
+LOGGING=""
+AUTOTEST=""
+while getopts ":hac:l" opt; do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        a)
+            AUTOTEST="-a"
+            ;;
+        c)
+            CONFIGFILE=$OPTARG
+            ;;
+        l)
+			LOGGING="-l"
+			;;
+        \?)
+            echo "Unknown option -$OPTARG"
+            exit 1
+            ;;
+    esac
+done
+shift $(($OPTIND - 1))
+TESTLIST=$*
+
+# Ensure that the mtfterm.py is available.
+MTFTERM=
+if [ "`which mtfterm.py`" = "" ]; then
+    export PATH=$PATH:`dirname $0`
+	if [ "`which mtfterm.py`" = "" ]; then
+		echo "ERROR: Failed to find mtfterm.py."
+		echo "       Please run from the SDK root or ensure that"
+		echo "       mtfterm.py is in your path"
+		exit 1
+	fi
+fi
+
+# grab the config file if necessary
+CONFIGARG=""
+if [ "$CONFIGFILE" != "" ]; then
+	CONFIGARG="-c $CONFIGFILE"
+fi
+
+# Run the tests:
+if [ "$TESTLIST" = "" ]; then
+	TESTLIST=`find -name tests -type d`
+fi
+if [ "$TESTLIST" = "" ]; then
+	echo "No tests found."
+fi
+
+TOTAL_TESTS=0
+TOTAL_FAILURES=0
+TOTAL_ERRORS=0
+TOTAL_PASS=0
+RUN_ALL=0
+function runtest () {
+	echo "*****************************************************************************"
+	echo "Running $1"
+	PYTHONPATH=`dirname $1` mtfterm.py $AUTOTEST $CONFIGARG $LOGGING -t $1  3>&1 1>&2 2>&3 | tee /tmp/mtftestoutput
+	NUMTESTS=`cat /tmp/mtftestoutput | egrep 'Ran [0-9]* test' | cut -d ' ' -f 2`
+	NUMFAILS=`cat /tmp/mtftestoutput | egrep 'failures=[0-9]*' | sed 's/.*failures=\([0-9]*\).*/\1/'`
+	NUMERRS=`cat /tmp/mtftestoutput | egrep 'errors=[0-9]*' | sed 's/.*errors=\([0-9]*\).*/\1/'`
+	rm /tmp/mtftestoutput
+	TOTAL_TESTS=$(($NUMTESTS+$TOTAL_TESTS))
+	TOTAL_FAILURES=$(($NUMFAILS+$TOTAL_FAILURES))
+	TOTAL_ERRORS=$(($NUMERRS+$TOTAL_ERRORS))
+}
+
+for t in $TESTLIST; do
+	testname=`echo $t | cut -d ':' -f 1`
+	if [ -d $testname -a "`basename $testname`" = "tests" ]; then
+		RUN_ALL=1
+		SUBLIST=`find $testname -name '*.py'`
+		for st in $SUBLIST; do
+			if [ $st = "./src/middleware/dhcpd/tests/dhcpTests.py" ]; then
+				continue
+			fi
+			sleep 5
+			runtest $st
+		done
+	elif [ -d $testname -a -d $testname/tests ]; then
+		SUBLIST=`find $testname/tests -name '*.py'`
+		for st in $SUBLIST; do
+			runtest $st
+		done
+	elif [ "`basename $testname |sed -e 's/.*\(\..*\)/\1/g'`" = ".py" ]; then
+		runtest $t
+	else
+		echo "No tests found in $testname.  Skipping."
+	fi
+done
+
+#Dhcp tests should run at the end:
+if [ $RUN_ALL = 1 ]; then
+	sleep 5
+	runtest ./src/middleware/dhcpd/tests/dhcpTests.py
+fi
+
+echo "============================================================"
+echo "Ran $TOTAL_TESTS Tests ( $TOTAL_FAILURES Failures, $TOTAL_ERRORS Errors)"

@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2011, Marvell International Ltd.
+# All Rights Reserved.
+#
+
+# A script to simplify added debug prints functionality to any module. Give
+# your module name as argument. For e.g. if your module name is http then
+# run this script as follows:
+# $ ./create_wmsdk_debug_file http
+# This will dump on your console the macros to be added to your header
+# file. In above example you will get the output as follows:
+######################################
+# #define http_e(...)                             \
+#         wmlog_e("http", ##__VA_ARGS__)
+# #define http_w(...)                             \
+#         wmlog_w("http", ##__VA_ARGS__)
+# #ifdef CONFIG_HTTP_DEBUG
+# #define http_d(...)                             \
+#         wmlog("http", ##__VA_ARGS__)
+# #else
+# #define http_d(...)
+# #endif			/* ! CONFIG_HTTP_DEBUG */
+######################################
+#
+# As you can see above macros http_e, http_w and http_d are defined which
+# you can use in your source for error, warning and debug condtions
+# respectively.
+#
+#!/usr/bin/perl -w
+
+if ($#ARGV != 0) {
+    printf("Usage: create_wmsdk_debug_file <tag>\n");
+	exit 1;
+}
+
+$tag=$ARGV[0];
+$caps_tag=uc($tag);
+
+printf"\n*****************************************************************\n\n";
+printf"#include <wmlog.h>\n\n";
+printf "#define $tag\_e(...)				\\\n";
+printf "	wmlog_e(\"$tag\", ##__VA_ARGS__)\n";
+printf "#define $tag\_w(...)				\\\n";
+printf "	wmlog_w(\"$tag\", ##__VA_ARGS__)\n";
+printf "\n";
+printf "#ifdef CONFIG_$caps_tag\_DEBUG\n";
+printf "#define $tag\_d(...)				\\\n";
+printf "	wmlog(\"$tag\", ##__VA_ARGS__)\n";
+printf "#else\n";
+printf "#define $tag\_d(...)\n";
+printf "#endif /* ! CONFIG_$caps_tag\_DEBUG */\n\n";
+printf"*******************************************************************\n\n";

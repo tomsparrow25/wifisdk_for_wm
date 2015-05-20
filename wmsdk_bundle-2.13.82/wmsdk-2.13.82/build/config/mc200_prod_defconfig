@@ -1,0 +1,52 @@
+#
+# Automatically generated make config: don't edit
+# WMSDK version:
+
+#
+# System Type
+#
+
+CONFIG_CPU_MC200=y
+
+#
+# Command Line Interface support
+#
+
+#
+# Peripheral Drivers
+#
+
+#
+# Modules
+#
+
+#
+# WLAN
+#
+CONFIG_WPS2=y
+CONFIG_11N=y
+
+#
+# MDNS
+#
+# CONFIG_MDNS_QUERY is not set
+
+#
+# Application Framework
+#
+CONFIG_APP_FRM_PROV_WPS=y
+
+#
+# Miscellaneous
+#
+# CONFIG_UART_RS485 is not set
+# CONFIG_SW_WATCHDOG is not set
+
+#
+# Development and Debugging
+# CONFIG_ENABLE_ERROR_LOGS is not set
+# CONFIG_ENABLE_WARNING_LOGS is not set
+# CONFIG_DEBUG_BUILD is not set
+# CONFIG_DEBUG_OUTPUT is not set
+# CONFIG_ENABLE_TESTS is not set
+# CONFIG_AUTO_TEST_BUILD is not set
