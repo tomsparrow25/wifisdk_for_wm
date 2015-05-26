@@ -1,27 +1,29 @@
 /***********************************************************
-*  File: com_struct.h 
+*  File: mqtt_client.h 
 *  Author: nzy
-*  Date: 20150522
+*  Date: 20150526
 ***********************************************************/
-#ifndef _COM_STRUCT_H
-    #define _COM_STRUCT_H
+#ifndef _MQTT_CLIENT_H
+    #define _MQTT_CLIENT_H
 
     #include "com_def.h"
+    #include "libemqtt.h"
+    #include "error_code.h"
+    
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#ifdef  __COM_STRUCT_GLOBALS
-    #define __COM_STRUCT_EXT
+#ifdef  __MQTT_CLIENT_GLOBALS
+    #define __MQTT_CLIENT_EXT
 #else
-    #define __COM_STRUCT_EXT extern
+    #define __MQTT_CLIENT_EXT extern
 #endif
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#define PROD_IDX_LEN 8 // prodect index len
-#define GW_ID_LEN 40 // gw id len
+typedef VOID (*MQ_CALLBACK)(CHAR *data,UINT len);
 
 /***********************************************************
 *************************variable define********************

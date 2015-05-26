@@ -1,27 +1,31 @@
 /***********************************************************
-*  File: com_struct.h 
+*  File: sys_adapter.h 
 *  Author: nzy
-*  Date: 20150522
+*  Date: 20150526
 ***********************************************************/
-#ifndef _COM_STRUCT_H
-    #define _COM_STRUCT_H
+#ifndef _SYS_ADAPTER_H
+    #define _SYS_ADAPTER_H
 
+    #include <wm_os.h>
     #include "com_def.h"
+
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#ifdef  __COM_STRUCT_GLOBALS
-    #define __COM_STRUCT_EXT
+#ifdef  __SYS_ADAPTER_GLOBALS
+    #define __SYS_ADAPTER_EXT
 #else
-    #define __COM_STRUCT_EXT extern
+    #define __SYS_ADAPTER_EXT extern
 #endif
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#define PROD_IDX_LEN 8 // prodect index len
-#define GW_ID_LEN 40 // gw id len
+// for portable
+typedef os_mutex_t MUTEX_HANDLE;
+typedef os_thread_t THREAD;
+typedef os_timer_t TIMER_ID;
 
 /***********************************************************
 *************************variable define********************
@@ -31,12 +35,7 @@
 /***********************************************************
 *************************function define********************
 ***********************************************************/
-/***********************************************************
-*  Function: 
-*  Input: 
-*  Output: 
-*  Return: 
-***********************************************************/
+
 
 #ifdef __cplusplus
 }

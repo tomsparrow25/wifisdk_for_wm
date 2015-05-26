@@ -73,7 +73,9 @@ SRCS = main.c \
 	wmcloud_helper.c \
 	wm_demo_wps_cli.c \
 	$(SRCS-OPT) board.c \
-	tuya_sdk/driver/key.c
+	tuya_sdk/driver/key.c \
+	tuya_sdk/common/libemqtt.c \
+	tuya_sdk/common/mqtt_client.c
 
 ifeq (y,$(LONG_POLL_CLOUD))
 SRCS += wmcloud_lp.c wm_demo_cloud.c
@@ -100,6 +102,7 @@ EXTRACFLAGS += -I./src -D APPCONFIG_DEBUG_ENABLE=1 -D APPCONFIG_DEMO_CLOUD=1 $(E
 #add by nzy 20150521
 EXTRACFLAGS += -I$(dir $(BOARD_FILE))../app_framework
 EXTRACFLAGS += -I$(dir $(BOARD_FILE))../middleware/provisioning
+EXTRACFLAGS += -I./src/tuya_sdk/common -I./src/tuya_sdk/driver
 SRCS += $(SRCS-y)
 
 MAKE_FTFS = 1

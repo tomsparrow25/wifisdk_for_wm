@@ -14,8 +14,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifndef LITTLE_ENDIAN
-#define LITTLE_ENDIAN // 主机为小端模式
+#ifndef LITTLE_END
+#define LITTLE_END // 主机为小端模式
 #endif
 
 #ifndef NULL
@@ -130,7 +130,7 @@ typedef size_t SIZE_T; // result of the sizeof
     X <<= 32; \
     X |= temp_high;\
 }
-#ifdef LITTLE_ENDIAN
+#ifdef LITTLE_END
 #define NTOHS(X) WORD_SWAP(X)
 #define HTONS(X) WORD_SWAP(X)
 #define NTOHL(X) DWORD_SWAP(X)

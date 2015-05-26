@@ -153,7 +153,6 @@ static int set_smart_cfg_ok(const int is_ok);
 static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg);
 static int select_cfg_mode_for_next(void);
 static void set_smart_cfg(void);
-static int set_network_cli_init(void);
 static int tuya_user_init(void);
 
 // lan net config

@@ -60,3 +60,9 @@ Temporary Items
 /wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/obj
 /wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/bin
 /wmsdk_bundle-2.13.82/sample_apps/README
+*.d
+*.o
+*.a
+*.bin
+*.map
+*.ftfs
