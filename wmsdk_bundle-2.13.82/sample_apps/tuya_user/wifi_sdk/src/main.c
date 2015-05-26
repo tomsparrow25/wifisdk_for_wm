@@ -65,8 +65,6 @@
  *
  */
 #include <wm_os.h>
-
-#include <wm_os.h>
 #include <app_framework.h>
 #include <wmtime.h>
 #include <partition.h>
@@ -92,6 +90,42 @@
 #include "wm_demo_cloud.h"
 #include "wm_demo_wps_cli.h"
 #include <wm_demo_overlays.h>
+#include "app_psm.h" // include NETWORK_MOD_NAME
+#include <board.h>
+#include <mc200_gpio.h>
+#include <mc200_pinmux.h>
+#include "./tuya_sdk/driver/key.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <provisioning.h>
+#include <wm_net.h>
+#include <json.h>
+#include "provisioning_int.h"
+#include "app_network_config.h"
+
+/*-----------------------define declarations----------------------*/
+#define UAP_DOWN_TIMEOUT (30 * 1000)
+
+#define RESET_WIFI_CFG_KEY GPIO_27
+
+// include by NETWORK_MOD_NAME
+#define VAR_UAP_SSID		"uap_ssid"  
+//#define VAR_PROV_KEY        "prov_key"
+#define WF_CFG_MODE   "wf_cfg_mode" // include by NETWORK_MOD_NAME
+#define SMART_CFG_SUCCESS  "smart_cfg_success" // include by NETWORK_MOD_NAME
+typedef enum {
+    SMART_CFG = 0,
+    AP_CFG
+}WF_CFG_MODE_E;
+
+typedef struct wi_cfg_cntl_s{
+    WF_CFG_MODE_E wf_cfg_mode;
+    int is_smart_cfg_ok;
+}WF_CFG_CNTL_S;
+
+/*-----------------------function declarations----------------------*/
+STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt);
 
 /*-----------------------Global declarations----------------------*/
 static char g_uap_ssid[IEEEtypes_SSID_SIZE + 1];
@@ -108,11 +142,60 @@ struct fs *fs;
 
 static os_timer_t uap_down_timer;
 
-#define UAP_DOWN_TIMEOUT (30 * 1000)
+KEY_ENTITY_S key_tbl[] = {
+    {RESET_WIFI_CFG_KEY,5000,key_process,0,0,0,0},
+};
 
-#define NETWORK_MOD_NAME	"network"
-#define VAR_UAP_SSID		"uap_ssid"
-#define VAR_PROV_KEY            "prov_key"
+static WF_CFG_CNTL_S wf_cfg_cntl;
+
+/*-----------------------function declarations----------------------*/
+static int set_smart_cfg_ok(const int is_ok);
+static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg);
+static int select_cfg_mode_for_next(void);
+static void set_smart_cfg(void);
+static int set_network_cli_init(void);
+static int tuya_user_init(void);
+
+// lan net config
+int lan_set_net_work(char *ssid,char *passphrase)
+{
+    int provisioning_mode = 0;
+    int err = -1;
+
+    if(NULL == ssid) {
+       err = -WM_E_PERM;
+       goto ERR_OUT;
+    }
+
+    provisioning_mode = prov_get_state();
+    if(PROVISIONING_STATE_SET_CONFIG == provisioning_mode) {
+        err = -WM_FAIL;
+        goto ERR_OUT;
+    }
+
+    static struct wlan_network lan_curr_net;
+    memset(&lan_curr_net, 0, sizeof(struct wlan_network));
+
+    strncpy(lan_curr_net.ssid, ssid, IEEEtypes_SSID_SIZE); // copy ssid
+    lan_curr_net.channel = 0;
+    if(NULL == passphrase) {
+        lan_curr_net.security.type = WLAN_SECURITY_NONE;
+    }else {
+        lan_curr_net.security.type = WLAN_SECURITY_WILDCARD;
+
+        int len = strlen(passphrase);
+        strncpy(lan_curr_net.security.psk, passphrase, len+1);
+        lan_curr_net.security.psk_len = len;
+    }
+    lan_curr_net.address.addr_type = ADDR_TYPE_DHCP;
+    
+    err = prov_set_network(PROVISIONING_WLANNW, &lan_curr_net);
+
+ERR_OUT:
+    return err;
+}
+
+
 
 /** Provisioning done timer call back function
  * Once the provisioning is done, we wait for provisioning client to send
@@ -139,7 +222,7 @@ void appln_init_ssid()
 			sizeof(g_uap_ssid)) == WM_SUCCESS) {
 		dbg("Using %s as the uAP SSID", g_uap_ssid);
 		appln_cfg.ssid = g_uap_ssid;
-		appln_cfg.hostname = g_uap_ssid;
+		// appln_cfg.hostname = g_uap_ssid;
 	} else {
 			uint8_t my_mac[6];
 
@@ -147,13 +230,17 @@ void appln_init_ssid()
 			wlan_get_mac_address(my_mac);
 			/* Provisioning SSID */
 			snprintf(g_uap_ssid, sizeof(g_uap_ssid),
-				 "wmdemo-%02X%02X", my_mac[4], my_mac[5]);
+				 "TuyaSmart-%02X%02X", my_mac[4], my_mac[5]);
 			dbg("Using %s as the uAP SSID", g_uap_ssid);
 			appln_cfg.ssid = g_uap_ssid;
-			appln_cfg.hostname = g_uap_ssid;
+			// appln_cfg.hostname = g_uap_ssid;
+
+            // store UAP_SSID 
+            psm_set_single(NETWORK_MOD_NAME, VAR_UAP_SSID, appln_cfg.ssid);
 	}
 }
 
+#if 0
 #define KEY_LEN 16
 uint8_t prov_key[KEY_LEN + 1]; /* One extra length to store \0" */
 
@@ -181,6 +268,7 @@ int wmdemo_get_prov_key(uint8_t *prov_key)
 		return 0;
 	}
 }
+#endif
 
 /*
  * A simple HTTP Web-Service Handler
@@ -244,13 +332,19 @@ int register_httpd_handlers()
  */
 int appln_config_init()
 {
-    
+    // do not user mdns ,so delete it
+    #if 0
 	/* Initialize service name for mdns */
 	snprintf(appln_cfg.servname, MAX_SRVNAME_LEN, "wm_demo");
     appln_cfg.wps_pb_gpio = board_button_1();
+    #endif
+
+    #if 0
 	/* Initialize reset to provisioning push button settings */
 	appln_cfg.reset_prov_pb_gpio = board_button_2();
-	/* Initialize power management */
+    #endif
+
+    /* Initialize power management */
 	hp_pm_init();
 	return 0;
 }
@@ -347,27 +441,44 @@ static void event_wlan_init_done(void *data)
 	provisioned = (int)data;
 
 	dbg("Event: WLAN_INIT_DONE provisioned=%d", provisioned);
-
+    
 	/* Initialize ssid to be used for uAP mode */
 	appln_init_ssid();
+
+    // todo:tuya user init
+    tuya_user_init();
 
 	if (provisioned) {
 		app_sta_start();
 		/* Load  CLOUD overlay in memory */
 		wm_demo_load_cloud_overlay();
 	} else {
-#ifndef APPCONFIG_PROV_EZCONNECT
+        #if 0
+        #ifndef APPCONFIG_PROV_EZCONNECT
 		app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
 		/* Load WPS overlay in memory */
 		wm_demo_load_wps_overlay();
-#else
+        #else
+        #if 0
 		int keylen = wmdemo_get_prov_key(prov_key);
 		app_ezconnect_provisioning_start(prov_key, keylen);
-#endif
+        #else
+        app_ezconnect_provisioning_start(NULL, 0);
+        #endif
+        #endif
+        #else
+        if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+            app_ezconnect_provisioning_start(NULL, 0);
+        }else {
+            app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
+        }
+        #endif
 	}
 
+#if 0
 	if (provisioned)
 		hp_configure_reset_prov_pushbutton();
+#endif
 
 #if APPCONFIG_MDNS_ENABLE
 	/*
@@ -431,24 +542,19 @@ static void event_wlan_init_done(void *data)
  */
 static void event_uap_started(void *data)
 {
-#ifndef APPCONFIG_PROV_EZCONNECT
-	void *iface_handle = net_get_uap_handle();
-
 	dbg("Event: Micro-AP Started");
 	if (!provisioned) {
 		dbg("Starting provisioning");
-#if APPCONFIG_WPS_ENABLE
+        #if APPCONFIG_WPS_ENABLE
 		hp_configure_wps_pushbutton();
 		wm_demo_wps_cli_init();
 		app_provisioning_start(PROVISIONING_WLANNW |
 				       PROVISIONING_WPS);
-#else
+        #else
 		app_provisioning_start(PROVISIONING_WLANNW);
-#endif /* APPCONFIG_WPS_ENABLE */
+        #endif /* APPCONFIG_WPS_ENABLE */
 
 	}
-	//hp_mdns_announce(iface_handle, UP);
-#endif
 }
 
 /*
@@ -463,16 +569,32 @@ static void event_uap_started(void *data)
  */
 static void event_prov_done(void *data)
 {
+    #if 0
 	hp_configure_reset_prov_pushbutton();
-#ifndef APPCONFIG_PROV_EZCONNECT
-#if APPCONFIG_WPS_ENABLE
+    #endif
+
+    #if 0
+    #ifndef APPCONFIG_PROV_EZCONNECT
+    #if APPCONFIG_WPS_ENABLE
 	hp_unconfigure_wps_pushbutton();
-#endif /* APPCONFIG_WPS_ENABLE */
+    #endif /* APPCONFIG_WPS_ENABLE */
 	wm_demo_wps_cli_deinit();
 	app_provisioning_stop();
-#else
+    #else
 	app_ezconnect_provisioning_stop();
-#endif /* APPCONFIG_PROV_EZCONNECT */
+    #endif /* APPCONFIG_PROV_EZCONNECT */
+    #else
+    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+        app_ezconnect_provisioning_stop();
+    }else {
+        #if APPCONFIG_WPS_ENABLE
+        hp_unconfigure_wps_pushbutton();
+        #endif /* APPCONFIG_WPS_ENABLE */
+        wm_demo_wps_cli_deinit();
+        app_provisioning_stop();
+    }
+    #endif
+
 	dbg("Provisioning successful");
 }
 
@@ -487,14 +609,24 @@ static void event_prov_done(void *data)
  */
 static void event_prov_client_done(void *data)
 {
-#ifndef APPCONFIG_PROV_EZCONNECT
+    #if 0
+    #ifndef APPCONFIG_PROV_EZCONNECT
 	int ret;
 
 	//hp_mdns_deannounce(net_get_uap_handle());
 	ret = app_uap_stop();
 	if (ret != WM_SUCCESS)
 		dbg("Error: Failed to Stop Micro-AP");
-#endif
+    #endif
+    #else
+    if(AP_CFG == wf_cfg_cntl.wf_cfg_mode) {
+        int ret;
+        ret = app_uap_stop();
+	    if (ret != WM_SUCCESS) {
+		    dbg("Error: Failed to Stop Micro-AP");
+        }
+    }
+    #endif
 }
 
 /*
@@ -726,25 +858,45 @@ static void event_normal_reset_prov(void *data)
 
 	/* Reset to provisioning */
 	provisioned = 0;
+
+    #if 0
 	//mdns_announced = 0;
 	hp_unconfigure_reset_prov_pushbutton();
-#ifndef APPCONFIG_PROV_EZCONNECT
+    #ifndef APPCONFIG_PROV_EZCONNECT
 	if (is_uap_started() == false) {
 		app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
 	} else {
-#ifdef APPCONFIG_WPS_ENABLE
+        #ifdef APPCONFIG_WPS_ENABLE
 		hp_configure_wps_pushbutton();
 		wm_demo_wps_cli_init();
 		app_provisioning_start(PROVISIONING_WLANNW |
 				       PROVISIONING_WPS);
-#else
+        #else
 		app_provisioning_start(PROVISIONING_WLANNW);
-#endif /* APPCONFIG_WPS_ENABLE */
+        #endif /* APPCONFIG_WPS_ENABLE */
 	}
-#else
-	int keylen = wmdemo_get_prov_key(prov_key);
-	app_ezconnect_provisioning_start(prov_key, keylen);
-#endif
+    #else
+    app_ezconnect_provisioning_start(NULL, 0);
+    #endif
+    #else
+    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+        app_ezconnect_provisioning_start(NULL, 0);
+    }else {
+        if (is_uap_started() == false) {
+                app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
+        } else {
+            #ifdef APPCONFIG_WPS_ENABLE
+            hp_configure_wps_pushbutton();
+            wm_demo_wps_cli_init();
+            app_provisioning_start(PROVISIONING_WLANNW |
+                                   PROVISIONING_WPS);
+            #else
+            app_provisioning_start(PROVISIONING_WLANNW);
+            #endif /* APPCONFIG_WPS_ENABLE */
+        }
+
+    }
+    #endif
 }
 void ps_state_to_desc(char *ps_state_desc, int ps_state)
 {
@@ -822,6 +974,8 @@ int common_event_handler(int event, void *data)
 		event_wlan_init_done(data);
 		break;
 	case AF_EVT_NORMAL_CONNECTING:
+        // add by nzy 20150526
+        set_smart_cfg();
 		event_normal_connecting(data);
 		break;
 	case AF_EVT_NORMAL_CONNECTED:
@@ -964,6 +1118,131 @@ static void modules_init()
 	app_sys_register_upgrade_handler();
 	return;
 }
+
+STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt)
+{
+    dbg("gpio_no: %d",gpio_no);
+    dbg("type: %d",type);
+    dbg("cnt: %d",cnt);
+
+    if(RESET_WIFI_CFG_KEY == gpio_no) {
+        if(LONG_KEY == type) {
+            int provisioned = 0;
+            provisioned = app_network_get_nw_state();
+            dbg("provisioned:%d.",provisioned);
+
+            if(APP_NETWORK_PROVISIONED == provisioned || \
+               SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
+                if(provisioned != APP_NETWORK_PROVISIONED && \
+                   SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
+                    app_ezconnect_provisioning_stop();
+                }
+
+                dbg("reset configure network.");
+                app_reset_configured_network();
+                int ret;
+                ret = select_cfg_mode_for_next();
+                if(WM_SUCCESS != ret) {
+                    dbg("%s:%d ret:%d.",__FILE__,__LINE__);
+                }else {
+                    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
+                        app_ezconnect_provisioning_start(NULL, 0);
+                    }else {
+                        app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
+                    }
+                }
+            }
+        }
+    }
+}
+
+static int tuya_user_init(void)
+{
+    key_init(key_tbl,(CONST INT)CNTSOF(key_tbl),30); // key process init
+
+    // initiate for wifi config
+    memset(&wf_cfg_cntl,0,sizeof(WF_CFG_CNTL_S));
+    int ret;
+    char tmp_buf[10];
+    ret = psm_get_single(NETWORK_MOD_NAME, WF_CFG_MODE, tmp_buf,
+			             sizeof(tmp_buf));
+    if(WM_SUCCESS == ret) {
+        wf_cfg_cntl.wf_cfg_mode = atoi(tmp_buf);;
+    }else {
+        psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"0");
+    }
+
+    ret = psm_get_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS, tmp_buf,sizeof(tmp_buf));
+    if(WM_SUCCESS == ret) {
+        wf_cfg_cntl.is_smart_cfg_ok = atoi(tmp_buf);; 
+    }else {
+        psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
+    }
+
+    return ret;
+}
+
+static int set_smart_cfg_ok(const int is_ok)
+{
+    wf_cfg_cntl.is_smart_cfg_ok = is_ok;
+    if(is_ok) {
+        return psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"1");
+    }else {
+        return psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
+    }
+}
+
+static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg)
+{
+    wf_cfg_cntl.wf_cfg_mode = cfg;
+    if(AP_CFG == cfg) {
+        return psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"1");
+    }else {
+        return psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"0");
+    }
+}
+
+static void set_smart_cfg(void)
+{
+    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
+        if(0 == wf_cfg_cntl.is_smart_cfg_ok) {
+            set_smart_cfg_ok(1);
+            dbg("%s:%d save smart cfg ok.",__FILE__,__LINE__);
+            return;
+        }
+    }
+
+    dbg("%s:%d nothing to do.",__FILE__,__LINE__);
+}
+    
+static int select_cfg_mode_for_next(void)
+{
+    int ret;
+    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode && \
+       wf_cfg_cntl.is_smart_cfg_ok) {
+        dbg("%s:%d set next smartconfig mode.",__FILE__,__LINE__);
+        return set_smart_cfg_ok(0);
+    }else if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
+        ret = set_wf_cfg_mode(AP_CFG);
+        if(ret != WM_SUCCESS) {
+            return ret;
+        }
+        dbg("%s:%d set next ap mode.",__FILE__,__LINE__);
+    }else { // AP_CFG
+        ret = set_wf_cfg_mode(SMART_CFG);
+        if(ret != WM_SUCCESS) {
+            return ret;
+        }
+        dbg("%s:%d set next smartconfig mode.",__FILE__,__LINE__);
+        
+        if(wf_cfg_cntl.is_smart_cfg_ok) {
+            return set_smart_cfg_ok(0);
+        }
+    }
+
+    return WM_SUCCESS;
+}
+
 
 int main()
 {

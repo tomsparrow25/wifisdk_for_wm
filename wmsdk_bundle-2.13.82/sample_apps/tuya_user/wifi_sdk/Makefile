@@ -72,7 +72,8 @@ SRCS = main.c \
 	wmcloud.c \
 	wmcloud_helper.c \
 	wm_demo_wps_cli.c \
-	$(SRCS-OPT) board.c
+	$(SRCS-OPT) board.c \
+	tuya_sdk/driver/key.c
 
 ifeq (y,$(LONG_POLL_CLOUD))
 SRCS += wmcloud_lp.c wm_demo_cloud.c
@@ -96,8 +97,10 @@ EXTRACFLAGS-$(APPCONFIG_PM_ENABLE) += -DAPPCONFIG_PM_ENABLE
 
 
 EXTRACFLAGS += -I./src -D APPCONFIG_DEBUG_ENABLE=1 -D APPCONFIG_DEMO_CLOUD=1 $(EXTRACFLAGS-y)
+#add by nzy 20150521
+EXTRACFLAGS += -I$(dir $(BOARD_FILE))../app_framework
+EXTRACFLAGS += -I$(dir $(BOARD_FILE))../middleware/provisioning
 SRCS += $(SRCS-y)
-
 
 MAKE_FTFS = 1
 FTFS_DIR  = ./www
@@ -106,3 +109,6 @@ FTFS_API_VERSION = 100
 include $(TOOLCHAIN_DIR)/targets.mk
 include $(TOOLCHAIN_DIR)/rules.mk
 
+
+test:
+	echo $(OBJ_LIST);

@@ -1,8 +1,0 @@
-# Component	   		Address    	Size     device  Name[8]
-FC_COMP_BOOT2   	0x0	      	0x3000   0       boot2
-FC_COMP_PSM	    	0x3000     	0x4000   0       psm
-FC_COMP_FW      	0x7000     	0x50000  0       mc200fw
-FC_COMP_FW      	0x57000    	0x50000  0       mc200fw
-FC_COMP_WLAN_FW 	0xA7000    	0x2A800  0       wififw
-FC_COMP_FTFS		0xD1800     0x2A800  0		 ftfs
-FC_COMP_USER_APP    0xFC000     0x4000   0       user
