@@ -12,7 +12,12 @@
 #include <mdev_uart.h>
 
 /** Maximum number of characters that can be printed using wmprintf */
+// modify by nzy 20150529
+#if 0
 #define MAX_MSG_LEN 127
+#else
+#define MAX_MSG_LEN 256
+#endif
 
 typedef struct stdio_funcs {
 	int (*sf_printf)(char *);

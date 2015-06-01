@@ -116,7 +116,7 @@ typedef size_t SIZE_T; // result of the sizeof
 #define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 
 /* ×Ö½ÚÐòÖÃ»» */
-#define WORD_SWAP(X) ((X <<8) | (X >> 8))
+#define WORD_SWAP(X) ((X << 8) | (X >> 8))
 #define DWORD_SWAP(X)(((X)&0xff)<<24) + \
                      (((X)&0xff00)<<8) + \
                      (((X)&0xff0000)>>8) + \

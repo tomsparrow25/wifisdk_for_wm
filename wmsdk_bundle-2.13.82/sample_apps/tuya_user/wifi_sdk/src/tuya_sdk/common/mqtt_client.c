@@ -6,20 +6,21 @@
 #define __MQTT_CLIENT_GLOBALS
 #include <wm_net.h>
 #include "mqtt_client.h"
-#include "com_struct.h"
-#include "sys_adapter.h"
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
 #define MQTT_ALIVE_TIME_S 30
+#define RESP_TIMEOUT 5 // sec
 
 // mqtt 状态机执行
 typedef enum {
     MQTT_GET_SERVER_IP = 0,
-    MQTT_INIT,
+    MQTT_SOCK_CONN,
     MQTT_CONNECT,
+    MQ_CONN_RESP,
     MQTT_SUBSCRIBE,
+    MQ_SUB_RESP,
     MQTT_REC_MSG,
 }MQTT_STATUS_MACHINE;
 
@@ -29,18 +30,25 @@ typedef enum {
    //MQTT_PARSE_MSG_PUBLISH,
 }MQTT_PARSE_TYPE;
 
-#define MQTT_HEAD_SIZE      4
+#define MQTT_HEAD_SIZE 4
+#define MQ_RECV_BUF 1024
 
 typedef struct {
     mqtt_broker_handle_t mq;
     CHAR topic[GW_ID_LEN+1]; // use gwid
     CHAR serv_ip[16];
     USHORT serv_port;
-    MQ_CALLBACK *callback;
+    MQ_CALLBACK callback;
     MUTEX_HANDLE mutex;
     THREAD thread;
-    TIMER_ID alive_timer; // for alive 
+    TIMER_ID alive_timer; // for alive
+    TIMER_ID resp_timer; // for respond timeout
     INT is_start;
+    MQTT_STATUS_MACHINE status;
+    BYTE recv_buf[MQ_RECV_BUF];
+    USHORT recv_out;
+    USHORT remain_len;    
+    BYTE topic_msg_buf[MQ_RECV_BUF];
 }MQ_CNTL_S;
 
 static os_thread_stack_define(mq_stack, 512);
@@ -102,13 +110,26 @@ static int mq_send(void* socket_info, const void* buf, unsigned int count)
     return send(fd,buf,count,0);
 }
 
-static VOID mq_close(VOID)
+STATIC INT mq_recv_block(BYTE *buf,INT count)
 {
     int fd;
+
     fd = *((int *)mq_cntl.mq.socket_info);
+
+    return recv(fd,buf,count,0);
+}
     
-    close(fd);
-    mq_cntl.mq.socket_info = NULL;
+static VOID mq_close(VOID)
+{
+    os_mutex_get(mq_cntl.mutex, OS_WAIT_FOREVER);
+    if(mq_cntl.mq.socket_info) {
+        int fd;
+        fd = *((int *)mq_cntl.mq.socket_info);
+        close(fd);
+        
+        mq_cntl.mq.socket_info = NULL;
+    }
+    os_mutex_put(mq_cntl.mutex);
 }
 
 /***********************************************************
@@ -161,18 +182,247 @@ STATIC OPERATE_RET mq_client_sock_conn()
 
 static void mq_alive_timer_cb(os_timer_arg_t arg)
 {
-    
+    INT ret;
+
+    ret = mqtt_ping(&mq_cntl.mq);
+    if(ret != 1) {
+        mq_close();
+        return;
+    }
+
+    os_timer_change(mq_cntl.resp_timer,os_msec_to_ticks((mq_cntl.mq.alive-2)*1000),0);
+    os_timer_activate(mq_cntl.resp_timer);
+}
+
+static void mq_resp_timer_cb(os_timer_arg_t arg)
+{
+    mq_close();
+}
+
+STATIC BOOL domain2ip(IN CONST CHAR *domain,OUT CHAR *ip)
+{
+	struct hostent* h;
+
+	if((h = gethostbyname(domain))==NULL) {
+		return TRUE;
+	}	
+
+	sprintf(ip,"%s",inet_ntoa(*((struct in_addr *)h->h_addr)));
+	return FALSE;
 }
 
 static void mq_ctrl_task(os_thread_arg_t arg)
 {
-	int ret;
+	OPERATE_RET op_ret;
+    USHORT msg_id;
+    INT ret;
 
 	while (1) {
-        
+        switch(mq_cntl.status) {
+            case MQTT_GET_SERVER_IP: {
+                CHAR ip[16];
+                
+                #ifdef MQ_DOMAIN_NAME
+                if(FALSE == domain2ip(MQ_DOMAIN_ADDR,ip)) {
+                    os_thread_sleep(os_msec_to_ticks(3000));
+                    continue;
+                }
+                #else
+                strcpy(ip,MQ_DOMAIN_ADDR);
+                #endif
 
-        
-	}
+                set_mq_serv_info(ip,MQ_DOMAIN_PORT);
+                mq_cntl.status = MQTT_SOCK_CONN;
+            }
+            break;
+
+            case MQTT_SOCK_CONN: {
+                op_ret = mq_client_sock_conn();
+                if(OPRT_OK != op_ret) {
+                    PR_ERR("op_ret:%d.",op_ret);
+                    os_thread_sleep(os_msec_to_ticks(3000));
+                    mq_cntl.status = MQTT_GET_SERVER_IP;
+                    continue;
+                }
+                mq_cntl.status = MQTT_CONNECT;
+            }
+            break;
+
+            case MQTT_CONNECT: 
+            case MQTT_SUBSCRIBE: {
+                if(MQTT_CONNECT == mq_cntl.status) {
+                    ret = mqtt_connect(&mq_cntl.mq);
+                    mq_cntl.status = MQ_CONN_RESP;
+                }else {
+                    ret = mqtt_subscribe(&mq_cntl.mq,mq_cntl.topic, &msg_id);
+                    mq_cntl.status = MQ_SUB_RESP;
+                }
+                if(1 != ret) {
+                    PR_ERR("ret:%d.",ret);
+                    mq_close();
+                    os_thread_sleep(os_msec_to_ticks(3000));
+                    mq_cntl.status = MQTT_GET_SERVER_IP;
+                    continue;
+                }
+
+                os_timer_change(mq_cntl.resp_timer,os_msec_to_ticks(RESP_TIMEOUT*1000),0);
+                os_timer_activate(mq_cntl.resp_timer);
+            }
+            break;
+
+            case MQ_CONN_RESP: 
+            case MQ_SUB_RESP: {
+                ret = mq_recv_block(mq_cntl.recv_buf,MQ_RECV_BUF);
+                if(ret <= 0) {
+                    PR_ERR("ret:%d.",ret);
+                    goto MQ_EXE_ERR;
+                }
+
+                BYTE msg_ack_type;
+                if(MQ_CONN_RESP == mq_cntl.status) {
+                    msg_ack_type = MQTT_MSG_CONNACK;
+                }else {
+                    msg_ack_type = MQTT_MSG_SUBACK;
+                }
+
+                if(msg_ack_type != MQTTParseMessageType(&mq_cntl.recv_buf[0])) {
+                    PR_ERR("msg_ack_type:%d.",msg_ack_type);
+                    goto MQ_EXE_ERR;
+                }
+
+                if(MQ_CONN_RESP == mq_cntl.status) {
+                    if(mq_cntl.recv_buf[3] != 0) {
+                        PR_ERR("recv_buf[3]:%d",mq_cntl.recv_buf[3]);
+                        goto MQ_EXE_ERR;
+                    }
+
+                    mq_cntl.status = MQTT_SUBSCRIBE;
+                }else {
+                    if(msg_id != mqtt_parse_msg_id(mq_cntl.recv_buf)) {
+                        PR_ERR("msg_id:%d",msg_id);
+                        goto MQ_EXE_ERR;
+                    }
+
+                    mq_cntl.status = MQTT_REC_MSG;
+                    os_timer_activate(mq_cntl.alive_timer);
+                }
+
+                if(WM_SUCCESS == os_timer_is_active(mq_cntl.resp_timer)) {
+                    os_timer_deactivate(mq_cntl.resp_timer);
+                }
+                break;
+
+                MQ_EXE_ERR:
+                if(WM_SUCCESS == os_timer_is_active(mq_cntl.resp_timer)) {
+                    os_timer_deactivate(mq_cntl.resp_timer);
+                }
+                mq_close();
+                os_thread_sleep(os_msec_to_ticks(3000));
+                mq_cntl.status = MQTT_GET_SERVER_IP;
+                continue;
+            }
+            break;
+
+            case MQTT_REC_MSG: {
+                // 剩余数据COPY
+                if(mq_cntl.recv_out && mq_cntl.remain_len) {
+                    memcpy(mq_cntl.recv_buf,\
+                           mq_cntl.recv_buf+mq_cntl.recv_out,\
+                           mq_cntl.remain_len);
+                }
+                mq_cntl.recv_out = 0;
+
+                // recv start
+                ret = mq_recv_block(mq_cntl.recv_buf+mq_cntl.remain_len,\
+                                    MQ_RECV_BUF-mq_cntl.remain_len);
+                if(ret <= 0) {
+                    PR_ERR("ret:%d",ret);
+                    goto MQ_EXE_ERR;
+                }
+                
+                // receive data success
+                mq_cntl.remain_len += ret;
+                
+                #define MQ_LEAST_DATA 2 
+                while(mq_cntl.remain_len > MQ_LEAST_DATA) {
+                    INT head_size = 0;
+                    INT remain_len = 0;
+                    INT msg_len = 0;
+                    INT multiplier = 1;
+                    BYTE digit;
+
+                    INT i;
+                    for(i = 0;i < 4;i++) { // 可变长度最大4字节
+                        digit = *(mq_cntl.recv_buf+mq_cntl.recv_out+1+i); // 首个字节标明消息类型
+                        remain_len += (digit & 127)*multiplier;
+                        multiplier *= 128;
+
+                        head_size++;
+                        if(0 == (digit & 0x80)) {
+                            break;
+                        }
+                    }
+                    msg_len = 1+head_size+remain_len;
+
+                    if(msg_len > MQ_RECV_BUF) { 
+                        goto MQ_RECV_ERR;
+                    }
+                    if(mq_cntl.remain_len < msg_len) { // 接收数据长度不够继续接收
+                        break;
+                    }
+
+                    INT last_buf_out = mq_cntl.recv_out;
+                    mq_cntl.recv_out += msg_len;
+                    if(mq_cntl.remain_len >= msg_len) {
+                        mq_cntl.remain_len -= msg_len;
+                    }else {
+                        mq_cntl.remain_len = 0;
+                    }
+
+                    // 判断消息类型
+                    BYTE mq_msg_type;
+                    mq_msg_type = MQTTParseMessageType(&(mq_cntl.recv_buf[last_buf_out]));
+                    if(mq_msg_type != MQTT_MSG_PUBLISH) { // 丢弃
+                        if(mq_msg_type == MQTT_MSG_PINGRESP) { // receive ping resp
+                            // stop resp timeout
+                            os_timer_deactivate(mq_cntl.resp_timer);
+                        }
+                        continue;
+                    }
+
+                    INT len = 0;
+                    len = mqtt_parse_pub_topic(&mq_cntl.recv_buf[last_buf_out],mq_cntl.topic_msg_buf);
+                    if(len == 0) {
+                        continue;
+                    }
+
+                    mq_cntl.topic_msg_buf[len] = 0;
+                    if(0 != strcasecmp(mq_cntl.topic,(CHAR *)mq_cntl.topic_msg_buf)) {
+                        continue;
+                    }
+
+                    len = mqtt_parse_publish_msg((&mq_cntl.recv_buf[last_buf_out]), \
+                                                  mq_cntl.topic_msg_buf);
+                    if(0 == len) {
+                        continue;
+                    }
+                    mq_cntl.topic_msg_buf[len] = 0; // for printf
+
+                    if(mq_cntl.callback) {
+                        mq_cntl.callback(mq_cntl.topic_msg_buf,len);
+                    }
+                }
+                break;
+
+                MQ_RECV_ERR:
+                mq_close();
+                os_timer_deactivate(mq_cntl.alive_timer);
+                mq_cntl.status = MQTT_GET_SERVER_IP;
+                break;
+            }
+            break;
+        }
+    }
 }
 
 /***********************************************************
@@ -181,7 +431,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
 *  Output: 
 *  Return: none
 ***********************************************************/
-OPERATE_RET mq_client_start(IN CONST CHAR *topic,MQ_CALLBACK *callback)
+OPERATE_RET mq_client_start(IN CONST CHAR *topic,IN CONST MQ_CALLBACK callback)
 {
     if(NULL == topic || \
        NULL == callback) {
@@ -202,9 +452,17 @@ OPERATE_RET mq_client_start(IN CONST CHAR *topic,MQ_CALLBACK *callback)
     }
 
     ret = os_timer_create(&mq_cntl.alive_timer, "alive_timer", \
-                          os_msec_to_ticks(mq_cntl.mq.alive*1000),
+                          os_msec_to_ticks(mq_cntl.mq.alive*1000),\
 		                  mq_alive_timer_cb, NULL,\
 		                  OS_TIMER_PERIODIC, OS_TIMER_NO_ACTIVATE);
+    if(ret != WM_SUCCESS) {
+        return OPRT_CR_TIMER_ERR;
+    }
+
+    ret = os_timer_create(&mq_cntl.resp_timer, "resp_timer", \
+                          os_msec_to_ticks(RESP_TIMEOUT*1000),\
+		                  mq_resp_timer_cb, NULL,\
+		                  OS_TIMER_ONE_SHOT, OS_TIMER_NO_ACTIVATE);
     if(ret != WM_SUCCESS) {
         return OPRT_CR_TIMER_ERR;
     }

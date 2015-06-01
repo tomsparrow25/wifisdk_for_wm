@@ -1242,6 +1242,7 @@ static int select_cfg_mode_for_next(void)
     return WM_SUCCESS;
 }
 
+#include "tuya_httpc.h"
 
 int main()
 {
@@ -1250,6 +1251,8 @@ int main()
 	dbg("Build Time: " __DATE__ " " __TIME__ "");
 
 	appln_config_init();
+
+    tuya_http_test();
 
 	/* Start the application framework */
 	if (app_framework_start(common_event_handler) != WM_SUCCESS) {
