@@ -130,6 +130,8 @@ enum wm_json_errno {
 	WM_E_JSON_STR_NF,
 	/** Json number not found*/
 	WM_E_JSON_NUM_NF,
+    // add by nzy 20150601 bool error
+    WE_E_JSON_BOOL_NF,
 	/** Json given buffer not sufficient */
 	WM_E_JSON_BUFF_TOO_SMALL
 };
@@ -167,6 +169,7 @@ typedef enum {
 	JSON_VAL_UINT,
 	JSON_VAL_UINT_64,
 	JSON_VAL_FLOAT,
+	JSON_VAL_BOOL, // add by nzy 20150601
 } json_data_types;
 
 /** Initialize JSON parser
@@ -288,6 +291,8 @@ int json_get_val_int(struct json_object *obj, const char *name, int *val);
  *
  */
 int json_get_val_float(struct json_object *obj, const char *name, float *val);
+
+int json_get_val_bool(struct json_object *obj, const char *name, int *val_bool);
 
 /** Initialize the JSON generator
  *
@@ -419,6 +424,10 @@ int json_set_object_value(struct json_str *jptr, const char *name,
 #define json_set_val_uint(jptr, name, val) \
 	json_set_object_value(jptr, name, NULL, val, 0.0, 0, JSON_VAL_UINT)
 
+//  add by nzy 20160601
+#define json_set_val_bool(jptr, name, val) \
+    json_set_object_value(jptr, name, NULL, val, 0.0, 0, JSON_VAL_BOOL)
+    
 /** Create a key with an unsigned 64 bit integer value.
  *
  * This function adds a key-value pair to the JSON text with an unsigned 64 bit

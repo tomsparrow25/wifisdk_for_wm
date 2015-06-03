@@ -7,6 +7,7 @@
     #define _COM_STRUCT_H
 
     #include "com_def.h"
+    #include "sys_adapter.h"
 #ifdef __cplusplus
 	extern "C" {
 #endif
@@ -25,9 +26,12 @@
 #define DEV_ID_LEN 40 // dev id len
 #define NAME_LEN 20 // name len
 #define UID_LEN 20 // user id len
+#define UID_ACL_LMT 5 // user acl limit
 #define SW_VER_LEN 16 // sw ver len
 #define SEC_KEY_LEN 32 // securt key len
 #define ACTIVE_KEY_LEN 32 // active key len
+#define SCHEMA_ID_LEN 10 
+#define UI_ID_LEN 10
 
 // gateway access ability
 typedef INT GW_ABI;
@@ -83,23 +87,48 @@ typedef struct {
     CHAR id[DEV_ID_LEN+1];
     CHAR name[NAME_LEN+1];
     CHAR sw_ver[SW_VER_LEN+1];
+    UINT schema_id[SCHEMA_ID_LEN+1];
+    UINT ui_id[UI_ID_LEN+1];
     DEV_ABI_E ability;
-    UINT schema_id;
-    UINT ui_id;
 }DEV_DESC_IF_S;
+
+// dp schema 
+typedef struct {
+    UINT min;
+    UINT max;
+    USHORT step;
+    USHORT scale; // 描述value型DP的10的指数
+}DP_SCHEMA_VAL_S;
+
+typedef struct {
+    INT cnt;
+    CHAR **pp_enum;
+}DP_SCHEMA_ENUM_S;
+
+typedef struct {
+    CHAR *str;
+}DP_SCHEMA_STR_S;
+
+typedef union {
+    DP_SCHEMA_VAL_S sch_value;
+    DP_SCHEMA_ENUM_S sch_enum;
+    DP_SCHEMA_STR_S sch_str;
+}DP_SCHEMA_U;
 
 typedef struct {
     BYTE dp_id;
     DP_MODE_E mode;
     DP_TYPE_E type;
     DP_SCH_TP_E sch_tp; // type == obj时有效
+    BOOL is_trig; // 联动触发类型
+    DP_SCHEMA_U schema[0];
 }DP_DESC_IF_S;
 
-#define DEF_DP_DATA_SIZE 32
+#define DEF_DP_DATA_SIZE 16
 typedef struct {
     DP_DESC_IF_S dp_desc;
     INT len;
-    CHAR *dp_data;
+    CHAR *dp_data; // dp当前状态数据，如dp mode == wr,则 dp_data == NULL
 }DP_CNTL_S;
 
 typedef struct dev_cntl_n_s {
@@ -111,19 +140,19 @@ typedef struct dev_cntl_n_s {
 }DEV_CNTL_N_S;
 
 typedef struct {
+    CHAR key[SEC_KEY_LEN+1];
+    INT uid_cnt;
+    CHAR uid_acl[UID_ACL_LMT][UID_LEN+1];
+}GW_ACTV_IF_S;
+
+typedef struct {
     GW_DESC_IF_S gw;
+    GW_ACTV_IF_S active;
     INT dev_num;
     DEV_CNTL_N_S *dev;
+    MUTEX_HANDLE mutex;
 }GW_CNTL_S;
 
-// want to save in the flash
-// mac addr 
-// prodect index
-// dev sw_ver
-// UINT schema_id
-// UINT ui_id;
-// dev name
-// 
 /***********************************************************
 *************************variable define********************
 ***********************************************************/

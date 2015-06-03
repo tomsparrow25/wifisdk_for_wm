@@ -77,7 +77,10 @@ SRCS = main.c \
 	tuya_sdk/common/libemqtt.c \
 	tuya_sdk/common/mqtt_client.c \
 	tuya_sdk/common/md5.c \
-	tuya_sdk/common/tuya_httpc.c
+	tuya_sdk/common/tuya_httpc.c \
+	tuya_sdk/common/tuya_ws_db.c \
+	tuya_sdk/common/sysdata_adapter.c \
+	tuya_sdk/common/cJSON.c	
 
 ifeq (y,$(LONG_POLL_CLOUD))
 SRCS += wmcloud_lp.c wm_demo_cloud.c
@@ -105,7 +108,17 @@ EXTRACFLAGS += -I./src -D APPCONFIG_DEBUG_ENABLE=1 -D APPCONFIG_DEMO_CLOUD=1 $(E
 EXTRACFLAGS += -I$(dir $(BOARD_FILE))../app_framework
 EXTRACFLAGS += -I$(dir $(BOARD_FILE))../middleware/provisioning
 EXTRACFLAGS += -I./src/tuya_sdk/common -I./src/tuya_sdk/driver
-EXTRACFLAGS += -I$(dir $(BOARD_FILE))../middleware/crypto/aescrypto
+
+#device information define
+SW_VER ?= \"1.0.0\"
+SW_TAG ?= \"xxxx\"
+DEF_NAME ?= \"²å×ù\"
+SCHEMA_ID ?= \"100000\"
+UI_ID ?= \"100000\"
+
+EXTRACFLAGS += -DSW_VER=${SW_VER} -DSW_TAG=${SW_TAG} -DDEF_NAME=${DEF_NAME}
+EXTRACFLAGS += -DSCHEMA_ID=${SCHEMA_ID} -DUI_ID=${UI_ID}
+
 SRCS += $(SRCS-y)
 
 MAKE_FTFS = 1

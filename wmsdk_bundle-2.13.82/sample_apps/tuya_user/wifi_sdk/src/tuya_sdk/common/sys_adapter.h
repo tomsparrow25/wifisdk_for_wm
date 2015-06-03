@@ -27,6 +27,16 @@ typedef os_mutex_t MUTEX_HANDLE;
 typedef os_thread_t THREAD;
 typedef os_timer_t TIMER_ID;
 
+// for portable
+#undef malloc
+#define malloc(x) os_mem_alloc(x)
+
+#undef calloc 
+#define calloc os_mem_calloc(x)
+
+#undef free
+#define free(x) os_mem_free(x)
+
 /***********************************************************
 *************************variable define********************
 ***********************************************************/

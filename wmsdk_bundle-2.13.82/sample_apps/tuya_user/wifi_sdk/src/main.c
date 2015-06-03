@@ -1243,6 +1243,7 @@ static int select_cfg_mode_for_next(void)
 }
 
 #include "tuya_httpc.h"
+#include "tuya_ws_db.h"
 
 int main()
 {
@@ -1252,7 +1253,105 @@ int main()
 
 	appln_config_init();
 
+#if 1
     tuya_http_test();
+
+    OPERATE_RET op_ret;    
+    op_ret = ws_db_init();
+    if(OPRT_OK != op_ret) {
+        PR_DEBUG("op_ret:%d",op_ret);
+        return 1;
+    }
+
+    PROD_IF_REC_S prod_if = {"12345678","112233445566"};
+    op_ret = ws_db_set_prod_if(&prod_if);
+    if(OPRT_OK != op_ret) {
+        PR_DEBUG("op_ret:%d",op_ret);
+        return 1;
+    }
+
+    memset(&prod_if,0,sizeof(prod_if));
+    op_ret = ws_db_get_prod_if(&prod_if);
+    if(OPRT_OK != op_ret) {
+        PR_DEBUG("op_ret:%d",op_ret);
+        return 1;
+    }
+
+    PR_DEBUG("mac:%s",prod_if.mac);
+    PR_DEBUG("prod_idx:%s",prod_if.prod_idx);
+
+    GW_ACTV_IF_S gw_actv;
+    strcpy(gw_actv.key,"1234567890");
+    gw_actv.uid_cnt = 3;
+    strcpy(gw_actv.uid_acl[0],"000000000");
+    strcpy(gw_actv.uid_acl[1],"111111111");
+    strcpy(gw_actv.uid_acl[2],"222222222");
+    strcpy(gw_actv.uid_acl[3],"333333333");
+    op_ret = ws_db_set_gw_actv(&gw_actv);
+    if(OPRT_OK != op_ret) {
+        PR_DEBUG("op_ret:%d",op_ret);
+        return 1;
+    }
+    memset(&gw_actv,0,sizeof(gw_actv)); 
+    op_ret = ws_db_get_gw_actv(&gw_actv);
+    if(OPRT_OK != op_ret) {
+        PR_DEBUG("op_ret:%d",op_ret);
+        return 1;
+    }
+
+    INT i;
+    PR_DEBUG("key:%s",gw_actv.key);
+    PR_DEBUG("cnt:%d",gw_actv.uid_cnt);
+    for(i = 0;i < gw_actv.uid_cnt;i++) {
+        PR_DEBUG("%d %s",i,gw_actv.uid_acl[i]);
+    }
+
+    DEV_IF_REC_S dev_if;
+    strcpy(dev_if.name,"device");
+    strcpy(dev_if.sw_ver,"1.1");
+    dev_if.schema_id[0] = 0;
+    dev_if.ui_id[0] = 0;
+    op_ret = ws_db_set_dev_if(&dev_if);
+    if(OPRT_OK != op_ret) {
+        PR_DEBUG("op_ret:%d",op_ret);
+        return 1;
+    }
+
+    memset(&dev_if,0,sizeof(dev_if));
+    op_ret = ws_db_get_dev_if(&dev_if);
+    if(OPRT_OK != op_ret) {
+        PR_DEBUG("op_ret:%d",op_ret);
+        return 1;
+    }
+    PR_DEBUG("%s",dev_if.name);
+    PR_DEBUG("%s",dev_if.sw_ver);
+    PR_DEBUG("%s",dev_if.schema_id);
+    PR_DEBUG("%s",dev_if.ui_id);
+
+    CHAR json_test[] = "{\"float\":123.1234,\"string\":\"str\",\"num\":1000}";
+
+    #include "cJSON.h"
+    cJSON *root = NULL;
+    root = cJSON_Parse(json_test);
+    if(NULL == root) {
+        return 1;
+    }
+
+    int type;
+    type = cJSON_GetObjectItem(root,"float")->type;
+    PR_DEBUG("type:%d",type);
+    type = cJSON_GetObjectItem(root,"num")->type;
+    PR_DEBUG("type:%d",type);
+    type = cJSON_GetObjectItem(root,"string")->type;
+    PR_DEBUG_RAW("type=%d string=%s\r\n",type,cJSON_GetObjectItem(root,"string")->valuestring);
+
+    CHAR *out;
+    out=cJSON_PrintUnformatted(root);
+    PR_DEBUG("%s",out);
+    free(out);
+
+    cJSON_Delete(root);
+#endif
 
 	/* Start the application framework */
 	if (app_framework_start(common_event_handler) != WM_SUCCESS) {

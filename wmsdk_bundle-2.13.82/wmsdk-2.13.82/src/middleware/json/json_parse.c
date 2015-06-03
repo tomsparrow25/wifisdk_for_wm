@@ -539,6 +539,27 @@ int json_get_val_int(struct json_object *obj, const char *name, int *val_int)
 	return ret;
 }
 
+int json_get_val_bool(struct json_object *obj, const char *name, int *val_bool)
+{    
+    char val_str[MAX_JSON_VAL_LEN + 1];
+    int ret;
+    
+    ret = json_get_val_str(obj, name,val_str, sizeof(val_str));
+    if(WM_SUCCESS != ret) {
+        return ret;
+    }
+    if(0 == strcmp(val_str, "true")) {
+        *val_bool = 1;
+    }else if(0 == strcmp(val_str, "false")){
+        *val_bool = 0;
+    }else {
+        return WE_E_JSON_BOOL_NF;
+    }
+
+    return ret;
+}
+
+
 #ifdef CONFIG_JSON_FLOAT
 int json_get_val_float(struct json_object *obj, const char *name,
 		       float *val_int)
@@ -797,6 +818,28 @@ int json_set_object_value(struct json_str *jptr, const char *name,
 				    jptr->len - jptr->free_ptr);
 		}
 		break;
+
+    case JSON_VAL_BOOL: {
+        char tmp[10];
+
+        if(value) {
+            strcpy(tmp,"true");
+        }else {
+            strcpy(tmp,"false");
+        }
+
+		if (fmt) {
+			snprintf(&jptr->buff[jptr->free_ptr],
+				     jptr->len - jptr->free_ptr, "\n  \"%s\":\t%s",
+				     name, tmp);
+        }else {
+			snprintf(&jptr->buff[jptr->free_ptr],
+				     jptr->len - jptr->free_ptr, "\"%s\":%s", name,
+				     tmp);
+        }
+    }
+    break;
+        
 	default:
 		json_e("Invalid case in object set");
 	}

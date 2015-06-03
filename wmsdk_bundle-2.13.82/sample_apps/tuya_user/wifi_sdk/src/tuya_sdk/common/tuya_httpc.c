@@ -11,16 +11,6 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-// for portable
-#undef malloc
-#define malloc(x) os_mem_alloc(x)
-
-#undef calloc 
-#define calloc os_mem_calloc(x)
-
-#undef free
-#define free(x) os_mem_free(x)
-
 typedef struct {
     BYTE total;
     BYTE cnt;
@@ -468,7 +458,6 @@ STATIC OPERATE_RET httpc_aes_encrypt(IN CONST BYTE *plain,UINT len,OUT BYTE *cip
 
     return OPRT_OK;
 }
-
 
 OPERATE_RET httpc_gw_active()
 {
