@@ -349,11 +349,34 @@ int psm_spi_write(uint32_t address, char *buffer, uint32_t length)
 	    (address + length) > (psm_fl.fl_start + psm_fl.fl_size))
 		return -WM_FAIL;
 
+    // modify by nzy 20150609
+    #if 0
 	ret = flash_drv_erase(fl_dev, address, length);
 	if (ret != WM_SUCCESS)
 		return -WM_FAIL;
 
 	return flash_drv_write(fl_dev, (uint8_t *)buffer, length, address);
+    #else
+    int i;
+    for(i = 0;i < 3;i++) {
+        ret = flash_drv_erase(fl_dev, address, length);
+        if(ret == WM_SUCCESS) {
+            break;
+        }
+    }
+    if(ret != WM_SUCCESS || (i>= 3)) {
+        return -WM_FAIL;
+    }
+
+    for(i = 0;i < 3;i++) {
+        ret = flash_drv_write(fl_dev, (uint8_t *)buffer, length, address);
+        if(ret == WM_SUCCESS) {
+            break;
+        }
+    }
+
+    return ret;
+    #endif
 }
 
 int psm_spi_read(uint32_t address, char *buffer, uint32_t length)

@@ -106,7 +106,10 @@ typedef enum  {
 	HDR_ADD_CONN_KEEP_ALIVE		= 0x0002,
 	HDR_ADD_CONN_CLOSE		= 0x0004,
 	HDR_ADD_TYPE_CHUNKED            = 0x0008,
+
+    // add content type
 	HDR_ADD_CONTENT_TYPE_JSON       = 0x0010,
+	HDR_ADD_CONTENT_TYPE_FORM_URLENCODE = 0x0020, // add by nzy 20150608
 } http_hdr_field_sel_t;
 
 

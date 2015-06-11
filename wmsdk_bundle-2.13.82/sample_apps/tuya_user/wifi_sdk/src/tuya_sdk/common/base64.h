@@ -1,31 +1,25 @@
 /***********************************************************
-*  File: sys_adapter.h 
+*  File: base64.h 
 *  Author: nzy
-*  Date: 20150526
+*  Date: 20150609
 ***********************************************************/
-#ifndef _SYS_ADAPTER_H
-    #define _SYS_ADAPTER_H
-
-    #include <wm_os.h>
-    #include "com_def.h"
+#ifndef _BASE64_H
+    #define _BASE64_H
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#ifdef  __SYS_ADAPTER_GLOBALS
-    #define __SYS_ADAPTER_EXT
+#ifdef  __BASE64_GLOBALS
+    #define __BASE64_EXT
 #else
-    #define __SYS_ADAPTER_EXT extern
+    #define __BASE64_EXT extern
 #endif
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-// for portable
-typedef os_mutex_t MUTEX_HANDLE;
-typedef os_thread_t THREAD;
-typedef os_timer_t TIMER_ID;
+
 
 /***********************************************************
 *************************variable define********************
@@ -35,7 +29,11 @@ typedef os_timer_t TIMER_ID;
 /***********************************************************
 *************************function define********************
 ***********************************************************/
+__BASE64_EXT \
+char * base64_encode( const unsigned char * bindata, char * base64, int binlength );
 
+__BASE64_EXT \
+int base64_decode( const char * base64, unsigned char * bindata );
 
 #ifdef __cplusplus
 }

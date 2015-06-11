@@ -839,7 +839,10 @@ static int _http_prepare_req(session_t *s, const http_req_t *req,
 	}
 	if (field_flags & HDR_ADD_CONTENT_TYPE_JSON) {
 		_http_add_header(s, "Content-Type", "application/json");
-	}
+	}else if(field_flags & HDR_ADD_CONTENT_TYPE_FORM_URLENCODE) {
+        _http_add_header(s, "Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+    }
+    
 	if (field_flags & HDR_ADD_TYPE_CHUNKED) {
 		_http_add_header(s, "Transfer-Encoding", "chunked");
 		s->chunk.state = STATE_START_CHUNK;

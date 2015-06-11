@@ -1,36 +1,31 @@
 /***********************************************************
-*  File: sys_adapter.h 
+*  File: smart_wf_frame.h 
 *  Author: nzy
-*  Date: 20150526
+*  Date: 20150611
 ***********************************************************/
-#ifndef _SYS_ADAPTER_H
-    #define _SYS_ADAPTER_H
+#ifndef _SMART_WF_FRAME_H
+    #define _SMART_WF_FRAME_H
 
-    #include <wm_os.h>
     #include "com_def.h"
+    #include "appln_dbg.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#ifdef  __SYS_ADAPTER_GLOBALS
-    #define __SYS_ADAPTER_EXT
+#ifdef  __SMART_WF_FRAME_GLOBALS
+    #define __SMART_WF_FRAME_EXT
 #else
-    #define __SYS_ADAPTER_EXT extern
+    #define __SMART_WF_FRAME_EXT extern
 #endif
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-// for portable
-typedef os_mutex_t MUTEX_HANDLE;
-typedef os_thread_t THREAD;
-typedef os_timer_t TIMER_ID;
 
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
-
 
 /***********************************************************
 *************************function define********************

@@ -8,6 +8,7 @@
 
     #include "com_def.h"
     #include "sys_adapter.h"
+    #include "mem_pool.h"
     #include "error_code.h"
     #include "com_struct.h"
     #include <wm_os.h>
@@ -26,7 +27,15 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#define TY_SMART_DOMAIN "http://192.168.0.19/gw.json"
+#if 0
+#define TY_SMART_DOMAIN "http://192.168.0.19:7002/atop/gw.json"
+#else
+    #if 1
+    #define TY_SMART_DOMAIN "http://192.168.20.231:8081/gw.json"
+    #else
+    #define TY_SMART_DOMAIN "http://192.168.20.115:8081/"
+    #endif
+#endif
 
 // gw interface
 #define TI_GW_ACTIVE "s.gw.active" // gw active
@@ -52,10 +61,10 @@
 ** note: non-chunked content is not null
 **       chunked content or len is null or 0
 */
-typedef VOID (*HTTPC_CB)(IN CONST BOOL is_end,\
-                         IN CONST UINT offset,\
-                         IN CONST BYTE *data,\
-                         IN CONST UINT len);
+typedef OPERATE_RET (*HTTPC_CB)(IN CONST BOOL is_end,\
+                                IN CONST UINT offset,\
+                                IN CONST BYTE *data,\
+                                IN CONST UINT len);
 
 /***********************************************************
 *************************variable define********************
@@ -82,7 +91,97 @@ OPERATE_RET httpc_aes_init(VOID);
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_aes_set(IN CONST BYTE *key,IN CONST BYTE *iv);
 
-__TUYA_HTTPC_EXT VOID tuya_http_test(VOID);
+/***********************************************************
+*  Function: httpc_gw_active
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_gw_active();
+
+/***********************************************************
+*  Function: httpc_gw_reset
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_gw_reset(VOID);
+
+/***********************************************************
+*  Function: httpc_gw_update
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_gw_update(IN CONST CHAR *name,IN CONST CHAR *sw_ver);
+
+/***********************************************************
+*  Function: httpc_gw_hearat
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_gw_hearat(VOID);
+
+/***********************************************************
+*  Function: httpc_dev_bind
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_dev_bind(IN CONST DEV_DESC_IF_S *dev_if);
+
+/***********************************************************
+*  Function: httpc_dev_unbind
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_dev_unbind(IN CONST CHAR *id);
+
+/***********************************************************
+*  Function: httpc_dev_update
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_dev_update(IN CONST DEV_DESC_IF_S *dev_if);
+
+/***********************************************************
+*  Function: httpc_dev_stat_report
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_dev_stat_report(IN CONST CHAR *id,IN CONST BOOL online);
+
+/***********************************************************
+*  Function: httpc_dev_raw_dp_report
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_dev_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
+                                    IN CONST BYTE *data, IN CONST UINT len);
+
+
+/***********************************************************
+*  Function: httpc_dev_obj_dp_report
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_dev_obj_dp_report(IN CONST CHAR *id,IN CONST CHAR *data);
 
 
 #ifdef __cplusplus

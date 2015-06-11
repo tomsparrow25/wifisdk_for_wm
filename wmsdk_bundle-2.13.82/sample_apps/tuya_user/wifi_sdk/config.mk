@@ -7,11 +7,11 @@
 # Set XIVELY_CLOUD to y for xively cloud
 # Set ARRAYENT_CLOUD to y for Arrayent cloud
 # Make sure that only of these options is enabled at a time
-WEBSOCKET_CLOUD = y
+#WEBSOCKET_CLOUD = y
 #LONG_POLL_CLOUD = y
 #XIVELY_CLOUD = y
 #ARRAYENT_CLOUD = y
 
 # Ezconnect provisioning mode
-APPCONFIG_PROV_EZCONNECT=n
+#APPCONFIG_PROV_EZCONNECT=n
 

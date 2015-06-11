@@ -76,7 +76,7 @@
 #include <reset_prov_helper.h>
 #include <power_mgr_helper.h>
 #include <httpd.h>
-#include <wmcloud.h>
+//#include <wmcloud.h>
 #include <led_indicator.h>
 #include <board.h>
 #include <dhcp-server.h>
@@ -87,9 +87,9 @@
 #include <diagnostics.h>
 #include <mdev_gpio.h>
 #include <healthmon.h>
-#include "wm_demo_cloud.h"
-#include "wm_demo_wps_cli.h"
-#include <wm_demo_overlays.h>
+//#include "wm_demo_cloud.h"
+//#include "wm_demo_wps_cli.h"
+//#include <wm_demo_overlays.h>
 #include "app_psm.h" // include NETWORK_MOD_NAME
 #include <board.h>
 #include <mc200_gpio.h>
@@ -103,6 +103,8 @@
 #include <json.h>
 #include "provisioning_int.h"
 #include "app_network_config.h"
+#include "device.h"
+#include "tuya_httpc.h"
 
 /*-----------------------define declarations----------------------*/
 #define UAP_DOWN_TIMEOUT (30 * 1000)
@@ -275,7 +277,8 @@ int wmdemo_get_prov_key(uint8_t *prov_key)
  * Returns the string "Hello World" when a GET on http://<IP>/hello
  * is done.
  */
-
+// delete by nzy 20150606
+#if 0
 char *hello_world_string = "Hello World\n";
 
 int hello_handler(httpd_request_t *req)
@@ -302,6 +305,7 @@ struct httpd_wsgi_call wm_demo_http_handlers[] = {
 static int wm_demo_handlers_no =
 	sizeof(wm_demo_http_handlers) / sizeof(struct httpd_wsgi_call);
 
+#endif
 
 /* This function is defined for handling critical error.
  * For this application, we just stall and do nothing when
@@ -319,11 +323,14 @@ void appln_critical_error_handler(void *data)
  * Register Web-Service handlers
  *
  */
+// delete by nzy 20150606
+#if 0
 int register_httpd_handlers()
 {
 	return httpd_register_wsgi_handlers(wm_demo_http_handlers,
 		wm_demo_handlers_no);
 }
+#endif
 
 /* This function must initialize the variables required (network name,
  * passphrase, etc.) It should also register all the event handlers that are of
@@ -357,20 +364,27 @@ static uint8_t mdns_announced;
 /* This function stops various services when
  * device gets disconnected or reset to provisioning is done.
  */
+	// delete by nzy 20150606
+#if 0
 static void stop_services()
 {
 	wm_demo_cloud_stop();
 	led_off(board_led_1());
 }
+#endif
 
 /* This function starts various services when
  * device get connected to a network.
  */
+
+// delete by nzy 20150606
+#if 0
 static void start_services()
 {
 	dbg("Start Cloud");
 	wm_demo_cloud_start();
 }
+#endif
 /*
  * Event: INIT_DONE
  *
@@ -445,12 +459,14 @@ static void event_wlan_init_done(void *data)
 	appln_init_ssid();
 
     // todo:tuya user init
-    tuya_user_init();
-
+    tuya_user_init();    
 	if (provisioned) {
+        app_sta_start(STAT_STA_UNCONN);
 		app_sta_start();
+        #if 0
 		/* Load  CLOUD overlay in memory */
 		wm_demo_load_cloud_overlay();
+        #endif        
 	} else {
         #if 0
         #ifndef APPCONFIG_PROV_EZCONNECT
@@ -467,6 +483,7 @@ static void event_wlan_init_done(void *data)
         #endif
         #else
         if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+            app_sta_start(STAT_UNPROVISION);
             app_ezconnect_provisioning_start(NULL, 0);
         }else {
             app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
@@ -498,7 +515,10 @@ static void event_wlan_init_done(void *data)
 	/*
 	 * Register /hello http handler
 	 */
+	// delete by nzy 20150606
+	#if 0
 	register_httpd_handlers();
+    #endif
 
 	/*
 	 * Initialize CLI Commands for some of the modules:
@@ -589,7 +609,10 @@ static void event_prov_done(void *data)
         #if APPCONFIG_WPS_ENABLE
         hp_unconfigure_wps_pushbutton();
         #endif /* APPCONFIG_WPS_ENABLE */
+        // delete by nzy 20150606
+        #if 0
         wm_demo_wps_cli_deinit();
+        #endif
         app_provisioning_stop();
     }
     #endif
@@ -756,10 +779,20 @@ static void event_normal_connected(void *data)
 		hp_mdns_down_up(iface_handle);
 	}
     #endif
-    
+
+    //  delete by nzy 20150606
+    #if 0
 	/* Load CLOUD overlay in memory */
 	wm_demo_load_cloud_overlay();
 	start_services();
+    #endif
+
+    if(is_uap_started()) {
+        set_wf_gw_status(STAT_AP_STA_CONN);
+    }else {
+        set_wf_gw_status(STAT_STA_CONN);
+    }
+
 	/*
 	 * If micro AP interface is up
 	 * queue a timer which will take
@@ -845,15 +878,22 @@ static void event_normal_reset_prov(void *data)
 	/* Start Slow Blink */
 	led_slow_blink(board_led_2());
 
+    // delete by nzy 20150606
+    #if 0
 	/* Stop services like cloud */
 	stop_services();
+    #endif
 
 	/* Cancel the UAP down timer timer */
 	os_timer_deactivate(&uap_down_timer);
 
 	hp_pm_wifi_ps_disable();
+
+    // delete by nzy 20150606
+    #if 0
 	/* Load WPS overlay in memory */
 	wm_demo_load_wps_overlay();
+    #endif
 
 	/* Reset to provisioning */
 	provisioned = 0;
@@ -878,7 +918,9 @@ static void event_normal_reset_prov(void *data)
     app_ezconnect_provisioning_start(NULL, 0);
     #endif
     #else
+    
     if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+        set_wf_gw_status(STAT_UNPROVISION);
         app_ezconnect_provisioning_start(NULL, 0);
     }else {
         if (is_uap_started() == false) {
@@ -965,6 +1007,18 @@ static void event_ps_exit(void *data)
  */
 int common_event_handler(int event, void *data)
 {
+    // add by nzy 20150610
+    if(AF_EVT_NORMAL_CONNECTING == event || \
+       AF_EVT_NORMAL_LINK_LOST == event || \
+       AF_EVT_NORMAL_CONNECT_FAILED == event || \
+       AF_EVT_NORMAL_USER_DISCONNECT == event) {
+        if(is_uap_started()) {
+            set_wf_gw_status(STAT_AP_STA_UNCONN);
+        }else {
+            set_wf_gw_status(STAT_STA_UNCONN);
+        }
+    }
+
 	switch (event) {
 	case AF_EVT_INIT_DONE:
 		event_init_done(data);
@@ -1008,9 +1062,11 @@ int common_event_handler(int event, void *data)
 		event_normal_reset_prov(data);
 		break;
 	case AF_EVT_UAP_STARTED:
+        set_wf_gw_status(STAT_AP_STA_UNCONN);
 		event_uap_started(data);
 		break;
 	case AF_EVT_UAP_STOPPED:
+        set_wf_gw_status(STAT_STA_CONN);
 		event_uap_stopped(data);
 		break;
 	case AF_EVT_PROV_DONE:
@@ -1118,6 +1174,128 @@ static void modules_init()
 	return;
 }
 
+static void gw_active_test(int argc, char **argv)
+{
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+
+    strcpy(gw_cntl->active.token,"1cc0410210041c00");
+    strcpy(gw_cntl->active.uid_acl[0],"c001432611438210COSF");
+    gw_cntl->active.uid_cnt = 1;
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_gw_active();
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+
+    check_all_dev_if_update();
+}
+
+static void heart_beat_test(int argc, char **argv)
+{
+    extern VOID mq_close(VOID);
+    mq_close();
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_gw_hearat();
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+}
+
+static void gw_rest_test(int argc, char **argv)
+{
+    OPERATE_RET op_ret;
+    op_ret = httpc_gw_reset();
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+}
+
+static void dev_unbind_test(int argc, char **argv)
+{
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_dev_unbind(gw_cntl->dev->dev_if.id);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+}
+
+static void dev_update_test(int argc, char **argv)
+{
+    DEV_DESC_IF_S dev_if;
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+
+    memcpy(&dev_if,&(gw_cntl->dev->dev_if),sizeof(dev_if));
+
+    strcpy(dev_if.name,"kaiguan");
+    strcpy(dev_if.sw_ver,"2.0");
+    OPERATE_RET op_ret;
+    op_ret = httpc_dev_update(&dev_if);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+}
+
+static void dev_stat_report(int argc, char **argv)
+{
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+
+    STATIC BOOL online = TRUE;
+    online = !online;
+    
+    OPERATE_RET op_ret;
+    op_ret = httpc_dev_stat_report(gw_cntl->dev->dev_if.id,online);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+}
+
+static void dp_publish(int argc, char **argv)
+{
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+    CHAR *data = "{\"1\":20}";
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_dev_obj_dp_report(gw_cntl->dev->dev_if.id,data);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+}
+
+static void dp_raw_publish(int argc, char **argv)
+{
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+    BYTE data[] = {1,2,3,4};
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_dev_raw_dp_report(gw_cntl->dev->dev_if.id,3,data, 4);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+}
+
+static struct cli_command test_cmds[] = {
+	{"gw-active", "", gw_active_test},
+    {"heart-beat","",heart_beat_test},
+    {"gw_rest","",gw_rest_test},
+    {"dev_unbind","",dev_unbind_test},
+    {"dev_update","",dev_update_test},
+    {"dev_stat_rep","",dev_stat_report},
+    {"dp_publish","",dp_publish},
+    {"dp_raw_publish","",dp_raw_publish},
+};
+
 STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt)
 {
     dbg("gpio_no: %d",gpio_no);
@@ -1157,6 +1335,13 @@ STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt)
 
 static int tuya_user_init(void)
 {
+    OPERATE_RET op_ret;
+    op_ret = SysMemoryPoolSetup();
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return 1;
+    }
+    
     key_init(key_tbl,(CONST INT)CNTSOF(key_tbl),30); // key process init
 
     // initiate for wifi config
@@ -1166,7 +1351,7 @@ static int tuya_user_init(void)
     ret = psm_get_single(NETWORK_MOD_NAME, WF_CFG_MODE, tmp_buf,
 			             sizeof(tmp_buf));
     if(WM_SUCCESS == ret) {
-        wf_cfg_cntl.wf_cfg_mode = atoi(tmp_buf);;
+        wf_cfg_cntl.wf_cfg_mode = atoi(tmp_buf);
     }else {
         psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"0");
     }
@@ -1177,6 +1362,19 @@ static int tuya_user_init(void)
     }else {
         psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
     }
+
+#if 1
+    op_ret = device_init();
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return 1;
+    }
+
+    int i;
+    for(i = 0;i < CNTSOF(test_cmds);i++) {
+        cli_register_command(&test_cmds[i]);
+    }
+#endif
 
     return ret;
 }
@@ -1242,9 +1440,6 @@ static int select_cfg_mode_for_next(void)
     return WM_SUCCESS;
 }
 
-#include "tuya_httpc.h"
-#include "tuya_ws_db.h"
-
 int main()
 {
 	modules_init();
@@ -1253,110 +1448,11 @@ int main()
 
 	appln_config_init();
 
-#if 1
-    tuya_http_test();
-
-    OPERATE_RET op_ret;    
-    op_ret = ws_db_init();
-    if(OPRT_OK != op_ret) {
-        PR_DEBUG("op_ret:%d",op_ret);
-        return 1;
-    }
-
-    PROD_IF_REC_S prod_if = {"12345678","112233445566"};
-    op_ret = ws_db_set_prod_if(&prod_if);
-    if(OPRT_OK != op_ret) {
-        PR_DEBUG("op_ret:%d",op_ret);
-        return 1;
-    }
-
-    memset(&prod_if,0,sizeof(prod_if));
-    op_ret = ws_db_get_prod_if(&prod_if);
-    if(OPRT_OK != op_ret) {
-        PR_DEBUG("op_ret:%d",op_ret);
-        return 1;
-    }
-
-    PR_DEBUG("mac:%s",prod_if.mac);
-    PR_DEBUG("prod_idx:%s",prod_if.prod_idx);
-
-    GW_ACTV_IF_S gw_actv;
-    strcpy(gw_actv.key,"1234567890");
-    gw_actv.uid_cnt = 3;
-    strcpy(gw_actv.uid_acl[0],"000000000");
-    strcpy(gw_actv.uid_acl[1],"111111111");
-    strcpy(gw_actv.uid_acl[2],"222222222");
-    strcpy(gw_actv.uid_acl[3],"333333333");
-    op_ret = ws_db_set_gw_actv(&gw_actv);
-    if(OPRT_OK != op_ret) {
-        PR_DEBUG("op_ret:%d",op_ret);
-        return 1;
-    }
-    memset(&gw_actv,0,sizeof(gw_actv)); 
-    op_ret = ws_db_get_gw_actv(&gw_actv);
-    if(OPRT_OK != op_ret) {
-        PR_DEBUG("op_ret:%d",op_ret);
-        return 1;
-    }
-
-    INT i;
-    PR_DEBUG("key:%s",gw_actv.key);
-    PR_DEBUG("cnt:%d",gw_actv.uid_cnt);
-    for(i = 0;i < gw_actv.uid_cnt;i++) {
-        PR_DEBUG("%d %s",i,gw_actv.uid_acl[i]);
-    }
-
-    DEV_IF_REC_S dev_if;
-    strcpy(dev_if.name,"device");
-    strcpy(dev_if.sw_ver,"1.1");
-    dev_if.schema_id[0] = 0;
-    dev_if.ui_id[0] = 0;
-    op_ret = ws_db_set_dev_if(&dev_if);
-    if(OPRT_OK != op_ret) {
-        PR_DEBUG("op_ret:%d",op_ret);
-        return 1;
-    }
-
-    memset(&dev_if,0,sizeof(dev_if));
-    op_ret = ws_db_get_dev_if(&dev_if);
-    if(OPRT_OK != op_ret) {
-        PR_DEBUG("op_ret:%d",op_ret);
-        return 1;
-    }
-    PR_DEBUG("%s",dev_if.name);
-    PR_DEBUG("%s",dev_if.sw_ver);
-    PR_DEBUG("%s",dev_if.schema_id);
-    PR_DEBUG("%s",dev_if.ui_id);
-
-    CHAR json_test[] = "{\"float\":123.1234,\"string\":\"str\",\"num\":1000}";
-
-    #include "cJSON.h"
-    cJSON *root = NULL;
-    root = cJSON_Parse(json_test);
-    if(NULL == root) {
-        return 1;
-    }
-
-    int type;
-    type = cJSON_GetObjectItem(root,"float")->type;
-    PR_DEBUG("type:%d",type);
-    type = cJSON_GetObjectItem(root,"num")->type;
-    PR_DEBUG("type:%d",type);
-    type = cJSON_GetObjectItem(root,"string")->type;
-    PR_DEBUG_RAW("type=%d string=%s\r\n",type,cJSON_GetObjectItem(root,"string")->valuestring);
-
-    CHAR *out;
-    out=cJSON_PrintUnformatted(root);
-    PR_DEBUG("%s",out);
-    free(out);
-
-    cJSON_Delete(root);
-#endif
-
 	/* Start the application framework */
 	if (app_framework_start(common_event_handler) != WM_SUCCESS) {
 		dbg("Failed to start application framework");
 		appln_critical_error_handler((void *) -WM_FAIL);
 	}
+
 	return 0;
 }

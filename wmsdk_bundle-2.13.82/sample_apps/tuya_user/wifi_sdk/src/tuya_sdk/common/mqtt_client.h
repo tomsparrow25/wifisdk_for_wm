@@ -9,6 +9,7 @@
     #include "com_def.h"
     #include "libemqtt.h"
     #include "sys_adapter.h"
+    #include "mem_pool.h"
     #include "error_code.h"
     #include "com_struct.h"
 
@@ -27,13 +28,13 @@
 ***********************************************************/
 typedef VOID (*MQ_CALLBACK)(BYTE *data,UINT len);
 
-#define MQ_DOMAIN_NAME
+//#define MQ_DOMAIN_NAME
 #ifdef MQ_DOMAIN_NAME // ”Ú√˚
 #define MQ_DOMAIN_ADDR "tuya.mqdefault"
 #define MQ_DOMAIN_PORT 8888
 #else
-#define MQ_DOMAIN_ADDR "192.168.0.1"
-#define MQ_DOMAIN_PORT 8888
+#define MQ_DOMAIN_ADDR "192.168.0.19"
+#define MQ_DOMAIN_PORT 1883
 #endif
 
 /***********************************************************

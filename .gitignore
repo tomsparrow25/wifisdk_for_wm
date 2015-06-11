@@ -67,3 +67,4 @@ Temporary Items
 *.map
 *.ftfs
 *.axf
+/wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/src/backup

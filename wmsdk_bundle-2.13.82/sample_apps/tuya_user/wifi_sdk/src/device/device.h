@@ -1,32 +1,39 @@
 /***********************************************************
-*  File: sys_adapter.h 
+*  File: device.h 
 *  Author: nzy
-*  Date: 20150526
+*  Date: 20150605
 ***********************************************************/
-#ifndef _SYS_ADAPTER_H
-    #define _SYS_ADAPTER_H
+#ifndef _DEVICE_H
+    #define _DEVICE_H
 
-    #include <wm_os.h>
     #include "com_def.h"
+    #include "appln_dbg.h"
+    #include "error_code.h"
+    #include "sysdata_adapter.h"
+    #include "tuya_ws_db.h"
+    #include "mem_pool.h"
+    #include "mqtt_client.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#ifdef  __SYS_ADAPTER_GLOBALS
-    #define __SYS_ADAPTER_EXT
+#ifdef  __DEVICE_GLOBALS
+    #define __DEVICE_EXT
 #else
-    #define __SYS_ADAPTER_EXT extern
+    #define __DEVICE_EXT extern
 #endif
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-// for portable
-typedef os_mutex_t MUTEX_HANDLE;
-typedef os_thread_t THREAD;
-typedef os_timer_t TIMER_ID;
-
+// device information define
+#define SW_VER "1.0"
+#define SW_TAG "xxxx"
+#define DEF_NAME "switch"
+#define SCHEMA_ID "100000"
+#define UI_ID "100000"
+#define DEF_DEV_ABI DEV_SINGLE
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
@@ -35,6 +42,14 @@ typedef os_timer_t TIMER_ID;
 /***********************************************************
 *************************function define********************
 ***********************************************************/
+/***********************************************************
+*  Function: device_init
+*  Input: 
+*  Output: 
+*  Return: 
+***********************************************************/
+__DEVICE_EXT \
+OPERATE_RET device_init(VOID);
 
 
 #ifdef __cplusplus
