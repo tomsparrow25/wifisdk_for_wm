@@ -103,6 +103,16 @@ OPERATE_RET ws_db_set_dev_if(IN CONST DEV_DESC_IF_S *dev_if);
 __TUYA_WS_DB_EXT \
 OPERATE_RET ws_db_get_dev_if(OUT DEV_DESC_IF_S *dev_if);
 
+/***********************************************************
+*  Function: ws_db_reset
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+*  Note: only reset gw reset info and device bind info
+***********************************************************/
+__TUYA_WS_DB_EXT \
+VOID ws_db_reset(VOID);
+
 #ifdef __cplusplus
 }
 #endif

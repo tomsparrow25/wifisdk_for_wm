@@ -68,7 +68,6 @@ wlan_tests.o: wlan_tests.c \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/wlan/wifi.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/drivers/wlan/wifi-decl.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/wlan_11d.h \
- /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/wps.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/cli.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/sdk/cli_utils.h \
  /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/platform/net/lwip/wm_net.h \

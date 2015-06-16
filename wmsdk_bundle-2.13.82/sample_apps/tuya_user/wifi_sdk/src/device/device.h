@@ -1,4 +1,4 @@
-/***********************************************************
+﻿/***********************************************************
 *  File: device.h 
 *  Author: nzy
 *  Date: 20150605
@@ -12,7 +12,7 @@
     #include "sysdata_adapter.h"
     #include "tuya_ws_db.h"
     #include "mem_pool.h"
-    #include "mqtt_client.h"
+    #include "smart_wf_frame.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -29,11 +29,12 @@
 ***********************************************************/
 // device information define
 #define SW_VER "1.0"
-#define SW_TAG "xxxx"
-#define DEF_NAME "switch"
-#define SCHEMA_ID "100000"
-#define UI_ID "100000"
+#define DEF_NAME "油汀"
+#define SCHEMA_ID "000000000a"
+#define UI_ID "000000000a"
 #define DEF_DEV_ABI DEV_SINGLE
+#define DEV_ETAG "000000000a"
+
 /***********************************************************
 *************************variable define********************
 ***********************************************************/

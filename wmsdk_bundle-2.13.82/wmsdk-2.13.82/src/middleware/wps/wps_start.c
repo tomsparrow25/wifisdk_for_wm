@@ -198,7 +198,9 @@ int wps_enrollee_start(PWPS_INFO pwps_info, WPS_DATA *wps_s)
 	memcpy(wps_network.bssid, (const char *) g_bssid, ETH_ALEN);
 	wps_network.channel = g_channel;
 	wps_network.address.addr_type = ADDR_TYPE_DHCP;
+    #ifdef CONFIG_WPS2
 	wps_network.wps_specific = 1;
+    #endif
 	if (g_channel)
 		wps_network.channel_specific = 1;
 	else if (is_mac_all_zero(g_bssid))

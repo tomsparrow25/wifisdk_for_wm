@@ -454,7 +454,7 @@ OPERATE_RET ws_db_get_dev_if(OUT DEV_DESC_IF_S *dev_if)
 VOID ws_db_reset(VOID)
 {
     GW_ACTV_IF_S gw_actv;
-    
+
     memset(&gw_actv,0,sizeof(gw_actv));
     ws_db_set_gw_actv(&gw_actv);
 

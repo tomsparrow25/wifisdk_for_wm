@@ -104,7 +104,6 @@
 #include "provisioning_int.h"
 #include "app_network_config.h"
 #include "device.h"
-#include "tuya_httpc.h"
 
 /*-----------------------define declarations----------------------*/
 #define UAP_DOWN_TIMEOUT (30 * 1000)
@@ -1211,8 +1210,10 @@ static void gw_rest_test(int argc, char **argv)
     op_ret = httpc_gw_reset();
     if(OPRT_OK != op_ret) {
         PR_ERR("op_ret:%d",op_ret);
-        return;
+        //return;
     }
+
+    set_gw_data_fac_reset();
 }
 
 static void dev_unbind_test(int argc, char **argv)
@@ -1265,7 +1266,7 @@ static void dp_publish(int argc, char **argv)
     CHAR *data = "{\"1\":20}";
 
     OPERATE_RET op_ret;
-    op_ret = httpc_dev_obj_dp_report(gw_cntl->dev->dev_if.id,data);
+    op_ret = sf_obj_dp_report(gw_cntl->dev->dev_if.id,data);
     if(OPRT_OK != op_ret) {
         PR_ERR("op_ret:%d",op_ret);
         return;
@@ -1278,14 +1279,31 @@ static void dp_raw_publish(int argc, char **argv)
     BYTE data[] = {1,2,3,4};
 
     OPERATE_RET op_ret;
-    op_ret = httpc_dev_raw_dp_report(gw_cntl->dev->dev_if.id,3,data, 4);
+    op_ret = sf_raw_dp_report(gw_cntl->dev->dev_if.id,3,data, 4);
     if(OPRT_OK != op_ret) {
         PR_ERR("op_ret:%d",op_ret);
         return;
     }
 }
 
+static void mk_prod_info(int argc, char **argv)
+{
+    if(argc != 3) {
+        PR_ERR("invalid param");
+    }
+
+    PR_DEBUG("prod_idx:%s",argv[1]);
+    PR_DEBUG("mac:%s",argv[2]);
+
+    OPERATE_RET op_ret;
+    op_ret = set_gw_prodinfo(argv[1],argv[2]);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("set_gw_prodinfo:%d",op_ret);
+    }
+}
+
 static struct cli_command test_cmds[] = {
+    {"mk-prod-info","mk-prod-info <prodect info index> <mac addr>",mk_prod_info},
 	{"gw-active", "", gw_active_test},
     {"heart-beat","",heart_beat_test},
     {"gw_rest","",gw_rest_test},
@@ -1334,14 +1352,7 @@ STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt)
 }
 
 static int tuya_user_init(void)
-{
-    OPERATE_RET op_ret;
-    op_ret = SysMemoryPoolSetup();
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return 1;
-    }
-    
+{    
     key_init(key_tbl,(CONST INT)CNTSOF(key_tbl),30); // key process init
 
     // initiate for wifi config
@@ -1358,12 +1369,13 @@ static int tuya_user_init(void)
 
     ret = psm_get_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS, tmp_buf,sizeof(tmp_buf));
     if(WM_SUCCESS == ret) {
-        wf_cfg_cntl.is_smart_cfg_ok = atoi(tmp_buf);; 
+        wf_cfg_cntl.is_smart_cfg_ok = atoi(tmp_buf);
     }else {
         psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
     }
 
 #if 1
+    OPERATE_RET op_ret;
     op_ret = device_init();
     if(OPRT_OK != op_ret) {
         PR_ERR("op_ret:%d",op_ret);

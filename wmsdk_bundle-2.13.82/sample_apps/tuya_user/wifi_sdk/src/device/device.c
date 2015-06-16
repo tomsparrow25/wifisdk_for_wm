@@ -1,4 +1,4 @@
-/***********************************************************
+﻿/***********************************************************
 *  File: device.c 
 *  Author: nzy
 *  Date: 20150605
@@ -15,17 +15,18 @@
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
+#if 0
 CONST CHAR dp_schemas[] = {
 "["
     "{"
         "\"id\": \"1\","
         "\"code\": \"temperature\","
-        "\"name\": \"�¶�\","
+        "\"name\": \"温度\","
         "\"mode\": \"rw\","
         "\"type\": \"obj\","
         "\"property\": {"
             "\"type\": \"value\","
-            "\"unit\": \"��\","
+            "\"unit\": \"℃\","
             "\"min\": 5,"
             "\"max\": 37,"
             "\"step\": 1"
@@ -34,7 +35,7 @@ CONST CHAR dp_schemas[] = {
     "{"
         "\"id\": \"2\","
         "\"code\": \"gear\","
-        "\"name\": \"��λ\","
+        "\"name\": \"档位\","
         "\"mode\": \"rw\","
         "\"type\": \"obj\","
         "\"property\": {"
@@ -49,7 +50,7 @@ CONST CHAR dp_schemas[] = {
     "{"
         "\"id\": \"3\","
         "\"code\": \"lock\","
-        "\"name\": \"ͯ��\","
+        "\"name\": \"童锁\","
         "\"mode\": \"rw\","
         "\"type\": \"obj\","
         "\"property\": {"
@@ -59,7 +60,7 @@ CONST CHAR dp_schemas[] = {
     "{"
         "\"id\": \"4\","
         "\"code\": \"eco\","
-        "\"name\": \"����ģʽ\","
+        "\"name\": \"节能模式\","
         "\"mode\": \"rw\","
         "\"type\": \"obj\","
         "\"property\": {"\
@@ -67,12 +68,20 @@ CONST CHAR dp_schemas[] = {
         "}"
     "}"
 "]"};
-
+#else
+CONST CHAR dp_schemas[] = "[ {\"id\": 1, \"code\": \"switch\", \"name\": \"开关\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }},{\"id\": 2, \"code\": \"temperature\", \"name\": \"温度\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"value\", \"unit\": \"℃\", \"min\": 5, \"max\": 37, \"step\": 1 }}, { \"id\": 3, \"code\": \"gear\", \"name\": \"档位\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": { \"type\": \"enum\", \"range\": [ \"1\", \"2\", \"3\" ] }}, {\"id\": 4, \"code\": \"lock\", \"name\": \"童锁\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }}, {\"id\": 5, \"code\": \"eco\", \"name\": \"eco节能模式\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }},{ \"id\": 6, \"code\": \"appoint\", \"name\": \"预约\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": { \"type\": \"enum\", \"range\": [ \"30\", \"60\", \"120\", \"180\", \"240\", \"300\", \"360\", \"420\", \"480\", \"540\"],\"unit\":\"m\" }}]";
+#endif
 
 /***********************************************************
 *************************function define********************
 ***********************************************************/
-STATIC VOID dev_cmd_cb(BYTE *data,UINT len);
+VOID device_cb(SMART_CMD_E cmd,BYTE *data,UINT len)
+{
+    PR_DEBUG("cmd:%d",cmd);
+    PR_DEBUG("data:%s",data);
+    PR_DEBUG("len:%d",len);
+}
+
 
 /***********************************************************
 *  Function: device_init
@@ -90,25 +99,18 @@ OPERATE_RET device_init(VOID)
     strcpy(def_dev_if.sw_ver,SW_VER);
     def_dev_if.ability = DEV_SINGLE;
 
-    OPERATE_RET op_ret = single_wf_device_init(&def_dev_if,dp_schemas);
+    OPERATE_RET op_ret;
+    op_ret = smart_frame_init(device_cb);
     if(op_ret != OPRT_OK) {
         return op_ret;
     }
-    
-    GW_CNTL_S *gw_cntl = get_gw_cntl();
-    mq_client_init(gw_cntl->gw.id,"8888888","123456",0);
 
-    op_ret = mq_client_start(gw_cntl->gw.id,dev_cmd_cb);
+    op_ret = single_wf_device_init(&def_dev_if,dp_schemas);
     if(op_ret != OPRT_OK) {
         return op_ret;
     }
 
     return op_ret;
-}
-
-STATIC VOID dev_cmd_cb(BYTE *data,UINT len)
-{
-    PR_DEBUG("data:%s",data);
 }
 
 

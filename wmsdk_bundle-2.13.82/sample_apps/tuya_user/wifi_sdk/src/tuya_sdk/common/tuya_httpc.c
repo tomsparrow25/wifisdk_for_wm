@@ -11,6 +11,7 @@
 #include "cJSON.h"
 #include "sysdata_adapter.h"
 #include "base64.h"
+#include "device.h"
 
 /***********************************************************
 *************************micro define***********************
@@ -520,7 +521,7 @@ STATIC OPERATE_RET httpc_aes_encrypt(IN CONST BYTE *plain,UINT len,OUT BYTE *cip
     return OPRT_OK;
 }
 
-STATIC OPERATE_RET httpc_data_aes_proc(INOUT CHAR *in,IN CONST UINT len,\
+STATIC OPERATE_RET httpc_data_aes_proc(IN CONST CHAR *in,IN CONST UINT len,\
                                        IN CONST CHAR *token,OUT CHAR **pp_out)
 {
     if(NULL == in || \
@@ -719,6 +720,7 @@ OPERATE_RET httpc_gw_active()
     cJSON_AddStringToObject(root,"name",gw->name);
     cJSON_AddStringToObject(root,"verSw",gw->sw_ver);
     cJSON_AddNumberToObject(root,"ability",gw->ability);
+    cJSON_AddStringToObject(root,"etag",DEV_ETAG);
     out=cJSON_PrintUnformatted(root);
     cJSON_Delete(root),root = NULL;
     if(NULL == out) {
@@ -957,6 +959,11 @@ STATIC OPERATE_RET __httpc_common_cb(IN CONST BOOL is_end,\
                                      IN CONST BYTE *data,\
                                      IN CONST UINT len)
 {
+    //PR_DEBUG("is_end:%d",is_end);
+    //PR_DEBUG("offset:%d",offset);
+    //PR_DEBUG("data:%s",data);
+    //PR_DEBUG("len:%d",len);
+
     if(NULL == data || \
        0 == len || \
        0 != offset || \
@@ -1019,6 +1026,7 @@ OPERATE_RET httpc_dev_bind(IN CONST DEV_DESC_IF_S *dev_if)
     cJSON_AddStringToObject(root,"schemaId",dev_if->schema_id);
     cJSON_AddStringToObject(root,"uiId",dev_if->ui_id);
     cJSON_AddNumberToObject(root,"ability",dev_if->ability);
+    cJSON_AddStringToObject(root,"etag",DEV_ETAG);
 
     out=cJSON_PrintUnformatted(root);
     cJSON_Delete(root),root = NULL;
@@ -1276,6 +1284,7 @@ ERR_EXIT:
     return op_ret;
 }
 
+#if 0
 /***********************************************************
 *  Function: httpc_dev_dp_report
 *  Input: 
@@ -1416,6 +1425,61 @@ OPERATE_RET httpc_dev_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
 OPERATE_RET httpc_dev_obj_dp_report(IN CONST CHAR *id,IN CONST CHAR *data)
 {
     return httpc_dev_dp_report(id,T_OBJ,data);
+}
+#endif
+
+/***********************************************************
+*  Function: httpc_device_dp_report
+*  Input: data->format is:{"devid":"xx","dps":{"1",1}}
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+OPERATE_RET httpc_device_dp_report(IN CONST DP_TYPE_E type,\
+                                   IN CONST CHAR *data)
+{
+    if(NULL == data) {
+        return OPRT_INVALID_PARM;
+    }
+
+    if(T_FILE == type) {
+        PR_ERR("do not support the file dp");
+        return OPRT_INVALID_PARM;
+    }
+
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+    HTTP_URL_H_S *hu_h = create_http_url_h(0,10);
+    if(NULL == hu_h) {
+        PR_ERR("create_http_url_h error");
+        return OPRT_CR_HTTP_URL_H_ERR;
+    }
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_DEV_DP_REP);
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    CHAR *buf;
+    op_ret = httpc_data_aes_proc(data,strlen(data),gw_cntl->active.key,&buf);
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    op_ret = make_full_url(hu_h,gw_cntl->active.key);
+    if(op_ret != OPRT_OK) {
+        Free(buf);
+        goto ERR_EXIT;
+    }
+
+    op_ret = http_client_post(hu_h->buf,STANDARD_HDR_FLAGS|HDR_ADD_CONN_KEEP_ALIVE|HDR_ADD_CONTENT_TYPE_FORM_URLENCODE,\
+                              __httpc_common_cb,(BYTE *)buf,strlen(buf));
+    Free(buf);
+    del_http_url_h(hu_h);
+    return op_ret;
+
+ERR_EXIT:
+    del_http_url_h(hu_h);
+    return op_ret;
 }
 
 #if 0

@@ -31,7 +31,7 @@
 #define TY_SMART_DOMAIN "http://192.168.0.19:7002/atop/gw.json"
 #else
     #if 1
-    #define TY_SMART_DOMAIN "http://192.168.20.231:8081/gw.json"
+    #define TY_SMART_DOMAIN "http://192.168.1.110:8081/gw.json"
     #else
     #define TY_SMART_DOMAIN "http://192.168.20.115:8081/"
     #endif
@@ -164,6 +164,17 @@ __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_dev_stat_report(IN CONST CHAR *id,IN CONST BOOL online);
 
 /***********************************************************
+*  Function: httpc_device_dp_report
+*  Input: data->format is:{"devid":"xx","dps":{"1",1}}
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_device_dp_report(IN CONST DP_TYPE_E type,\
+                                   IN CONST CHAR *data);
+
+#if 0
+/***********************************************************
 *  Function: httpc_dev_raw_dp_report
 *  Input: 
 *  Output: 
@@ -182,7 +193,7 @@ OPERATE_RET httpc_dev_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
 ***********************************************************/
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_dev_obj_dp_report(IN CONST CHAR *id,IN CONST CHAR *data);
-
+#endif
 
 #ifdef __cplusplus
 }

@@ -17,12 +17,6 @@
 #define PRE_TOPIC "smart/gw/"
 #define PRE_TOPIC_LEN 9
 
-// mqtt protocol
-#define PRO_CMD 5
-#define PRO_ADD_USER 6
-#define PRO_DEL_USER 7
-#define PRO_FW_UG_CFM 10
-
 // mqtt ×´Ì¬»úÖ´ÐÐ
 typedef enum {
     MQTT_GET_SERVER_IP = 0,
@@ -242,7 +236,8 @@ static void mq_ctrl_task(os_thread_arg_t arg)
 
 	while (1) {
         //  the network is not ready
-        if(get_wf_gw_status() != STAT_STA_CONN) {
+        if(get_wf_gw_status() != STAT_STA_CONN || \
+           get_gw_status() < STAT_UG) {
             os_thread_sleep(os_msec_to_ticks(3000));
             continue;
         }
@@ -279,7 +274,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
             break;
 
             case MQTT_CONNECT: 
-            case MQTT_SUBSCRIBE: {                
+            case MQTT_SUBSCRIBE: {
                 if(MQTT_CONNECT == mq_cntl.status) {
                     ret = mqtt_connect(&mq_cntl.mq);
                     mq_cntl.status = MQ_CONN_RESP;
@@ -452,6 +447,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                     }
                     mq_cntl.topic_msg_buf[len] = 0; // for printf
 
+                    #if 0
                     // parse protocol
                     cJSON *root = NULL;
                     root = cJSON_Parse((CHAR *)mq_cntl.topic_msg_buf);
@@ -497,10 +493,11 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                     PR_ERR("%s",mq_cntl.topic_msg_buf);
                     cJSON_Delete(root);
                     continue;
-                    
+                #else
                     if(mq_cntl.callback) {
-                        mq_cntl.callback(mq_cntl.topic_msg_buf,len);
+                        mq_cntl.callback(mq_cntl.topic_msg_buf,len-1);
                     }
+                #endif
                 }
                 break;
 

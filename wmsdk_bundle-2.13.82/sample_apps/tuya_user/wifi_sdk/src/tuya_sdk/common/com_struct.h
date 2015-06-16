@@ -24,6 +24,7 @@
 // gw information define
 #define GW_VER "0.0"
 #define GW_DEF_NAME "virtual gw"
+#define GW_TAG "000000000a"
 
 #define PROD_IDX_LEN 8 // prodect index len
 #define GW_ID_LEN 40 // gw id len
@@ -36,6 +37,7 @@
 #define ACTIVE_KEY_LEN 32 // active key len
 #define SCHEMA_ID_LEN 10 
 #define UI_ID_LEN 10
+#define ETAG_LEN 10
 
 // gateway access ability
 typedef INT GW_ABI;
@@ -123,7 +125,7 @@ typedef union {
     DP_PROP_ENUM_S prop_enum;
     DP_PROP_STR_S prop_str;
     DP_BOOL_S prop_bool;
-}DP_PROP_U;
+}DP_PROP_VALUE_U;
 
 typedef enum {
     TRIG_PULSE = 0,
@@ -142,12 +144,12 @@ typedef enum {
     UNVALID = 0, // 数据无效
     VALID_LC, // 本地有效数据
     VALID_CLOUD, // 本地有效数据与服务端一致
-}DP_VALUE_PROP_E;
+}DP_PV_STAT_E;
 
 typedef struct {
     DP_DESC_IF_S dp_desc;
-    DP_PROP_U prop;
-    DP_VALUE_PROP_E value_prop; 
+    DP_PROP_VALUE_U prop;
+    DP_PV_STAT_E pv_stat; 
     //BOOL upload; // 指示数据是否上传
 }DP_CNTL_S;
 

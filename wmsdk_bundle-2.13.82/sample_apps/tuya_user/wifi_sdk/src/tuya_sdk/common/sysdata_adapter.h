@@ -148,28 +148,6 @@ __SYSDATA_ADAPTER_EXT \
 VOID update_dev_ol_status(IN CONST CHAR *id,IN CONST BOOL online);
 
 /***********************************************************
-*  Function: ws_db_reset
-*  Input: 
-*  Output: 
-*  Return: OPERATE_RET
-*  Note: only reset gw reset info and device bind info
-***********************************************************/
-__SYSDATA_ADAPTER_EXT \
-VOID ws_db_reset(VOID);
-
-/***********************************************************
-*  Function: single_wf_device_init
-*  Input: 
-*  Output: 
-*  Return: 
-*  Note: if can not read dev_if in the flash ,so use the def_dev_if
-*        def_dev_if->id 由内部产生
-***********************************************************/
-__SYSDATA_ADAPTER_EXT \
-OPERATE_RET single_wf_device_init(INOUT DEV_DESC_IF_S *def_dev_if,\
-                                  IN CONST CHAR *dp_schemas);
-
-/***********************************************************
 *  Function: start_active_gateway
 *  Input: 
 *  Output: 
@@ -177,6 +155,24 @@ OPERATE_RET single_wf_device_init(INOUT DEV_DESC_IF_S *def_dev_if,\
 ***********************************************************/
 __SYSDATA_ADAPTER_EXT \
 VOID start_active_gateway(VOID);
+
+/***********************************************************
+*  Function: set_gw_prodinfo
+*  Input: 
+*  Output: 
+*  Return: 
+***********************************************************/
+__SYSDATA_ADAPTER_EXT \
+VOID set_gw_prodinfo(IN CONST CHAR *prod_idx,IN CONST CHAR *mac);
+
+/***********************************************************
+*  Function: set_gw_data_fac_reset
+*  Input: 
+*  Output: 
+*  Return: 
+***********************************************************/
+__SYSDATA_ADAPTER_EXT \
+VOID set_gw_data_fac_reset(VOID);
 
 #ifdef __cplusplus
 }

@@ -144,9 +144,10 @@ static int app_prov_event_handler(enum prov_event event, void *arg, int len)
 		nr_scan_res = len / sizeof(struct wlan_scan_result);
 		scan_result = (struct wlan_scan_result *)arg;
 		for (i = 0; i < nr_scan_res; i++, scan_result++) {
-
+            #ifdef CONFIG_WPS2
 			if (!scan_result->wps)
 				continue;
+	        #endif
 
 			/* PIN is given the first priority, if both PIN and PBC
 			 * are active */
@@ -167,7 +168,7 @@ static int app_prov_event_handler(enum prov_event event, void *arg, int len)
 			 * application release this semaphore so that below
 			 * semaphore will be unblocked and can move further.
 			 */
-
+            #ifdef CONFIG_WPS2
 			if (wps_pin_enabled &&
 			    (scan_result->wps_session == WPS_SESSION_PIN)) {
 				app_ctrl_notify_event_wait(
@@ -183,6 +184,7 @@ static int app_prov_event_handler(enum prov_event event, void *arg, int len)
 				os_semaphore_get(&app_wps_sem, OS_WAIT_FOREVER);
 				return i;
 			}
+            #endif
 		}
 		break;
 	case PROV_WPS_SESSION_STARTED:
@@ -291,6 +293,7 @@ void app_provisioning_stop()
 
 int app_prov_wps_session_start(char *pin)
 {
+    #ifdef CONFIG_WPS2
 	int ret;
 
 	if (pin) {
@@ -309,6 +312,9 @@ int app_prov_wps_session_start(char *pin)
 		}
 	}
 	return ret;
+    #else
+    return 0;
+    #endif
 }
 
 #endif

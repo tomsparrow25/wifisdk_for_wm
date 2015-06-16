@@ -27,6 +27,14 @@ typedef os_mutex_t MUTEX_HANDLE;
 typedef os_thread_t THREAD;
 typedef os_timer_t TIMER_ID;
 
+// message
+typedef struct
+{
+    UINT msg_id;
+    UINT len;
+    BYTE data[0];
+}MESSAGE,*P_MESSAGE;
+
 /***********************************************************
 *************************variable define********************
 ***********************************************************/

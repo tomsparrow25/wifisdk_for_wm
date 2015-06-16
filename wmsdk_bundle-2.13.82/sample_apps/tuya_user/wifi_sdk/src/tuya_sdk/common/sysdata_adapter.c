@@ -7,7 +7,7 @@
 #include "sysdata_adapter.h"
 #include "cJSON.h"
 #include "tuya_httpc.h"
-
+#include "pwrmgr.h"
 
 /***********************************************************
 *************************micro define***********************
@@ -25,6 +25,7 @@ STATIC TIMER_ID gw_actv_timer;
 *************************function define********************
 ***********************************************************/
 static void gw_actv_timer_cb(os_timer_arg_t arg);
+static void dev_ul_timer_cb(os_timer_arg_t arg);
 
 /***********************************************************
 *  Function: set_gw_status
@@ -141,7 +142,7 @@ OPERATE_RET gw_cntl_init(VOID)
 	}
 
     PROD_IF_REC_S prod_if;    
-#if 0
+#if 1
     memset(&prod_if,0,sizeof(prod_if));
     ws_db_get_prod_if(&prod_if);
     if(!prod_if.mac[0] || !prod_if.prod_idx[0]) { // un init
@@ -174,6 +175,18 @@ OPERATE_RET gw_cntl_init(VOID)
     strcpy(gw_cntl.gw.name,GW_DEF_NAME);
     snprintf(gw_cntl.gw.id,sizeof(gw_cntl.gw.id),"%s%s",prod_if.prod_idx,prod_if.mac);
     gw_cntl.gw.ability = GW_NO_ABI;
+
+    // create dev upload timer
+    ret = os_timer_create(&dev_ul_timer,
+				  "dev_ul_timer",
+				  os_msec_to_ticks(600),
+				  &dev_ul_timer_cb,
+				  NULL,
+				  OS_TIMER_PERIODIC,
+				  OS_TIMER_NO_ACTIVATE);
+	if (ret != WM_SUCCESS) {
+		return OPRT_COM_ERROR;
+	}
 
     return OPRT_OK;
 }
@@ -224,7 +237,7 @@ OPERATE_RET gw_lc_bind_device(IN CONST DEV_DESC_IF_S *dev_if,\
     // dp schema parse
     INT i;
     DP_DESC_IF_S *dp_desc;
-    DP_PROP_U *prop;
+    DP_PROP_VALUE_U *prop;
     cJSON *cjson;
     cJSON *next;
     
@@ -423,13 +436,32 @@ OPERATE_RET gw_lc_unbind_device(IN CONST CHAR *id)
         return OPRT_INVALID_PARM;
     }
 
-
     return OPRT_OK;
 }
 
 static void gw_actv_timer_cb(os_timer_arg_t arg)
 {
     PR_DEBUG("now,we'll go to active gateway");
+    GW_WIFI_STAT_E wf_stat;
+    wf_stat = get_wf_gw_status();
+    if(wf_stat != STAT_STA_CONN) {
+        PR_DEBUG("we can not active gw,because the wifi state is :%d",wf_stat);
+        return;
+    }
+    else {
+        PR_DEBUG("now,we'll go to active gateway");
+    }
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_gw_active();
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return;
+    }
+
+    check_all_dev_if_update();
+
+    os_timer_deactivate(&gw_actv_timer);
 }
 
 static void dev_ul_timer_cb(os_timer_arg_t arg)
@@ -498,120 +530,6 @@ static void dev_ul_timer_cb(os_timer_arg_t arg)
         PR_DEBUG("close timer");
         os_timer_deactivate(&dev_ul_timer);
     }
-}
-
-/***********************************************************
-*  Function: single_wf_device_init
-*  Input: 
-*  Output: 
-*  Return: 
-*  Note: if can not read dev_if in the flash ,so use the def_dev_if
-*        def_dev_if->id 由内部产生
-***********************************************************/
-OPERATE_RET single_wf_device_init(INOUT DEV_DESC_IF_S *def_dev_if,\
-                                  IN CONST CHAR *dp_schemas)
-{
-    if(NULL == def_dev_if || \
-       NULL == dp_schemas) {
-        return OPRT_INVALID_PARM;
-    }
-
-    OPERATE_RET op_ret;
-    op_ret = gw_cntl_init();
-    if(OPRT_OK != op_ret) {
-        return op_ret;
-    }
-
-    if(UN_INIT == get_gw_status()) {
-        return OPRT_OK;
-    }
-
-    // create dev upload timer
-    int ret = os_timer_create(&dev_ul_timer,
-				  "dev_ul_timer",
-				  os_msec_to_ticks(600),
-				  &dev_ul_timer_cb,
-				  NULL,
-				  OS_TIMER_PERIODIC,
-				  OS_TIMER_NO_ACTIVATE);
-	if (ret != WM_SUCCESS) {
-		return OPRT_COM_ERROR;
-	}
-
-    // device data restore
-    DEV_DESC_IF_S dev_if;
-    memset(&dev_if,0,sizeof(dev_if));
-    ws_db_get_dev_if(&dev_if);
-    if(0 == dev_if.id[0] || \
-       0 == dev_if.name[0] || \
-       0 == dev_if.sw_ver[0] || \
-       0 == dev_if.schema_id[0] || \
-       0 == dev_if.ui_id[0]) {
-        PR_DEBUG("set defult info");
-        
-        memcpy(&dev_if,def_dev_if,sizeof(dev_if));
-        strcpy(dev_if.id,gw_cntl.gw.id);
-        dev_if.bind = FALSE;
-        dev_if.sync = FALSE;
-
-        op_ret = ws_db_set_dev_if(&dev_if);
-        if(op_ret != OPRT_OK) {
-            PR_ERR("ws_db_set_dev_if error op_ret:%d",op_ret);
-        }
-    }
-
-    op_ret = gw_lc_bind_device(&dev_if,dp_schemas);
-    if(OPRT_OK != op_ret) {
-        return op_ret;
-    }
-
-    check_and_update_dev_desc_if(dev_if.id,NULL,def_dev_if->sw_ver,\
-                                 def_dev_if->schema_id,def_dev_if->ui_id);
-
-// for debug
-#if 0
-    PR_DEBUG("dev_num:%d",gw_cntl.dev_num);
-    PR_DEBUG("id:%s",gw_cntl.dev->dev_if.id);
-    PR_DEBUG("name:%s",gw_cntl.dev->dev_if.name);
-    PR_DEBUG("schema_id:%s",gw_cntl.dev->dev_if.schema_id);
-    PR_DEBUG("ui_id:%s",gw_cntl.dev->dev_if.ui_id);
-    PR_DEBUG("sw_ver:%s",gw_cntl.dev->dev_if.sw_ver);
-    PR_DEBUG("ability:%d",gw_cntl.dev->dev_if.ability);
-    PR_DEBUG("dp_num:%d",gw_cntl.dev->dp_num);
-
-    PR_DEBUG();
-    INT i;
-    DP_CNTL_S *dp;
-    for(i = 0;i < gw_cntl.dev->dp_num;i++) {
-        dp = &gw_cntl.dev->dp[i];
-        PR_DEBUG("dp_id:%d",dp->dp_desc.dp_id);
-        PR_DEBUG("mode:%d",dp->dp_desc.mode);
-        PR_DEBUG("type:%d",dp->dp_desc.type);
-        PR_DEBUG("trig_t:%d",dp->dp_desc.trig_t);
-        if(dp->dp_desc.type != T_OBJ) {
-            continue;
-        }
-        PR_DEBUG("prop_tp:%d",dp->dp_desc.prop_tp);
-        if(dp->dp_desc.prop_tp == PROP_BOOL) {
-            
-        }else if(dp->dp_desc.prop_tp == PROP_VALUE) {
-            PR_DEBUG("max:%d",dp->prop.prop_value.max);
-            PR_DEBUG("min:%d",dp->prop.prop_value.min);
-            PR_DEBUG("step:%d",dp->prop.prop_value.step);
-            PR_DEBUG("scale:%d",dp->prop.prop_value.scale);
-        }else if(dp->dp_desc.prop_tp == PROP_STR) {
-            PR_DEBUG("max_len:%d",dp->prop.prop_str.max_len);
-        }else if(dp->dp_desc.prop_tp == PROP_ENUM) {
-            INT j;
-            for(j = 0;j < dp->prop.prop_enum.cnt;j++) {
-                PR_DEBUG("%s",dp->prop.prop_enum.pp_enum[j]);
-            }
-        }
-        PR_DEBUG();
-    }
-#endif
-
-    return OPRT_OK;
 }
 
 /***********************************************************
@@ -776,5 +694,39 @@ VOID start_active_gateway(VOID)
     }
 }
 
+/***********************************************************
+*  Function: set_gw_prodinfo
+*  Input: 
+*  Output: 
+*  Return: 
+***********************************************************/
+VOID set_gw_prodinfo(IN CONST CHAR *prod_idx,IN CONST CHAR *mac)
+{
+    PROD_IF_REC_S prod_if;
+    memset(&prod_if,0,sizeof(prod_if));
+    ws_db_get_prod_if(&prod_if);
+    if(prod_idx) {
+        strcpy(prod_if.prod_idx,prod_idx);
+    }
 
+    if(mac) {
+        strcpy(prod_if.mac,mac);
+    }
+    ws_db_set_prod_if(&prod_if);
+
+    // reboot
+    pm_reboot_soc();
+}
+
+/***********************************************************
+*  Function: set_gw_data_fac_reset
+*  Input: 
+*  Output: 
+*  Return: 
+***********************************************************/
+VOID set_gw_data_fac_reset(VOID)
+{
+    ws_db_reset();
+    pm_reboot_soc();
+}
 

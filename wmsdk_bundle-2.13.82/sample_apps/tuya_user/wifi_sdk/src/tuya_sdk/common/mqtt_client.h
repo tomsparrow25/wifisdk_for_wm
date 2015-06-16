@@ -66,8 +66,6 @@ VOID mq_client_init(IN CONST CHAR *clientid,\
 __MQTT_CLIENT_EXT \
 OPERATE_RET mq_client_start(IN CONST CHAR *topic,IN CONST MQ_CALLBACK callback);
 
-
-
 #ifdef __cplusplus
 }
 #endif
