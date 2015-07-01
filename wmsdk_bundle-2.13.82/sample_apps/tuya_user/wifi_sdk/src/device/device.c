@@ -539,7 +539,7 @@ STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt)
         if(LONG_KEY == type) {
             auto_select_wf_cfg();
         }else if(SEQ_KEY == type && cnt >= 5) { // data restore factory
-            
+            single_dev_reset_factory();
         }
     }
 }
@@ -549,7 +549,7 @@ STATIC OPERATE_RET device_differ_init(VOID)
     OPERATE_RET op_ret;
     
     // key process init
-    op_ret = key_init(key_tbl,(CONST INT)CNTSOF(key_tbl),30);
+    op_ret = key_init(key_tbl,(CONST INT)CNTSOF(key_tbl),25);
     if(OPRT_OK  != op_ret) {
         return op_ret;
     }

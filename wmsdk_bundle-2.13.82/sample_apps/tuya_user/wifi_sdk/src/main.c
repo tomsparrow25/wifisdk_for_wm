@@ -1385,8 +1385,11 @@ static int select_cfg_mode_for_next(void)
     int ret;
     if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode && \
        wf_cfg_cntl.is_smart_cfg_ok) {
+        ret = set_smart_cfg_ok(0);
+        if(ret != WM_SUCCESS) {
+            return ret;
+        }
         PR_DEBUG("set next smartconfig mode.");
-        return set_smart_cfg_ok(0);
     }else if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
         ret = set_wf_cfg_mode(AP_CFG);
         if(ret != WM_SUCCESS) {
@@ -1399,9 +1402,8 @@ static int select_cfg_mode_for_next(void)
             return ret;
         }
         PR_DEBUG("set next smartconfig mode.");
-        
         if(wf_cfg_cntl.is_smart_cfg_ok) {
-            return set_smart_cfg_ok(0);
+            set_smart_cfg_ok(0);
         }
     }
 
