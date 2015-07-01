@@ -12,6 +12,8 @@
     #include "mem_pool.h"
     #include "tuya_httpc.h"
     #include "cJSON.h"
+    #include "sys_adapter.h"
+    #include "sysdata_adapter.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -32,21 +34,13 @@ typedef enum {
 }SMART_CMD_E;
 
 // data format: {"1":100,"2":200}
-typedef VOID (*SMART_FRAME_CB)(SMART_CMD_E cmd,BYTE *data,UINT len);
+typedef VOID (*SMART_FRAME_CB)(SMART_CMD_E cmd,cJSON *root);
 
-// smart frame process message
-#define SF_MSG_LAN_CMD_FROM_APP 0 // 局域网控制命令
-#define SF_MSG_LAN_STAT_REPORT 1 // 局域网数据状态主动上报
-#define SF_MSG_LAN_AP_WF_CFG_RESP 2 // 局域网wifi配置响应
-
-// msg frame 
-typedef struct {
-    INT socket;
-    UINT frame_num;
-    UINT frame_type;
-    UINT len;
-    CHAR data[0];
-}SF_MLCFA_FR_S;
+typedef enum {
+    CFG_SUCCESS = 0,
+    CFG_NW_NO_FIND,
+    CFG_AUTH_FAIL,
+}LAN_WF_CFG_RESULT_E;
 
 /***********************************************************
 *************************variable define********************
@@ -78,6 +72,16 @@ OPERATE_RET single_wf_device_init(INOUT DEV_DESC_IF_S *def_dev_if,\
                                   IN CONST CHAR *dp_schemas);
 
 /***********************************************************
+*  Function: get_single_wf_dev
+*  Input:  
+*  Output: 
+*  Return: 
+*  Note: DEV_CNTL_N_S *
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+DEV_CNTL_N_S *get_single_wf_dev(VOID);
+
+/***********************************************************
 *  Function: sf_obj_dp_report ,obj dp report for user
 *  Input: data->the format is :{"1":1,"2":true}
 *  Output: 
@@ -97,18 +101,6 @@ OPERATE_RET sf_obj_dp_report(IN CONST CHAR *id,IN CONST CHAR *data);
 __SMART_WF_FRAME_EXT \
 OPERATE_RET sf_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
                              IN CONST BYTE *data, IN CONST UINT len);
-
-/***********************************************************
-*  Function: smart_frame_send_msg
-*  Input: 
-*  Output: 
-*  Return: 
-*  Note:
-***********************************************************/
-__SMART_WF_FRAME_EXT \
-OPERATE_RET smart_frame_send_msg(IN CONST UINT msgid,\
-                                 IN CONST VOID *data,\
-                                 IN CONST UINT len);
 
 
 #ifdef __cplusplus

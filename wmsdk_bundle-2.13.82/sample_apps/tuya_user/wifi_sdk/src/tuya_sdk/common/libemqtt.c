@@ -28,6 +28,13 @@
 #include <string.h>
 #include <libemqtt.h>
 
+//#define NO_ND_LASTWILL
+#ifndef NO_ND_LASTWILL
+// add by nzy 20150625
+#include <cJSON.h>
+#include "mem_pool.h"
+#endif
+
 #define MQTT_DUP_FLAG     1<<3
 #define MQTT_QOS0_FLAG    0<<1
 #define MQTT_QOS1_FLAG    1<<1
@@ -40,7 +47,6 @@
 #define MQTT_WILL_RETAIN    1<<5
 #define MQTT_USERNAME_FLAG  1<<7
 #define MQTT_PASSWORD_FLAG  1<<6
-
 
 uint8_t mqtt_num_rem_len_bytes(const uint8_t* buf) {
 	uint8_t num_bytes = 1;
@@ -233,6 +239,42 @@ int mqtt_connect(mqtt_broker_handle_t* broker)
 	if(broker->clean_session) {
 		flags |= MQTT_CLEAN_SESSION;
 	}
+    
+    #ifndef NO_ND_LASTWILL
+    #define WILL_QOS_POS 3 
+    #define WILL_BUF_LEN 512
+    #define WILL_TOPIC "tuya/smart/will"
+    
+    // fixed add last will
+    flags |= MQTT_WILL_FLAG;
+    flags |= (0x01 << WILL_QOS_POS); // will qos 1
+
+    if(0 == usernamelen) {
+        return -1;
+    }
+    
+    cJSON *root = NULL;
+    root=cJSON_CreateObject();
+    if(NULL == root) {
+        return -1;
+    }
+
+    cJSON_AddStringToObject(root,"clientId",broker->clientid);
+    cJSON_AddStringToObject(root,"deviceType","GATEWAY");
+    cJSON_AddStringToObject(root,"message","11");
+    //cJSON_AddNullToObject(root,"message");
+    cJSON_AddStringToObject(root,"userName",broker->username);
+
+    CHAR *lastwill;
+    lastwill=cJSON_PrintUnformatted(root);
+    cJSON_Delete(root);
+    if(NULL == lastwill) {
+        return -1;
+    }
+
+    payload_len += strlen(WILL_TOPIC)+2;
+    payload_len += strlen(lastwill)+2;
+    #endif
 
 	// Variable header
 	uint8_t var_header[] = {
@@ -241,7 +283,6 @@ int mqtt_connect(mqtt_broker_handle_t* broker)
 		flags, // Connect flags
 		broker->alive>>8, broker->alive&0xFF, // Keep alive
 	};
-
 
    	// Fixed header
     uint8_t fixedHeaderSize = 2;    // Default size = one byte Message Type + one byte Remaining Length
@@ -266,8 +307,19 @@ int mqtt_connect(mqtt_broker_handle_t* broker)
     }
 
 	uint16_t offset = 0;
-	uint8_t packet[sizeof(fixed_header)+sizeof(var_header)+payload_len];
-	memset(packet, 0, sizeof(packet));
+
+    // modify by nzy 20150625
+    #ifndef NO_ND_LASTWILL
+    uint8_t *packet = Malloc(sizeof(fixed_header)+sizeof(var_header)+payload_len);
+    if(NULL == packet) {
+        return -1;
+    }
+    memset(packet,0,sizeof(fixed_header)+sizeof(var_header)+payload_len);
+    #else
+	uint8_t packet[sizeof(fixed_header)+sizeof(var_header)+payload_len];    
+    memset(packet, 0, sizeof(packet));
+    #endif
+
 	memcpy(packet, fixed_header, sizeof(fixed_header));
 	offset += sizeof(fixed_header);
 	memcpy(packet+offset, var_header, sizeof(var_header));
@@ -277,6 +329,20 @@ int mqtt_connect(mqtt_broker_handle_t* broker)
 	packet[offset++] = clientidlen&0xFF;
 	memcpy(packet+offset, broker->clientid, clientidlen);
 	offset += clientidlen;
+
+    #ifndef NO_ND_LASTWILL
+    // add will topic
+    packet[offset++] = strlen(WILL_TOPIC)>>8;
+    packet[offset++] = strlen(WILL_TOPIC)&0xFF;
+    memcpy(packet+offset, WILL_TOPIC, strlen(WILL_TOPIC));
+    offset += strlen(WILL_TOPIC);
+
+    // add will message
+    packet[offset++] = strlen(lastwill)>>8;
+    packet[offset++] = strlen(lastwill)&0xFF;
+    memcpy(packet+offset, lastwill, strlen(lastwill));
+    offset += strlen(lastwill);
+    #endif
 
 	if(usernamelen) {
 		// Username - UTF encoded
@@ -294,10 +360,19 @@ int mqtt_connect(mqtt_broker_handle_t* broker)
 		offset += passwordlen;
 	}
 
+    #ifndef NO_ND_LASTWILL
+    int ret = broker->send(broker->socket_info, packet, offset);
+    Free(lastwill);
+    Free(packet);
+    if(ret != offset) {
+        return -1;
+    }
+    #else
 	// Send the packet
 	if(broker->send(broker->socket_info, packet, sizeof(packet)) != sizeof(packet)) {
 		return -1;
 	}
+    #endif
 
 	return 1;
 }

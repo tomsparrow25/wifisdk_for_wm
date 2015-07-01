@@ -30,6 +30,7 @@
 
 #include <stdint.h>
 
+#define MQTT_CONF_USERNAME_LENGTH 40+1
 #ifndef MQTT_CONF_USERNAME_LENGTH
 	#define MQTT_CONF_USERNAME_LENGTH 13 // Recommended by MQTT Specification (12 + '\0')
 #endif

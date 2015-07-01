@@ -31,7 +31,7 @@
 #define TY_SMART_DOMAIN "http://192.168.0.19:7002/atop/gw.json"
 #else
     #if 1
-    #define TY_SMART_DOMAIN "http://192.168.1.110:8081/gw.json"
+    #define TY_SMART_DOMAIN "http://121.40.64.43:8080/atop-web-1.0.1/gw.json"
     #else
     #define TY_SMART_DOMAIN "http://192.168.20.115:8081/"
     #endif

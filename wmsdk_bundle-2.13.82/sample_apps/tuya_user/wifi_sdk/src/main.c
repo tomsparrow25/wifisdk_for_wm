@@ -87,14 +87,10 @@
 #include <diagnostics.h>
 #include <mdev_gpio.h>
 #include <healthmon.h>
-//#include "wm_demo_cloud.h"
-//#include "wm_demo_wps_cli.h"
-//#include <wm_demo_overlays.h>
 #include "app_psm.h" // include NETWORK_MOD_NAME
 #include <board.h>
 #include <mc200_gpio.h>
 #include <mc200_pinmux.h>
-#include "./tuya_sdk/driver/key.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -106,12 +102,10 @@
 #include "device.h"
 
 /*-----------------------define declarations----------------------*/
-#define UAP_DOWN_TIMEOUT (30 * 1000)
-
-#define RESET_WIFI_CFG_KEY GPIO_27
+#define UAP_DOWN_TIMEOUT (10 * 1000)
 
 // include by NETWORK_MOD_NAME
-#define VAR_UAP_SSID		"uap_ssid"  
+#define VAR_UAP_SSID		"uap_ssid"
 //#define VAR_PROV_KEY        "prov_key"
 #define WF_CFG_MODE   "wf_cfg_mode" // include by NETWORK_MOD_NAME
 #define SMART_CFG_SUCCESS  "smart_cfg_success" // include by NETWORK_MOD_NAME
@@ -120,13 +114,12 @@ typedef enum {
     AP_CFG
 }WF_CFG_MODE_E;
 
-typedef struct wi_cfg_cntl_s{
+typedef struct wi_cfg_cntl_s {
     WF_CFG_MODE_E wf_cfg_mode;
     int is_smart_cfg_ok;
 }WF_CFG_CNTL_S;
 
 /*-----------------------function declarations----------------------*/
-STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt);
 
 /*-----------------------Global declarations----------------------*/
 static char g_uap_ssid[IEEEtypes_SSID_SIZE + 1];
@@ -142,11 +135,6 @@ char *ftfs_part_name = "ftfs";
 struct fs *fs;
 
 static os_timer_t uap_down_timer;
-
-KEY_ENTITY_S key_tbl[] = {
-    {RESET_WIFI_CFG_KEY,5000,key_process,0,0,0,0},
-};
-
 static WF_CFG_CNTL_S wf_cfg_cntl;
 
 /*-----------------------function declarations----------------------*/
@@ -218,6 +206,7 @@ static void uap_down_timer_cb(os_timer_arg_t arg)
  */
 void appln_init_ssid()
 {
+    #if 0
 	if (psm_get_single(NETWORK_MOD_NAME, VAR_UAP_SSID, g_uap_ssid,
 			sizeof(g_uap_ssid)) == WM_SUCCESS) {
 		dbg("Using %s as the uAP SSID", g_uap_ssid);
@@ -238,6 +227,19 @@ void appln_init_ssid()
             // store UAP_SSID 
             psm_set_single(NETWORK_MOD_NAME, VAR_UAP_SSID, appln_cfg.ssid);
 	}
+    #else
+
+    uint8_t my_mac[6];
+    
+    memset(g_uap_ssid, 0, sizeof(g_uap_ssid));
+    wlan_get_mac_address(my_mac);
+    /* Provisioning SSID */
+    snprintf(g_uap_ssid, sizeof(g_uap_ssid),
+         "TuyaSmart-%02X%02X", my_mac[4], my_mac[5]);
+    dbg("Using %s as the uAP SSID", g_uap_ssid);
+    appln_cfg.ssid = g_uap_ssid;
+    // appln_cfg.hostname = g_uap_ssid;
+    #endif
 }
 
 #if 0
@@ -458,9 +460,10 @@ static void event_wlan_init_done(void *data)
 	appln_init_ssid();
 
     // todo:tuya user init
-    tuya_user_init();    
+    tuya_user_init();
+
 	if (provisioned) {
-        app_sta_start(STAT_STA_UNCONN);
+        set_wf_gw_status(STAT_STA_UNCONN);
 		app_sta_start();
         #if 0
 		/* Load  CLOUD overlay in memory */
@@ -482,7 +485,7 @@ static void event_wlan_init_done(void *data)
         #endif
         #else
         if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
-            app_sta_start(STAT_UNPROVISION);
+            set_wf_gw_status(STAT_UNPROVISION);
             app_ezconnect_provisioning_start(NULL, 0);
         }else {
             app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
@@ -542,7 +545,7 @@ static void event_wlan_init_done(void *data)
 
 	if (!provisioned) {
 		/* Start Slow Blink */
-		led_slow_blink(board_led_2());
+		//led_slow_blink(board_led_2());
 	}
 
 }
@@ -746,7 +749,7 @@ static void event_normal_connecting(void *data)
 	net_dhcp_hostname_set(appln_cfg.hostname);
 	dbg("Connecting to Home Network");
 	/* Start Fast Blink */
-	led_fast_blink(board_led_2());
+	//led_fast_blink(board_led_2());
 }
 
 /* Event: AF_EVT_NORMAL_CONNECTED
@@ -762,9 +765,9 @@ static void event_normal_connected(void *data)
 	//void *iface_handle;
 	char ip[16];
 
-	led_off(board_led_2());
+	//led_off(board_led_2());
 
-	led_on(board_led_1());
+	//led_on(board_led_1());
 
 	app_network_ip_get(ip);
 	dbg("Connected to Home Network with IP address = %s", ip);
@@ -798,7 +801,9 @@ static void event_normal_connected(void *data)
 	 * micro AP interface down.
 	 */
 	if (is_uap_started()) {
-		os_timer_activate(&uap_down_timer);
+        int ret;
+		ret = os_timer_activate(&uap_down_timer);
+        PR_DEBUG("os_timer_activate ret:%d",ret);
 		return;
 	}
 
@@ -822,16 +827,17 @@ static void event_connect_failed(void *data)
 {
 	char failure_reason[32];
 
-	if (*(app_conn_failure_reason_t *)data == AUTH_FAILED)
-		strcpy(failure_reason, "Authentication failure");
-	if (*(app_conn_failure_reason_t *)data == NETWORK_NOT_FOUND)
+	if (*(app_conn_failure_reason_t *)data == AUTH_FAILED) {
+		strcpy(failure_reason, "Authentication failure");        
+    }else if (*(app_conn_failure_reason_t *)data == NETWORK_NOT_FOUND) {
 		strcpy(failure_reason, "Network not found");
-	if (*(app_conn_failure_reason_t *)data == DHCP_FAILED)
+    }else if (*(app_conn_failure_reason_t *)data == DHCP_FAILED) {
 		strcpy(failure_reason, "DHCP failure");
+    }
 
 	os_thread_sleep(os_msec_to_ticks(2000));
 	dbg("Application Error: Connection Failed: %s", failure_reason);
-	led_off(board_led_1());
+	//led_off(board_led_1());
 }
 
 /*
@@ -843,7 +849,7 @@ static void event_connect_failed(void *data)
  */
 static void event_normal_user_disconnect(void *data)
 {
-	led_off(board_led_1());
+	//led_off(board_led_1());
 	dbg("User disconnect");
 }
 
@@ -873,9 +879,9 @@ static void event_normal_dhcp_renew(void *data)
 
 static void event_normal_reset_prov(void *data)
 {
-	led_on(board_led_2());
+	//led_on(board_led_2());
 	/* Start Slow Blink */
-	led_slow_blink(board_led_2());
+	//led_slow_blink(board_led_2());
 
     // delete by nzy 20150606
     #if 0
@@ -1173,29 +1179,8 @@ static void modules_init()
 	return;
 }
 
-static void gw_active_test(int argc, char **argv)
-{
-    GW_CNTL_S *gw_cntl = get_gw_cntl();
-
-    strcpy(gw_cntl->active.token,"1cc0410210041c00");
-    strcpy(gw_cntl->active.uid_acl[0],"c001432611438210COSF");
-    gw_cntl->active.uid_cnt = 1;
-
-    OPERATE_RET op_ret;
-    op_ret = httpc_gw_active();
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return;
-    }
-
-    check_all_dev_if_update();
-}
-
 static void heart_beat_test(int argc, char **argv)
-{
-    extern VOID mq_close(VOID);
-    mq_close();
-
+{        
     OPERATE_RET op_ret;
     op_ret = httpc_gw_hearat();
     if(OPRT_OK != op_ret) {
@@ -1204,157 +1189,67 @@ static void heart_beat_test(int argc, char **argv)
     }
 }
 
-static void gw_rest_test(int argc, char **argv)
+static void dev_wifi_reset(int argc, char **argv)
 {
-    OPERATE_RET op_ret;
-    op_ret = httpc_gw_reset();
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        //return;
+    int ret;
+    ret = select_cfg_mode_for_next();
+    if(WM_SUCCESS != ret) {
+        PR_DEBUG("ret:%d.",ret);
+    }else {
+        app_network_set_nw_state(0);
     }
 
-    set_gw_data_fac_reset();
-}
-
-static void dev_unbind_test(int argc, char **argv)
-{
-    GW_CNTL_S *gw_cntl = get_gw_cntl();
-
-    OPERATE_RET op_ret;
-    op_ret = httpc_dev_unbind(gw_cntl->dev->dev_if.id);
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return;
-    }
-}
-
-static void dev_update_test(int argc, char **argv)
-{
-    DEV_DESC_IF_S dev_if;
-    GW_CNTL_S *gw_cntl = get_gw_cntl();
-
-    memcpy(&dev_if,&(gw_cntl->dev->dev_if),sizeof(dev_if));
-
-    strcpy(dev_if.name,"kaiguan");
-    strcpy(dev_if.sw_ver,"2.0");
-    OPERATE_RET op_ret;
-    op_ret = httpc_dev_update(&dev_if);
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return;
-    }
-}
-
-static void dev_stat_report(int argc, char **argv)
-{
-    GW_CNTL_S *gw_cntl = get_gw_cntl();
-
-    STATIC BOOL online = TRUE;
-    online = !online;
-    
-    OPERATE_RET op_ret;
-    op_ret = httpc_dev_stat_report(gw_cntl->dev->dev_if.id,online);
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return;
-    }
-}
-
-static void dp_publish(int argc, char **argv)
-{
-    GW_CNTL_S *gw_cntl = get_gw_cntl();
-    CHAR *data = "{\"1\":20}";
-
-    OPERATE_RET op_ret;
-    op_ret = sf_obj_dp_report(gw_cntl->dev->dev_if.id,data);
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return;
-    }
-}
-
-static void dp_raw_publish(int argc, char **argv)
-{
-    GW_CNTL_S *gw_cntl = get_gw_cntl();
-    BYTE data[] = {1,2,3,4};
-
-    OPERATE_RET op_ret;
-    op_ret = sf_raw_dp_report(gw_cntl->dev->dev_if.id,3,data, 4);
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return;
-    }
+    pm_reboot_soc();
 }
 
 static void mk_prod_info(int argc, char **argv)
 {
     if(argc != 3) {
         PR_ERR("invalid param");
+        return;
     }
 
+    if((strlen(argv[1]) > PROD_IDX_LEN) || \
+       (strlen(argv[2]) != 12)) {
+        PR_ERR("invalid param");
+        return;
+    }
+    
     PR_DEBUG("prod_idx:%s",argv[1]);
     PR_DEBUG("mac:%s",argv[2]);
 
-    OPERATE_RET op_ret;
-    op_ret = set_gw_prodinfo(argv[1],argv[2]);
-    if(OPRT_OK != op_ret) {
-        PR_ERR("set_gw_prodinfo:%d",op_ret);
+    set_gw_prodinfo(argv[1],argv[2]);
+}
+
+static void show_memory(int argc, char **argv)
+{
+    #if 0
+    STATIC INT size = 32;
+    CHAR *test = Malloc(size);
+    if(NULL == test) {
+        PR_DEBUG("size:%d",size);
+        return;
     }
+    size *= 2;
+    #endif
+    ShowSysMemPoolInfo();
+}
+
+static void dev_fac_restore(int argc, char **argv)
+{
+    set_gw_data_fac_reset();
 }
 
 static struct cli_command test_cmds[] = {
     {"mk-prod-info","mk-prod-info <prodect info index> <mac addr>",mk_prod_info},
-	{"gw-active", "", gw_active_test},
+    {"dev-wf-reset","",dev_wifi_reset},
+    {"dev-fac-restore","",dev_fac_restore},
     {"heart-beat","",heart_beat_test},
-    {"gw_rest","",gw_rest_test},
-    {"dev_unbind","",dev_unbind_test},
-    {"dev_update","",dev_update_test},
-    {"dev_stat_rep","",dev_stat_report},
-    {"dp_publish","",dp_publish},
-    {"dp_raw_publish","",dp_raw_publish},
+    {"show-mem-info","",show_memory},
 };
 
-STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt)
+static void tuya_wf_cfg_init(void)
 {
-    dbg("gpio_no: %d",gpio_no);
-    dbg("type: %d",type);
-    dbg("cnt: %d",cnt);
-
-    if(RESET_WIFI_CFG_KEY == gpio_no) {
-        if(LONG_KEY == type) {
-            int provisioned = 0;
-            provisioned = app_network_get_nw_state();
-            dbg("provisioned:%d.",provisioned);
-
-            if(APP_NETWORK_PROVISIONED == provisioned || \
-               SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
-                if(provisioned != APP_NETWORK_PROVISIONED && \
-                   SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
-                    app_ezconnect_provisioning_stop();
-                }
-
-                dbg("reset configure network.");
-                app_reset_configured_network();
-                int ret;
-                ret = select_cfg_mode_for_next();
-                if(WM_SUCCESS != ret) {
-                    dbg("%s:%d ret:%d.",__FILE__,__LINE__);
-                }else {
-                    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
-                        app_ezconnect_provisioning_start(NULL, 0);
-                    }else {
-                        app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
-                    }
-                }
-            }
-        }
-    }
-}
-
-static int tuya_user_init(void)
-{    
-    key_init(key_tbl,(CONST INT)CNTSOF(key_tbl),30); // key process init
-
     // initiate for wifi config
     memset(&wf_cfg_cntl,0,sizeof(WF_CFG_CNTL_S));
     int ret;
@@ -1373,8 +1268,12 @@ static int tuya_user_init(void)
     }else {
         psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
     }
+}
 
-#if 1
+static int tuya_user_init(void)
+{
+    tuya_wf_cfg_init();
+
     OPERATE_RET op_ret;
     op_ret = device_init();
     if(OPRT_OK != op_ret) {
@@ -1382,13 +1281,70 @@ static int tuya_user_init(void)
         return 1;
     }
 
+#if 1
     int i;
     for(i = 0;i < CNTSOF(test_cmds);i++) {
         cli_register_command(&test_cmds[i]);
     }
 #endif
 
+    return 0;
+}
+
+unsigned char asc2hex(char asccode)
+{
+    unsigned char ret;
+
+    if('0'<=asccode && asccode<='9')
+        ret=asccode-'0';
+    else if('a'<=asccode && asccode<='f')
+        ret=asccode-'a'+10;
+    else if('A'<=asccode && asccode<='F')
+        ret=asccode-'A'+10;
+    else
+        ret=0;
+
     return ret;
+}
+
+void ascs2hex(unsigned char *hex,unsigned char *ascs,int srclen)
+{
+    unsigned char l4,h4;
+    int i,lenstr;
+    lenstr = srclen;
+    
+    if(lenstr%2) {
+        lenstr -= (lenstr%2);
+    }
+    
+    if(lenstr==0){
+        return;
+    }
+    
+    for(i=0; i < lenstr; i+=2) {
+        h4=asc2hex(ascs[i]);
+        l4=asc2hex(ascs[i+1]);
+        hex[i/2]=(h4<<4)+l4;
+    }
+}
+
+static void tuya_mac_init()
+{
+    // set mac addr
+    OPERATE_RET op_ret;
+    op_ret = ws_db_init();
+    if(OPRT_OK != op_ret) {
+        PR_ERR("ws_db_init error:%d",op_ret);
+        return;
+    }
+
+    PROD_IF_REC_S prod_if;
+    op_ret = ws_db_get_prod_if(&prod_if);
+    if(OPRT_OK == op_ret) {
+        BYTE mac[6];
+        ascs2hex(mac,(BYTE *)prod_if.mac,strlen(prod_if.mac));
+        wlan_set_mac_addr(mac);
+    }
 }
 
 static int set_smart_cfg_ok(const int is_ok)
@@ -1429,27 +1385,65 @@ static int select_cfg_mode_for_next(void)
     int ret;
     if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode && \
        wf_cfg_cntl.is_smart_cfg_ok) {
-        dbg("%s:%d set next smartconfig mode.",__FILE__,__LINE__);
+        PR_DEBUG("set next smartconfig mode.");
         return set_smart_cfg_ok(0);
     }else if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
         ret = set_wf_cfg_mode(AP_CFG);
         if(ret != WM_SUCCESS) {
             return ret;
         }
-        dbg("%s:%d set next ap mode.",__FILE__,__LINE__);
+        PR_DEBUG("set next ap mode.");
     }else { // AP_CFG
         ret = set_wf_cfg_mode(SMART_CFG);
         if(ret != WM_SUCCESS) {
             return ret;
         }
-        dbg("%s:%d set next smartconfig mode.",__FILE__,__LINE__);
+        PR_DEBUG("set next smartconfig mode.");
         
         if(wf_cfg_cntl.is_smart_cfg_ok) {
             return set_smart_cfg_ok(0);
         }
     }
 
+    app_network_set_nw_state(0);
+    pm_reboot_soc();
+
     return WM_SUCCESS;
+}
+
+void auto_select_wf_cfg(void)
+{
+    int ret;
+    
+    ret = select_cfg_mode_for_next();
+    if(WM_SUCCESS != ret) {
+        PR_ERR("select_cfg_mode_for_next error:%d",ret);
+    }
+}
+
+void select_smart_cfg_wf(void)
+{
+    set_smart_cfg_ok(0);
+    set_wf_cfg_mode(SMART_CFG);
+    app_network_set_nw_state(0);
+    pm_reboot_soc();
+
+}
+
+void select_ap_cfg_wf(void)
+{
+    set_smart_cfg_ok(0);
+    set_wf_cfg_mode(AP_CFG);
+    app_network_set_nw_state(0);
+    pm_reboot_soc();
+}
+
+void single_dev_reset_factory(void)
+{
+    set_smart_cfg_ok(0);
+    set_wf_cfg_mode(SMART_CFG);
+    app_network_set_nw_state(0);
+    set_gw_data_fac_reset();
 }
 
 int main()
@@ -1459,6 +1453,7 @@ int main()
 	dbg("Build Time: " __DATE__ " " __TIME__ "");
 
 	appln_config_init();
+    tuya_mac_init();
 
 	/* Start the application framework */
 	if (app_framework_start(common_event_handler) != WM_SUCCESS) {

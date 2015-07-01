@@ -35,6 +35,11 @@
 ***********************************************************/
 OPERATE_RET ws_db_init(VOID) 
 {
+    STATIC INT is_init = 0;
+    if(is_init) {
+        return OPRT_OK;
+    }
+    
 	int ret;
 	struct partition_entry *p;
 	flash_desc_t fl;
@@ -59,7 +64,8 @@ OPERATE_RET ws_db_init(VOID)
 	if (ret != WM_SUCCESS && ret != -WM_E_EXIST) {
 		return OPRT_COM_ERROR;
 	}
-
+    is_init = 1;
+    
     return OPRT_OK;
 }
 

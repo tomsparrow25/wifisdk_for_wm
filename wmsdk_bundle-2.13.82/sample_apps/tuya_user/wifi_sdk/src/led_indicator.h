@@ -6,7 +6,7 @@
 #ifndef __LED_INDICATOR__
 #define __LED_INDICATOR__
 
-#define LED_COUNT 2
+#define LED_COUNT 1
 enum led_state {
 	LED_OFF = 0,
 	LED_ON,

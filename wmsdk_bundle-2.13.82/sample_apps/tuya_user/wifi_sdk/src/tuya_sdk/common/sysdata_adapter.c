@@ -7,7 +7,6 @@
 #include "sysdata_adapter.h"
 #include "cJSON.h"
 #include "tuya_httpc.h"
-#include "pwrmgr.h"
 
 /***********************************************************
 *************************micro define***********************
@@ -130,9 +129,9 @@ OPERATE_RET gw_cntl_init(VOID)
     }
 
     // create gw active timer
-    ret = os_timer_create(&dev_ul_timer,
+    ret = os_timer_create(&gw_actv_timer,
 				  "gw_actv_timer",
-				  os_msec_to_ticks(500),
+				  os_msec_to_ticks(1000),
 				  &gw_actv_timer_cb,
 				  NULL,
 				  OS_TIMER_PERIODIC,
@@ -172,9 +171,13 @@ OPERATE_RET gw_cntl_init(VOID)
     }
 
     strcpy(gw_cntl.gw.sw_ver,GW_VER);
+    #if 0
     strcpy(gw_cntl.gw.name,GW_DEF_NAME);
+    #else
+    snprintf(gw_cntl.gw.name,sizeof(gw_cntl.gw.name),"%s-%s",GW_DEF_NAME,&prod_if.mac[8]);
+    #endif
     snprintf(gw_cntl.gw.id,sizeof(gw_cntl.gw.id),"%s%s",prod_if.prod_idx,prod_if.mac);
-    gw_cntl.gw.ability = GW_NO_ABI;
+    gw_cntl.gw.ability = GW_DEF_ABI;
 
     // create dev upload timer
     ret = os_timer_create(&dev_ul_timer,
@@ -258,7 +261,11 @@ OPERATE_RET gw_lc_bind_device(IN CONST DEV_DESC_IF_S *dev_if,\
             op_ret = OPRT_CJSON_GET_ERR;
             goto ERR_EXIT;
         }
-        dp_desc->dp_id = atoi(next->valuestring);
+        if(next->type == cJSON_String) {
+            dp_desc->dp_id = atoi(next->valuestring);
+        }else {
+            dp_desc->dp_id = next->valueint;
+        }
 
         // mode
         next = cJSON_GetObjectItem(cjson,"mode");
@@ -275,6 +282,15 @@ OPERATE_RET gw_lc_bind_device(IN CONST DEV_DESC_IF_S *dev_if,\
             dp_desc->mode = M_WR;
         }
 
+        // passive
+        next = cJSON_GetObjectItem(cjson,"passive");
+        if(next == NULL) {
+            dp_desc->passive = FALSE;
+        }else {
+            dp_desc->passive = next->type;
+            dev_cntl->preprocess = TRUE;
+        }
+        
         // trigger
         next = cJSON_GetObjectItem(cjson,"trigger");
         if(NULL == next) {
@@ -441,11 +457,10 @@ OPERATE_RET gw_lc_unbind_device(IN CONST CHAR *id)
 
 static void gw_actv_timer_cb(os_timer_arg_t arg)
 {
-    PR_DEBUG("now,we'll go to active gateway");
     GW_WIFI_STAT_E wf_stat;
     wf_stat = get_wf_gw_status();
     if(wf_stat != STAT_STA_CONN) {
-        PR_DEBUG("we can not active gw,because the wifi state is :%d",wf_stat);
+        // PR_DEBUG("we can not active gw,because the wifi state is :%d",wf_stat);
         return;
     }
     else {
@@ -466,11 +481,14 @@ static void gw_actv_timer_cb(os_timer_arg_t arg)
 
 static void dev_ul_timer_cb(os_timer_arg_t arg)
 {
+    if(get_gw_status() <= ACTIVE_RD) {
+        os_timer_deactivate(&dev_ul_timer);
+    }
+
     GW_WIFI_STAT_E wf_stat;
     wf_stat = get_wf_gw_status();
-
     if(wf_stat != STAT_STA_CONN) {
-        PR_DEBUG("we can not update info,because the wifi state is :%d",wf_stat);
+        // PR_DEBUG("we can not update info,because the wifi state is :%d",wf_stat);
         return;
     }
     else {
@@ -527,8 +545,8 @@ static void dev_ul_timer_cb(os_timer_arg_t arg)
     }
 
     if(TRUE == close_timer) {
-        PR_DEBUG("close timer");
-        os_timer_deactivate(&dev_ul_timer);
+        int ret = os_timer_deactivate(&dev_ul_timer);;
+        PR_DEBUG("close timer ret:%d",ret);
     }
 }
 
@@ -727,6 +745,7 @@ VOID set_gw_prodinfo(IN CONST CHAR *prod_idx,IN CONST CHAR *mac)
 VOID set_gw_data_fac_reset(VOID)
 {
     ws_db_reset();
+    // reboot
     pm_reboot_soc();
 }
 

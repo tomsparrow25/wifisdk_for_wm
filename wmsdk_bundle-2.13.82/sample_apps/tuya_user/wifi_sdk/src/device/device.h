@@ -6,6 +6,8 @@
 #ifndef _DEVICE_H
     #define _DEVICE_H
 
+    #include <mc200_gpio.h>
+    #include <led_indicator.h>
     #include "com_def.h"
     #include "appln_dbg.h"
     #include "error_code.h"
@@ -13,6 +15,7 @@
     #include "tuya_ws_db.h"
     #include "mem_pool.h"
     #include "smart_wf_frame.h"
+    #include "../tuya_sdk/driver/key.h"
 
 #ifdef __cplusplus
 	extern "C" {
@@ -28,13 +31,18 @@
 *************************micro define***********************
 ***********************************************************/
 // device information define
-#define SW_VER "1.0"
-#define DEF_NAME "油汀"
-#define SCHEMA_ID "000000000a"
-#define UI_ID "000000000a"
+#define SW_VER GW_VER
+#define DEF_NAME GW_DEF_NAME
+#define SCHEMA_ID "a"
+#define UI_ID "a"
 #define DEF_DEV_ABI DEV_SINGLE
-#define DEV_ETAG "000000000a"
+#define DEV_ETAG "a"
 
+// reset key define
+#define WF_RESET_KEY GPIO_10
+
+// wifi direct led
+#define WF_DIR_LEN GPIO_11
 /***********************************************************
 *************************variable define********************
 ***********************************************************/

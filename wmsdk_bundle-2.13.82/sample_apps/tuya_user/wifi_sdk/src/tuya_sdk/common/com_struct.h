@@ -22,9 +22,9 @@
 *************************micro define***********************
 ***********************************************************/
 // gw information define
-#define GW_VER "0.0"
-#define GW_DEF_NAME "virtual gw"
-#define GW_TAG "000000000a"
+#define GW_VER "1.0"
+#define GW_DEF_NAME "娌规眬"
+#define GW_TAG "a"
 
 #define PROD_IDX_LEN 8 // prodect index len
 #define GW_ID_LEN 40 // gw id len
@@ -45,6 +45,7 @@ typedef INT GW_ABI;
 #define GW_ZB_ABI (1<<0) // zigbee
 #define GW_BLE_ABI (1<<1) // ble
 #define GW_RF433_ABI (1<<2) // RF 315/433
+#define GW_DEF_ABI GW_NO_ABI
 
 // device ability
 typedef enum {
@@ -79,7 +80,7 @@ typedef enum {
 
 typedef struct {
     CHAR id[GW_ID_LEN+1];
-    CHAR name[NAME_LEN+1];
+    CHAR name[NAME_LEN+4+1+1]; // add '-xxxx'
     CHAR sw_ver[SW_VER_LEN+1];
     GW_ABI ability;
     BOOL sync;
@@ -132,16 +133,27 @@ typedef enum {
     TRIG_DIRECT
 }DP_TRIG_T_E;
 
+/*
+标识某DP状态是否为主动上报
+DP SCHEMA中记录值为bool型
+*/
+typedef enum {
+    PSV_FALSE = FALSE,
+    PSV_TRUE,
+    PSV_F_ONCE, // 仅主动上报成功一次后，立即置为被动上报，常用于设置确认
+}DP_PSV_E;
+
 typedef struct {
     BYTE dp_id;
     DP_MODE_E mode;
+    DP_PSV_E passive;
     DP_TYPE_E type;
     DP_PROP_TP_E prop_tp; // type == obj时有效
     DP_TRIG_T_E trig_t; // 联动触发类型
 }DP_DESC_IF_S;
 
 typedef enum {
-    UNVALID = 0, // 数据无效
+    INVALID = 0, // 数据无效
     VALID_LC, // 本地有效数据
     VALID_CLOUD, // 本地有效数据与服务端一致
 }DP_PV_STAT_E;
@@ -157,7 +169,8 @@ typedef struct dev_cntl_n_s {
     struct dev_cntl_n_s *next;
     DEV_DESC_IF_S dev_if;
     BOOL online;
-    INT dp_num;
+    BOOL preprocess; // 指示该设备是否预处理
+    BYTE dp_num;
     DP_CNTL_S dp[0];
 }DEV_CNTL_N_S;
 

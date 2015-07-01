@@ -61,6 +61,10 @@
 #define OPRT_DP_TYPE_PROP_ILLEGAL INCREMENT(OPRT_EC_STARAT,35) // dp type property illegal
 #define OPRT_DP_REPORT_CLOUD_ERR INCREMENT(OPRT_EC_STARAT,36) 
 #define OPRT_NO_NEED_SET_PRODINFO INCREMENT(OPRT_EC_STARAT,37)
+#define OPRT_NW_INVALID INCREMENT(OPRT_EC_STARAT,38)
+#define OPRT_SELECT_ERR INCREMENT(OPRT_EC_STARAT,39)
+#define OPRT_SELECT_TM INCREMENT(OPRT_EC_STARAT,40) // select timeout
+#define OPRT_SEND_ERR INCREMENT(OPRT_EC_STARAT,41)
 
 /***********************************************************
 *************************variable define********************

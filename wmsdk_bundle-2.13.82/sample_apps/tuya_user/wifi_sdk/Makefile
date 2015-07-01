@@ -98,6 +98,7 @@ SRCS = main.c \
 	tuya_sdk/common/uni_pointer.c \
 	tuya_sdk/common/mem_pool.c \
 	tuya_sdk/common/smart_wf_frame.c \
+	tuya_sdk/common/app_agent.c \
 	device/device.c
 
 ifeq (y,$(LONG_POLL_CLOUD))

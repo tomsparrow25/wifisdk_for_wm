@@ -297,7 +297,7 @@ STATIC OPERATE_RET __httpc_com_hanle(IN CONST http_req_t *req,\
     if(NULL == req || \
        NULL == callback || \
        NULL == url) {
-        return OPRT_OK;
+        return OPRT_INVALID_PARM;
     }
 
     http_session_t hnd;
@@ -581,11 +581,13 @@ STATIC OPERATE_RET __httpc_com_json_resp_parse(IN CONST CHAR *if_name,IN CONST c
         }
         return OPRT_HTTPS_HANDLE_FAIL;
     }else if(cjson && cjson->type == cJSON_True) {
+        #if 0
         cjson = cJSON_GetObjectItem((cJSON *)root,"result");
         if(NULL == cjson) {
             PR_ERR("%s:%s",if_name,data);
             return OPRT_HTTPS_RESP_UNVALID;
         }
+        #endif
     }
 
     return OPRT_OK;
@@ -975,13 +977,11 @@ STATIC OPERATE_RET __httpc_common_cb(IN CONST BOOL is_end,\
     cJSON *root = NULL;
     root = cJSON_Parse((CHAR *)data);
     op_ret = __httpc_com_json_resp_parse("common cb",root,data,len,NULL);
+    cJSON_Delete(root);
     if(OPRT_OK != op_ret) {
-        cJSON_Delete(root);
         PR_ERR("op_ret:%d",op_ret);
         return op_ret;
     }
-
-    PR_DEBUG("%s",data);
 
     return OPRT_OK;
 }

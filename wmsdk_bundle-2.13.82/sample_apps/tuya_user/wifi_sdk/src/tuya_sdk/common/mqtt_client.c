@@ -55,7 +55,7 @@ typedef struct {
     BYTE topic_msg_buf[MQ_RECV_BUF];
 }MQ_CNTL_S;
 
-static os_thread_stack_define(mq_stack, 512);
+static os_thread_stack_define(mq_stack, 1024);
 
 /***********************************************************
 *************************variable define********************
@@ -245,13 +245,31 @@ static void mq_ctrl_task(os_thread_arg_t arg)
         // PR_DEBUG("mq_cntl.status:%d",mq_cntl.status);
         switch(mq_cntl.status) {
             case MQTT_GET_SERVER_IP: {
-                CHAR ip[16];
-                
-                #ifdef MQ_DOMAIN_NAME
-                if(FALSE == domain2ip(MQ_DOMAIN_ADDR,ip)) {
-                    os_thread_sleep(os_msec_to_ticks(3000));
-                    continue;
+                // check the alive is close
+                if(WM_SUCCESS == os_timer_is_active(&mq_cntl.alive_timer)) {
+                    os_timer_deactivate(&mq_cntl.alive_timer);
                 }
+                
+                CHAR ip[16];
+                #ifdef MQ_DOMAIN_NAME
+                STATIC INT who_fir = 1;
+                if(who_fir) {
+                    if(0 != domain2ip(MQ_DOMAIN_ADDR,ip)) {
+                        if(0 != domain2ip(MQ_DOMAIN_ADDR1,ip)) {
+                            os_thread_sleep(os_msec_to_ticks(3000));
+                            continue;
+                        }
+                    }
+                }else {
+                    if(0 != domain2ip(MQ_DOMAIN_ADDR1,ip)) {
+                        if(0 != domain2ip(MQ_DOMAIN_ADDR,ip)) {
+                            os_thread_sleep(os_msec_to_ticks(3000));
+                            continue;
+                        }
+                    }
+                }
+                who_fir = !who_fir;
+                PR_DEBUG("who_fir:%d ip:%s",who_fir,ip);
                 #else
                 strcpy(ip,MQ_DOMAIN_ADDR);
                 #endif

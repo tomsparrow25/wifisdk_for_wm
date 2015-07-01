@@ -23,7 +23,7 @@ extern "C" {
 *************************micro define***********************
 ***********************************************************/
 #define SYS_MEM_DEBUG 0 // 系统内存调试
-#define SHOW_MEM_POOL_DEBUG 0 // 内存池使用情况显示调试支持
+#define SHOW_MEM_POOL_DEBUG 1 // 内存池使用情况显示调试支持
 #define MEM_POOL_MUTLI_THREAD 1 // 是否支持多线程处理
 
 // 内存分区

@@ -1,42 +1,37 @@
 /***********************************************************
-*  File: mqtt_client.h 
+*  File: app_agent.h 
 *  Author: nzy
-*  Date: 20150526
+*  Date: 20150618
 ***********************************************************/
-#ifndef _MQTT_CLIENT_H
-    #define _MQTT_CLIENT_H
+#ifndef _APP_AGENT_H
+    #define _APP_AGENT_H
 
     #include "com_def.h"
-    #include "libemqtt.h"
-    #include "sys_adapter.h"
-    #include "mem_pool.h"
-    #include "error_code.h"
-    #include "com_struct.h"
+    #include "appln_dbg.h"
+    #include "smart_wf_frame.h"
 
 #ifdef __cplusplus
 	extern "C" {
 #endif
 
-#ifdef  __MQTT_CLIENT_GLOBALS
-    #define __MQTT_CLIENT_EXT
+#ifdef  __APP_AGENT_GLOBALS
+    #define __APP_AGENT_EXT
 #else
-    #define __MQTT_CLIENT_EXT extern
+    #define __APP_AGENT_EXT extern
 #endif
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-typedef VOID (*MQ_CALLBACK)(BYTE *data,UINT len);
-
-#define MQ_DOMAIN_NAME
-#ifdef MQ_DOMAIN_NAME // ”Ú√˚
-#define MQ_DOMAIN_ADDR "mq.gw.airtakeapp.com"
-#define MQ_DOMAIN_ADDR1 "mq.gw1.airtakeapp.com"
-#define MQ_DOMAIN_PORT 1883
-#else
-#define MQ_DOMAIN_ADDR "192.168.0.19"
-#define MQ_DOMAIN_PORT 1883
-#endif
+// lan protocol
+#define FRM_TP_CFG_WF 1
+#define FRM_TP_ACTV 2
+#define FRM_TP_BIND_DEV 3
+#define FRM_TP_UNBIND_DEV 6
+#define FRM_TP_CMD 7
+#define FRM_TP_STAT_REPORT 8
+#define FRM_TP_HB 9
+#define FRM_QUERY_STAT 10
 
 /***********************************************************
 *************************variable define********************
@@ -47,25 +42,30 @@ typedef VOID (*MQ_CALLBACK)(BYTE *data,UINT len);
 *************************function define********************
 ***********************************************************/
 /***********************************************************
-*  Function: mqtt_client_init
-*  Input: alive second
-*  Output: 
-*  Return: none
-***********************************************************/
-__MQTT_CLIENT_EXT \
-VOID mq_client_init(IN CONST CHAR *clientid,\
-                    IN CONST CHAR *username,\
-                    IN CONST CHAR *password,\
-                    IN CONST INT alive);
-
-/***********************************************************
-*  Function: mq_client_start
+*  Function: lan_pro_cntl_init
 *  Input: 
 *  Output: 
 *  Return: none
 ***********************************************************/
-__MQTT_CLIENT_EXT \
-OPERATE_RET mq_client_start(IN CONST CHAR *topic,IN CONST MQ_CALLBACK callback);
+__APP_AGENT_EXT \
+OPERATE_RET lan_pro_cntl_init(VOID);
+
+/***********************************************************
+*  Function: mlp_gw_tcp_send
+*  Input: 
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__APP_AGENT_EXT \
+OPERATE_RET mlp_gw_tcp_send(INT socket,IN CONST UINT fr_num,\
+                            IN CONST UINT fr_type,IN CONST UINT ret_code,\
+                            IN CONST BYTE *data,IN CONST UINT len);
+
+__APP_AGENT_EXT \
+INT *get_lpc_sockets(VOID);
+
+__APP_AGENT_EXT \
+INT get_lpc_socket_num(VOID);
 
 #ifdef __cplusplus
 }

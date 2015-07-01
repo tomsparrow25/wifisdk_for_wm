@@ -50,12 +50,12 @@ STATIC MEM_POOL_MANAGE *pSysMemPoolMag = NULL;
 // 用户自定义系统线程池规格
 STATIC MEM_POOL_SETUP_TBL memPoolTbl[] = {
     {32,64},    // 2k
-    {64,64},    // 4k
-    {128,32},   // 4k
-    {256,16},   // 4k
-    {512,8},    // 4k
+    {64,32},    // 2k
+    {128,16},   // 2k
+    {256,4},    // 1k
+    {512,4},    // 2K
     {1024,4},   // 4K
-    {2048,2},   // 4k
+    // {2048,2},   // 4k
 };
 
 #define MEM_PARTITION_NUM CNTSOF(memPoolTbl)
@@ -516,12 +516,13 @@ VOID ShowSysMemPoolInfo(VOID)
 
         PR_DEBUG_RAW("mem partition index:%d\r\n",index);
         index++;
-        PR_DEBUG_RAW("begin:%p\r\n",pMemPartNode->memPartition.pMemAddr);
-        PR_DEBUG_RAW("end:%p\r\n",pMemPartNode->memPartition.pMemAddrEnd);
-        PR_DEBUG_RAW("pMemFreeList:%p\r\n",pMemPartNode->memPartition.pMemFreeList);
+        //PR_DEBUG_RAW("begin:%p\r\n",pMemPartNode->memPartition.pMemAddr);
+        //PR_DEBUG_RAW("end:%p\r\n",pMemPartNode->memPartition.pMemAddrEnd);
+        //PR_DEBUG_RAW("pMemFreeList:%p\r\n",pMemPartNode->memPartition.pMemFreeList);
         PR_DEBUG_RAW("memBlkSize:%d\r\n",pMemPartNode->memPartition.memBlkSize);
         PR_DEBUG_RAW("memNBlks:%d\r\n",pMemPartNode->memPartition.memNBlks);
         PR_DEBUG_RAW("memNFree:%d\r\n",pMemPartNode->memPartition.memNFree);
+        PR_DEBUG_RAW("***********************************");
     }
     #if MEM_POOL_MUTLI_THREAD
     os_mutex_put(&pSysMemPoolMag->mutexHandle);
