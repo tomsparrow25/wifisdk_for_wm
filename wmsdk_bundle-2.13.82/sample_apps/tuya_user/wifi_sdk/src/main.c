@@ -100,6 +100,7 @@
 #include "provisioning_int.h"
 #include "app_network_config.h"
 #include "device.h"
+#include "smart_wf_frame.h"
 
 /*-----------------------define declarations----------------------*/
 #define UAP_DOWN_TIMEOUT (10 * 1000)
@@ -143,6 +144,7 @@ static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg);
 static int select_cfg_mode_for_next(void);
 static void set_smart_cfg(void);
 static int tuya_user_init(void);
+void single_dev_reset_factory(void);
 
 // lan net config
 int lan_set_net_work(char *ssid,char *passphrase)
@@ -488,6 +490,7 @@ static void event_wlan_init_done(void *data)
             set_wf_gw_status(STAT_UNPROVISION);
             app_ezconnect_provisioning_start(NULL, 0);
         }else {
+            set_wf_gw_status(STAT_AP_STA_UNCONN);
             app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
         }
         #endif
@@ -1237,7 +1240,7 @@ static void show_memory(int argc, char **argv)
 
 static void dev_fac_restore(int argc, char **argv)
 {
-    set_gw_data_fac_reset();
+    single_dev_reset_factory();
 }
 
 static struct cli_command test_cmds[] = {
@@ -1408,7 +1411,6 @@ static int select_cfg_mode_for_next(void)
     }
 
     app_network_set_nw_state(0);
-    pm_reboot_soc();
 
     return WM_SUCCESS;
 }
@@ -1420,7 +1422,10 @@ void auto_select_wf_cfg(void)
     ret = select_cfg_mode_for_next();
     if(WM_SUCCESS != ret) {
         PR_ERR("select_cfg_mode_for_next error:%d",ret);
+        return;
     }
+
+    pm_reboot_soc();
 }
 
 void select_smart_cfg_wf(void)
@@ -1429,7 +1434,6 @@ void select_smart_cfg_wf(void)
     set_wf_cfg_mode(SMART_CFG);
     app_network_set_nw_state(0);
     pm_reboot_soc();
-
 }
 
 void select_ap_cfg_wf(void)
@@ -1442,9 +1446,13 @@ void select_ap_cfg_wf(void)
 
 void single_dev_reset_factory(void)
 {
-    set_smart_cfg_ok(0);
-    set_wf_cfg_mode(SMART_CFG);
-    app_network_set_nw_state(0);
+    int ret;
+    
+    ret = select_cfg_mode_for_next();
+    if(WM_SUCCESS != ret) {
+        PR_ERR("select_cfg_mode_for_next error:%d",ret);
+        return;
+    }
     set_gw_data_fac_reset();
 }
 
@@ -1453,7 +1461,7 @@ int main()
 	modules_init();
 
 	dbg("Build Time: " __DATE__ " " __TIME__ "");
-
+    
 	appln_config_init();
     tuya_mac_init();
 

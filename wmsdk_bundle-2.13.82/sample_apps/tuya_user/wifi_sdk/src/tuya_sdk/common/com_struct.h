@@ -22,10 +22,6 @@
 *************************micro define***********************
 ***********************************************************/
 // gw information define
-#define GW_VER "1.0"
-#define GW_DEF_NAME "娌规眬"
-#define GW_TAG "a"
-
 #define PROD_IDX_LEN 8 // prodect index len
 #define GW_ID_LEN 40 // gw id len
 #define DEV_ID_LEN 40 // dev id len
@@ -185,7 +181,6 @@ typedef enum {
     UN_INIT = 0, // 未初始化，比如生产信息未写入
     UN_ACTIVE, // 未激活
     ACTIVE_RD, // 激活就绪态
-    STAT_UG, // 升级态
     STAT_WORK, // 正常工作态
 }GW_STAT_E;
 
@@ -201,7 +196,7 @@ typedef struct {
     GW_DESC_IF_S gw;
     GW_ACTV_IF_S active;
     GW_STAT_E stat;
-    GW_WIFI_STAT_E wf_stat;
+    GW_WIFI_STAT_E wf_stat;    
     INT dev_num;
     DEV_CNTL_N_S *dev;
 }GW_CNTL_S;

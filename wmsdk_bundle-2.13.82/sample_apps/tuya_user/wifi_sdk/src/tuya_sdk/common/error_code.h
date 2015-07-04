@@ -65,6 +65,10 @@
 #define OPRT_SELECT_ERR INCREMENT(OPRT_EC_STARAT,39)
 #define OPRT_SELECT_TM INCREMENT(OPRT_EC_STARAT,40) // select timeout
 #define OPRT_SEND_ERR INCREMENT(OPRT_EC_STARAT,41)
+#define OPRT_DEV_NOT_BIND INCREMENT(OPRT_EC_STARAT,42)
+#define OPRT_FW_UG_FAILED INCREMENT(OPRT_EC_STARAT,43)
+#define OPRT_VER_FMT_ERR INCREMENT(OPRT_EC_STARAT,44)
+#define OPRT_FW_NOT_EXIST INCREMENT(OPRT_EC_STARAT,45)
 
 /***********************************************************
 *************************variable define********************

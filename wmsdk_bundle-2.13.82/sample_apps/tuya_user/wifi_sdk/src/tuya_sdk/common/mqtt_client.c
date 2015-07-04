@@ -159,7 +159,7 @@ STATIC OPERATE_RET mq_client_sock_conn()
 
     int flag = 1;
     // reuse socket port
-    if(setsockopt(fd,SOL_SOCKET,SO_REUSEADDR,(const char*)&flag,sizeof(int))) {
+    if(setsockopt(fd,SOL_SOCKET,SO_REUSEADDR,(const char*)&flag,sizeof(int)) < 0) {
         close(fd);
         return OPRT_SET_SOCK_ERR;
     }
@@ -190,7 +190,10 @@ STATIC OPERATE_RET mq_client_sock_conn()
 
     // set block 
 	int flags = fcntl(fd, F_GETFL, 0);
-	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	if(fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        close(fd);
+        return OPRT_SET_SOCK_ERR;
+    }
     
     return OPRT_OK;
 }
@@ -237,7 +240,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
 	while (1) {
         //  the network is not ready
         if(get_wf_gw_status() != STAT_STA_CONN || \
-           get_gw_status() < STAT_UG) {
+           get_gw_status() < STAT_WORK) {
             os_thread_sleep(os_msec_to_ticks(3000));
             continue;
         }

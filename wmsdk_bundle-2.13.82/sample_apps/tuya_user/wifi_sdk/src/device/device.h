@@ -6,17 +6,10 @@
 #ifndef _DEVICE_H
     #define _DEVICE_H
 
-    #include <mc200_gpio.h>
-    #include <led_indicator.h>
     #include "com_def.h"
     #include "appln_dbg.h"
     #include "error_code.h"
-    #include "sysdata_adapter.h"
-    #include "tuya_ws_db.h"
-    #include "mem_pool.h"
-    #include "smart_wf_frame.h"
-    #include "../tuya_sdk/driver/key.h"
-
+    
 #ifdef __cplusplus
 	extern "C" {
 #endif
@@ -31,8 +24,8 @@
 *************************micro define***********************
 ***********************************************************/
 // device information define
-#define SW_VER GW_VER
-#define DEF_NAME GW_DEF_NAME
+#define SW_VER "1.0.0"
+#define DEF_NAME "油汀"
 #define SCHEMA_ID "a"
 #define UI_ID "a"
 #define DEF_DEV_ABI DEV_SINGLE

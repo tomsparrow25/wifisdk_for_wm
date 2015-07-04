@@ -11,6 +11,7 @@
 #include <wm_os.h>
 #include "app_agent.h"
 #include "md5.h"
+#include "device.h"
 
 /***********************************************************
 *************************micro define***********************
@@ -18,6 +19,7 @@
 // smart frame process message
 #define SF_MSG_LAN_CMD_FROM_APP 0 // 局域网控制命令
 #define SF_MSG_LAN_STAT_REPORT 1 // 局域网数据状态主动上报
+#define SF_MSG_UG_FM 2 // 通知固件升级
 
 // msg frame 
 typedef struct {
@@ -42,6 +44,11 @@ typedef struct {
     
     #define HB_TIMER_INTERVAL (4*60) // s
     TIMER_ID hb_timer;
+
+    // firmware upgrade
+    TIMER_ID fw_ug_t;
+    FW_UG_STAT_E stat;
+    FW_UG_S fw_ug;
 }SMT_FRM_CNTL_S;
 
 #define SMT_FRM_MAX_EVENTS 10
@@ -52,12 +59,16 @@ typedef struct {
 #define PRO_DEL_USER 7
 #define PRO_FW_UG_CFM 10
 
+#define UG_TIME_VAL (24*3600)
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
 SMT_FRM_CNTL_S smt_frm_cntl;
 static os_queue_pool_define(smt_frm_queue_data,SMT_FRM_MAX_EVENTS * sizeof(MESSAGE));
 static os_thread_stack_define(sf_stack, 1024);
+static void fw_ug_timer_cb(os_timer_arg_t arg);
+STATIC OPERATE_RET sw_ver_change(IN CONST CHAR *ver,OUT UINT *change);
+VOID set_fw_ug_stat(IN CONST FW_UG_STAT_E stat);
 
 /***********************************************************
 *************************function define********************
@@ -68,7 +79,7 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr);
 extern int lan_set_net_work(char *ssid,char *passphrase);
 static void hb_timer_cb(os_timer_arg_t arg);
 STATIC CHAR *mk_json_obj_data(IN CONST DEV_CNTL_N_S *dev_cntl,IN CONST BOOL vlc_da);
-STATIC OPERATE_RET __sf_com_mk_obj_dp_rept_data(IN CONST CHAR *id,OUT CHAR **pp_out);
+STATIC OPERATE_RET __sf_com_mk_obj_dp_rept_data(IN CONST DEV_CNTL_N_S *dev_cntl,OUT CHAR **pp_out);
 STATIC OPERATE_RET sf_obj_dp_qry_dpid(IN CONST CHAR *id,IN CONST BYTE *dpid,IN CONST BYTE num);
 STATIC void smt_frm_cmd_prep(IN CONST SMART_CMD_E cmd,IN CONST BYTE *data,IN CONST UINT len);
 
@@ -112,7 +123,7 @@ OPERATE_RET smart_frame_init(IN CONST SMART_FRAME_CB cb)
 
     // mqtt init
     GW_CNTL_S *gw_cntl = get_gw_cntl();
-
+    #if 0
     // make mqtt passwd
     CHAR mq_passwd[16+1];
     unsigned char decrypt[16];
@@ -127,10 +138,9 @@ OPERATE_RET smart_frame_init(IN CONST SMART_FRAME_CB cb)
         offset += 2;
     }
     mq_passwd[offset] = 0;
-    #if 0
-    mq_client_init(gw_cntl->gw.id,"8888888","123456",0);
-    #else
     mq_client_init(gw_cntl->gw.id,gw_cntl->gw.id,mq_passwd,0);
+    #else
+    mq_client_init(gw_cntl->gw.id,"8888888","123456",0);
     #endif
 
     // mqtt starat
@@ -166,6 +176,14 @@ OPERATE_RET smart_frame_init(IN CONST SMART_FRAME_CB cb)
     ret = os_timer_create(&smt_frm_cntl.hb_timer, "hb_timer", \
                           os_msec_to_ticks(10*1000),\
                           hb_timer_cb, NULL,\
+                          OS_TIMER_PERIODIC, OS_TIMER_AUTO_ACTIVATE);
+    if(ret != WM_SUCCESS) {
+        return OPRT_CR_TIMER_ERR;
+    }
+
+    ret = os_timer_create(&smt_frm_cntl.fw_ug_t, "fw_ug_timer", \
+                          os_msec_to_ticks(10*1000),\
+                          fw_ug_timer_cb, NULL,\
                           OS_TIMER_PERIODIC, OS_TIMER_AUTO_ACTIVATE);
     if(ret != WM_SUCCESS) {
         return OPRT_CR_TIMER_ERR;
@@ -218,6 +236,39 @@ static void sf_ctrl_task(os_thread_arg_t arg)
                     gw_lan_respond(socket[i],0,FRM_TP_STAT_REPORT,0,(CHAR *)msg->data,msg->len);
                 }
                 #endif
+            }
+            break;
+
+            case SF_MSG_UG_FM: {
+                PR_DEBUG("now,we'll go to upgrade firmware");
+                OPERATE_RET op_ret;
+                
+                op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UPGRADING);
+                if(OPRT_OK != op_ret) {
+                    PR_DEBUG("httpc_up_fw_ug_stat error:%d",op_ret);
+                    break;
+                }
+                set_fw_ug_stat(UPGRADING);
+                
+                op_ret = httpc_upgrade_fw(smt_frm_cntl.fw_ug.fw_url);
+                if(OPRT_OK != op_ret) {
+                    PR_ERR("httpc_upgrade_fw err:%d",op_ret);
+
+                    op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UG_EXECPTION);
+                    if(OPRT_OK != op_ret) {
+                        PR_DEBUG("httpc_up_fw_ug_stat error:%d",op_ret);
+                    }
+                    set_fw_ug_stat(UG_EXECPTION);
+                    break;
+                }
+
+                op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UG_FIN);
+                if(OPRT_OK != op_ret) {
+                    PR_DEBUG("httpc_up_fw_ug_stat error:%d",op_ret);
+                }
+                set_fw_ug_stat(UG_FIN);
+
+                pm_reboot_soc();
             }
             break;
         }
@@ -415,7 +466,17 @@ STATIC VOID mq_callback(BYTE *data,UINT len)
 
         ws_db_set_gw_actv(&gw_cntl->active);
     }else if(PRO_FW_UG_CFM == mq_pro) {
-        
+        if((NULL == cJSON_GetObjectItem(json,"devId") || \
+           strcasecmp(cJSON_GetObjectItem(json,"devId")->valuestring,\
+           get_single_wf_dev()->dev_if.id))) {
+            goto JSON_PROC_ERR;
+        }
+
+        OPERATE_RET op_ret;
+        op_ret = sf_fw_ug_msg_infm();
+        if(OPRT_OK != op_ret) {
+            PR_ERR("sf_fw_ug_msg_infm:%d",op_ret);
+        }
     }else {
         goto JSON_PROC_ERR;
     }
@@ -504,6 +565,20 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
             memset(passwd,0,sizeof(passwd));
             strcpy(ssid,cJSON_GetObjectItem(root,"ssid")->valuestring);
             strcpy(passwd,cJSON_GetObjectItem(root,"passwd")->valuestring);
+
+            GW_STAT_E gw_stat = get_gw_status();
+            if(gw_stat >= ACTIVE_RD) {
+                int ret;
+                if(passwd[0] == 0) {
+                    ret = lan_set_net_work(ssid,NULL);
+                }else {
+                    PR_DEBUG("passwd:%s",passwd);
+                    ret = lan_set_net_work(ssid,passwd);
+                }
+                if(ret != WM_SUCCESS) {
+                    PR_ERR("ret %d",ret);
+                }
+            }
             #endif
 
             gw_lan_respond(fr->socket, fr->frame_num, fr->frame_type,0,NULL,0);
@@ -791,9 +866,9 @@ STATIC CHAR *mk_json_obj_data(IN CONST DEV_CNTL_N_S *dev_cntl,IN CONST BOOL vlc_
 *  Return: 
 *  Note:
 ***********************************************************/
-STATIC OPERATE_RET __sf_mk_dp_rept_data(IN CONST CHAR *id,IN CONST CHAR *data,OUT CHAR **pp_out)
+STATIC OPERATE_RET __sf_mk_dp_rept_data(IN CONST DEV_CNTL_N_S *dev_cntl,IN CONST CHAR *data,OUT CHAR **pp_out)
 {
-    if(id == NULL || data == NULL || NULL == pp_out) {
+    if(dev_cntl == NULL || data == NULL || NULL == pp_out) {
         return OPRT_INVALID_PARM;
     }
 
@@ -810,7 +885,7 @@ STATIC OPERATE_RET __sf_mk_dp_rept_data(IN CONST CHAR *id,IN CONST CHAR *data,OU
         op_ret = OPRT_CR_CJSON_ERR;
         goto ERR_EXIT;
     }
-    cJSON_AddStringToObject(root,"devId",id);
+    cJSON_AddStringToObject(root,"devId",dev_cntl->dev_if.id);
     cJSON_AddItemToObject(root, "dps", data_json);
 
     *pp_out = cJSON_PrintUnformatted(root);
@@ -835,16 +910,11 @@ ERR_EXIT:
 *  Return: 
 *  Note:
 ***********************************************************/
-STATIC OPERATE_RET __sf_com_mk_obj_dp_rept_data(IN CONST CHAR *id,OUT CHAR **pp_out)
+STATIC OPERATE_RET __sf_com_mk_obj_dp_rept_data(IN CONST DEV_CNTL_N_S *dev_cntl,OUT CHAR **pp_out)
 {
-    if(NULL == id || \
+    if(NULL == dev_cntl || \
        NULL == pp_out) {
          return OPRT_INVALID_PARM;
-    }
-
-    DEV_CNTL_N_S *dev_cntl = get_dev_cntl(id);
-    if(NULL == dev_cntl) {
-        return OPRT_NOT_FOUND_DEV;
     }
 
     cJSON *cjson = cJSON_CreateObject();
@@ -913,7 +983,7 @@ STATIC OPERATE_RET __sf_com_mk_obj_dp_rept_data(IN CONST CHAR *id,OUT CHAR **pp_
         cJSON_Delete(cjson);
         return OPRT_CR_CJSON_ERR;
     }
-    cJSON_AddStringToObject(root,"devId",id);
+    cJSON_AddStringToObject(root,"devId",dev_cntl->dev_if.id);
     cJSON_AddItemToObject(root, "dps",cjson);
 
     *pp_out = cJSON_PrintUnformatted(root);
@@ -933,15 +1003,10 @@ STATIC OPERATE_RET __sf_com_mk_obj_dp_rept_data(IN CONST CHAR *id,OUT CHAR **pp_
 *  Return: 
 *  Note:
 ***********************************************************/
-STATIC OPERATE_RET __sf_dev_lc_obj_dp_up(IN CONST CHAR *id,IN CONST CHAR *data)
+STATIC OPERATE_RET __sf_dev_lc_obj_dp_up(INOUT DEV_CNTL_N_S *dev_cntl,IN CONST CHAR *data)
 {
-    if(id == NULL || data == NULL) {
+    if(data == NULL || NULL == dev_cntl) {
         return OPRT_INVALID_PARM;
-    }
-
-    DEV_CNTL_N_S *dev_cntl = get_dev_cntl(id);
-    if(NULL == dev_cntl) {
-        return OPRT_NOT_FOUND_DEV;
     }
 
     OPERATE_RET op_ret;
@@ -1090,10 +1155,8 @@ ERR_EXIT:
 *  Return: 
 *  Note:
 ***********************************************************/
-STATIC OPERATE_RET __sf_dev_obj_dp_set_vc(IN CONST CHAR *id,IN CONST CHAR *data)
+STATIC OPERATE_RET __sf_dev_obj_dp_set_vc(INOUT DEV_CNTL_N_S *dev_cntl,IN CONST CHAR *data)
 {
-    DEV_CNTL_N_S *dev_cntl = get_dev_cntl(id);
-
     cJSON *nxt = NULL;
     cJSON *data_json = cJSON_Parse(data);
     if(cJSON_GetObjectItem(data_json,"devId") && cJSON_GetObjectItem(data_json,"dps")) {
@@ -1181,25 +1244,28 @@ OPERATE_RET sf_obj_dp_report(IN CONST CHAR *id,IN CONST CHAR *data)
         return OPRT_INVALID_PARM;
     }
 
+    DEV_CNTL_N_S *dev_cntl = get_dev_cntl(id);
+    if(NULL == dev_cntl) {
+        return OPRT_NOT_FOUND_DEV;
+    }
+
+    if(dev_cntl->dev_if.bind == FALSE) {
+        return OPRT_DEV_NOT_BIND;
+    }
+
     // update local data
     OPERATE_RET op_ret;
-    op_ret = __sf_dev_lc_obj_dp_up(id,data);
+    op_ret = __sf_dev_lc_obj_dp_up(dev_cntl,data);
     if(op_ret != OPRT_OK) {
         return op_ret;
     }
 
     CHAR *out = NULL;
-    #if 0
-    op_ret = __sf_mk_dp_rept_data(id,data,&out);
+    op_ret = __sf_com_mk_obj_dp_rept_data(dev_cntl,&out);
     if(op_ret != OPRT_OK) {
         return op_ret;
     }
-    #else
-    op_ret = __sf_com_mk_obj_dp_rept_data(id,&out);
-    if(op_ret != OPRT_OK) {
-        return op_ret;
-    }
-    #endif
+
     // PR_DEBUG("out:%s",out);
     if(NULL == out) {
         return OPRT_OK;
@@ -1220,7 +1286,7 @@ OPERATE_RET sf_obj_dp_report(IN CONST CHAR *id,IN CONST CHAR *data)
     }
 
     // update dp value
-    __sf_dev_obj_dp_set_vc(id,out);
+    __sf_dev_obj_dp_set_vc(dev_cntl,out);
     Free(out);
     return OPRT_OK;
 }
@@ -1481,6 +1547,15 @@ OPERATE_RET sf_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
         return OPRT_INVALID_PARM;
     }
 
+    DEV_CNTL_N_S *dev_cntl = get_dev_cntl(id);
+    if(NULL == dev_cntl) {
+        return OPRT_NOT_FOUND_DEV;
+    }
+
+    if(dev_cntl->dev_if.bind == FALSE) {
+        return OPRT_DEV_NOT_BIND;
+    }
+
     CHAR *base64_buf = Malloc(2*len +1);
     if(NULL == base64_buf) {
         return OPRT_MALLOC_FAILED;
@@ -1510,7 +1585,7 @@ OPERATE_RET sf_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
 
     CHAR *tmp_out = NULL;
     OPERATE_RET op_ret;
-    op_ret = __sf_mk_dp_rept_data(id,out,&tmp_out);
+    op_ret = __sf_mk_dp_rept_data(dev_cntl,out,&tmp_out);
     if(op_ret != OPRT_OK) {
         Free(out),out = NULL;
         return op_ret;
@@ -1538,7 +1613,7 @@ OPERATE_RET sf_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
 static void hb_timer_cb(os_timer_arg_t arg)
 {
     if(STAT_STA_CONN != get_wf_gw_status() || \
-       get_gw_status() < STAT_UG) {
+       get_gw_status() < STAT_WORK) {
         return;
     }
 
@@ -1557,6 +1632,64 @@ static void hb_timer_cb(os_timer_arg_t arg)
             is_hb = 1;
         }
     }
+}
+
+static void fw_ug_timer_cb(os_timer_arg_t arg)
+{
+    if(STAT_STA_CONN != get_wf_gw_status() || \
+       (get_gw_status() < STAT_WORK) || \
+       (get_fw_ug_stat() == UPGRADING)) {
+        return;
+    }
+
+    PR_DEBUG("firmware upgrade start...");
+    
+    OPERATE_RET op_ret;
+    op_ret = httpc_get_fw_ug_info(DEV_ETAG,&smt_frm_cntl.fw_ug);
+    if(OPRT_OK != op_ret) {
+        if(op_ret == OPRT_FW_NOT_EXIST) {
+            os_timer_change(&smt_frm_cntl.fw_ug_t,os_msec_to_ticks(UG_TIME_VAL*1000),0);
+            PR_DEBUG("the firmware is not exist");
+            return;
+        }
+        
+        PR_ERR("get fw ug info error:%d",op_ret);
+        goto ERR_RET;
+    }
+
+    PR_DEBUG("fw_url:%s",smt_frm_cntl.fw_ug.fw_url);
+    PR_DEBUG("fw_md5:%s",smt_frm_cntl.fw_ug.fw_md5);
+    PR_DEBUG("serv_sw_ver:%s",smt_frm_cntl.fw_ug.sw_ver);
+    PR_DEBUG("sw_ver:%s",get_single_wf_dev()->dev_if.sw_ver);
+    PR_DEBUG("auto_ug:%d",smt_frm_cntl.fw_ug.auto_ug);
+
+    UINT sw_ver = 0;
+    UINT serv_sw_ver = 0;
+    sw_ver_change(get_single_wf_dev()->dev_if.sw_ver,&sw_ver);
+    sw_ver_change(smt_frm_cntl.fw_ug.sw_ver,&serv_sw_ver);
+    
+    if(serv_sw_ver > sw_ver) {
+        if(smt_frm_cntl.fw_ug.auto_ug) { // auto 
+            op_ret = sf_fw_ug_msg_infm();
+            if(op_ret != OPRT_OK) {
+                PR_ERR("sf_fw_ug_msg_infm error:%d",op_ret);
+                goto ERR_RET;
+            }
+        }else {
+            op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UG_RD);
+            if(OPRT_OK != op_ret) {
+                PR_ERR("up_fw_ug_stat error:%d",op_ret);
+                goto ERR_RET;
+            }
+            set_fw_ug_stat(UG_RD);
+        }
+    }
+
+    os_timer_change(&smt_frm_cntl.fw_ug_t,os_msec_to_ticks(UG_TIME_VAL*1000),0);
+    return;
+
+ERR_RET:
+    os_timer_change(&smt_frm_cntl.fw_ug_t,os_msec_to_ticks(10*1000),0);
 }
 
 /***********************************************************
@@ -1704,3 +1837,77 @@ DEV_CNTL_N_S *get_single_wf_dev(VOID)
     return get_gw_cntl()->dev;
 }
 
+/***********************************************************
+*  Function: set_fw_ug_stat
+*  Input: stat
+*  Output: 
+*  Return: 
+*  Note: none
+***********************************************************/
+VOID set_fw_ug_stat(IN CONST FW_UG_STAT_E stat)
+{
+    os_mutex_get(&smt_frm_cntl.mutex, OS_WAIT_FOREVER);
+    smt_frm_cntl.stat = stat;
+    os_mutex_put(&smt_frm_cntl.mutex);
+}
+
+/***********************************************************
+*  Function: get_fw_ug_stat
+*  Input: none
+*  Output: 
+*  Return: FW_UG_STAT_E
+*  Note: none
+***********************************************************/
+FW_UG_STAT_E get_fw_ug_stat(VOID)
+{
+    FW_UG_STAT_E stat;
+
+    os_mutex_get(&smt_frm_cntl.mutex, OS_WAIT_FOREVER);
+    stat = smt_frm_cntl.stat;
+    os_mutex_put(&smt_frm_cntl.mutex);
+
+    return stat;
+}
+
+/***********************************************************
+*  Function: sf_fw_ug_msg_infm
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+OPERATE_RET sf_fw_ug_msg_infm(VOID)
+{
+    return smart_frame_send_msg(SF_MSG_UG_FM,NULL,0);
+}
+
+/***********************************************************
+*  Function: sw_ver_change
+*  Input: ver->x.x.x
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+STATIC OPERATE_RET sw_ver_change(IN CONST CHAR *ver,OUT UINT *change)
+{
+    if(NULL == ver || NULL == change) {
+        return OPRT_INVALID_PARM;
+    }
+
+    INT num = 0;
+    BYTE buf[3];
+    
+    num = sscanf(ver,"%d.%d.%d",&buf[0],&buf[1],&buf[2]);
+    if(0 == num) {
+        PR_ERR("version format error:%s",ver);
+        return OPRT_VER_FMT_ERR;
+    }
+
+    UINT tmp = 0;
+    tmp = buf[0];
+    tmp = (tmp << 8) | buf[1];
+    tmp = (tmp << 8) | buf[2];
+    *change = tmp;
+
+    return OPRT_OK;
+}

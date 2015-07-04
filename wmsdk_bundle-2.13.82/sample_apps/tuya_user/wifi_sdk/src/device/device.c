@@ -5,19 +5,16 @@
 ***********************************************************/
 #define __DEVICE_GLOBALS
 #include "device.h"
+#include <mc200_gpio.h>
+#include <led_indicator.h>
 #include <mdev_uart.h>
-#include "com_struct.h"
-#include "com_def.h"
 #include "mem_pool.h"
-#include <wm_os.h>
-#include <wm_net.h>
-#include <wlan.h>
-#include "json.h"
-#include "mqtt_client.h"
 #include <wmtime.h>
-#include <mdev_ssp.h>
-#include <mdev_i2c.h>
-#include "app_agent.h"
+#include "sysdata_adapter.h"
+#include "tuya_ws_db.h"
+#include "mem_pool.h"
+#include "smart_wf_frame.h"
+#include "../tuya_sdk/driver/key.h"
 
 /***********************************************************
 *************************micro define***********************
@@ -64,7 +61,6 @@ typedef struct
 /***********************************************************
 *************************function define********************
 ***********************************************************/
-STATIC os_thread_stack_define(yt_stack, 2048);
 mdev_t *uart_drv_open(UART_ID_Type port_id, uint32_t baud);
 uint32_t uart_drv_read(mdev_t *dev, uint8_t *buf, uint32_t num);
 uint32_t uart_drv_write(mdev_t *dev, const uint8_t *buf, uint32_t num);
@@ -133,7 +129,12 @@ STATIC INT yt_query_msg_proc_upload(CHAR* yt_buf)
     }else {
         yt_buf[3] = 0;
     }
-    cJSON_AddBoolToObject(root_test,"1",yt_buf[2]);
+    
+    if(yt_buf[2] == 2){
+        cJSON_AddBoolToObject(root_test,"1",0);
+    }else{
+        cJSON_AddBoolToObject(root_test,"1",yt_buf[2]);     
+    }
     cJSON_AddNumberToObject(root_test,"2",yt_buf[6]&0x7f);
     cJSON_AddStringToObject(root_test,"3",dpid);
     cJSON_AddBoolToObject(root_test,"4",yt_buf[8]&0x01);
@@ -249,12 +250,14 @@ INT yt_msg_query(BYTE cmd, BYTE param1, BYTE param2, CHAR* buf)
     Free(SendBuf);
     for(i = 0; i < 5; i++){
         count = 0;
-        os_thread_sleep(os_msec_to_ticks(100));
         count = uart_drv_read(yt_msg.uart_dev, buf + rCount, 25);
-        if(count == 0 && i != 0){
+        if(count >= 22 && i == 0){
+            return count;
+        }else if(count == 0 && i > 1){
             break;
         }
         rCount += count;
+        os_thread_sleep(os_msec_to_ticks(20));
     }
     return rCount;
 }
@@ -343,23 +346,29 @@ INT yt_msg_cmd_type_value(cJSON *root, BYTE *param1, BYTE *param2)
         case cJSON_False:*param1 = 0x00;break;
         case cJSON_True:*param1 = 0x01;break;
         case cJSON_Number:*param1 = root->valueint;break;
-        case cJSON_String:*param1 = atoi(root->valuestring);break;
+        case cJSON_String:{
+            if(yt_msg.cmd == 6) {
+                if(atoi(root->valuestring)/60 < 1) {
+                    *param2 = atoi(root->valuestring); 
+                    *param1 = 0;
+                } else {
+                    *param1 = atoi(root->valuestring)/60;
+                }
+            }
+            else{
+                *param1 = atoi(root->valuestring);
+            }        
+        }
+        break;
         default:break;
     }
-    if(yt_msg.cmd == 5){
+    if(yt_msg.cmd == 5) {
         if(*param1 == 0){
             INT Value = 0;
             Value = dev_cntl->dp[2].prop.prop_enum.value;
             *param1 = atoi(dev_cntl->dp[2].prop.prop_enum.pp_enum[Value]);
         }else{
             *param1 = 0;
-        }
-    }else if(yt_msg.cmd == 6){
-        if((*param1/60) < 1){
-            *param2 = *param1;
-            *param1 = 0;
-        }else{
-            *param1 = *param1/60;
         }
     }
     return WM_SUCCESS;
@@ -537,9 +546,9 @@ STATIC VOID key_process(INT gpio_no,PUSH_KEY_TYPE_E type,INT cnt)
 
     if(WF_RESET_KEY == gpio_no) {
         if(LONG_KEY == type) {
-            auto_select_wf_cfg();
-        }else if(SEQ_KEY == type && cnt >= 5) { // data restore factory
             single_dev_reset_factory();
+        }else if(SEQ_KEY == type && cnt >= 4) { // data restore factory            
+            auto_select_wf_cfg();
         }
     }
 }
@@ -578,13 +587,13 @@ static void wfl_timer_cb(os_timer_arg_t arg)
         PR_DEBUG("wf_stat:%d",wf_stat);
         switch(wf_stat) {
             case STAT_UNPROVISION: {
-                led_blink(WF_DIR_LEN, 500, 500);
+                led_blink(WF_DIR_LEN, 250, 250);
             }
             break;
             
             case STAT_AP_STA_UNCONN:
             case STAT_AP_STA_CONN: {
-                led_blink(WF_DIR_LEN, 1000, 1000);
+                led_blink(WF_DIR_LEN, 1500, 1500);
             }
             break;
             

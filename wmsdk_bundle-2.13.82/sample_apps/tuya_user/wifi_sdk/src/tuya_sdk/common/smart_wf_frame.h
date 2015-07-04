@@ -102,6 +102,25 @@ __SMART_WF_FRAME_EXT \
 OPERATE_RET sf_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
                              IN CONST BYTE *data, IN CONST UINT len);
 
+/***********************************************************
+*  Function: get_fw_ug_stat
+*  Input: none
+*  Output: 
+*  Return: FW_UG_STAT_E
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+FW_UG_STAT_E get_fw_ug_stat(VOID);
+
+/***********************************************************
+*  Function: sf_fw_ug_msg_infm
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+OPERATE_RET sf_fw_ug_msg_infm(VOID);
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,7 @@
 #include "sysdata_adapter.h"
 #include "base64.h"
 #include "device.h"
+#include <rfget.h>
 
 /***********************************************************
 *************************micro define***********************
@@ -38,10 +39,12 @@ typedef struct {
     BYTE key[16];
     BYTE iv[16]; // init vector
 }AES_H_S;
+
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
 STATIC AES_H_S httpc_aes;
+STATIC FW_UG_S fw_ug;
 
 /***********************************************************
 *************************function define********************
@@ -340,14 +343,16 @@ STATIC OPERATE_RET __httpc_com_hanle(IN CONST http_req_t *req,\
     memset(buf,0,DEF_BUF_SIZE);
 
     UINT offset = 0;
+    UINT buf_offset = 0;
     OPERATE_RET op_ret = OPRT_OK;
     while (1) {
-        ret = http_read_content(hnd, buf, DEF_BUF_SIZE);
+        ret = http_read_content(hnd, buf+buf_offset, \
+                                DEF_BUF_SIZE-buf_offset);
         if (ret < 0) {
             Free(buf);
             http_close_session(&hnd);
             return OPRT_HTTP_RD_ERROR;
-        }else if(0 == ret){ // ½áÊø
+        }else if(0 == ret) { // ½áÊø
             if(resp->chunked) {
                 op_ret = callback(TRUE,offset,NULL,0);
             }
@@ -358,8 +363,17 @@ STATIC OPERATE_RET __httpc_com_hanle(IN CONST http_req_t *req,\
                 if((offset+ret) >= resp->content_length) {
                     is_end = TRUE;
                 }
+
+                if(resp->content_length <= DEF_BUF_SIZE) {
+                    if(FALSE == is_end) {
+                        buf_offset += ret;
+                        offset += ret;
+                        continue;
+                    }
+                }
             }
-            op_ret = callback(is_end,offset,buf,ret);
+            
+            op_ret = callback(is_end,offset,buf,ret+buf_offset);
             offset += ret;
         }
 
@@ -440,6 +454,7 @@ STATIC OPERATE_RET http_client_post(IN CONST CHAR *url,\
 OPERATE_RET httpc_aes_init(VOID)
 {
     memset(&httpc_aes,0,sizeof(httpc_aes));
+    memset(&fw_ug,0,sizeof(fw_ug));
 
     int ret;
     ret = aes_drv_init();
@@ -854,6 +869,7 @@ ERR_EXIT:
     return op_ret;
 }
 
+#if 0
 /***********************************************************
 *  Function: httpc_gw_reset
 *  Input: 
@@ -892,6 +908,7 @@ ERR_EXIT:
 
     return op_ret;
 }
+#endif
 
 STATIC OPERATE_RET __httpc_gw_heart_cb(IN CONST BOOL is_end,\
                                        IN CONST UINT offset,\
@@ -1528,5 +1545,238 @@ VOID tuya_http_test(VOID)
     del_http_url_h(hu_h);
 }
 #endif
+
+STATIC OPERATE_RET __httpc_get_fui_cb(IN CONST BOOL is_end,\
+                                      IN CONST UINT offset,\
+                                      IN CONST BYTE *data,\
+                                      IN CONST UINT len)
+{
+    if(NULL == data || \
+       0 == len || \
+       0 != offset || \
+       is_end != TRUE) {
+        return OPRT_INVALID_PARM;
+    }
+
+    OPERATE_RET op_ret;
+    cJSON *root = NULL;
+    root = cJSON_Parse((CHAR *)data);
+    op_ret = __httpc_com_json_resp_parse("__httpc_get_fui_cb",root,data,len,NULL);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("op_ret:%d",op_ret);
+        return op_ret;
+    }
+    
+    cJSON *child;
+    child = cJSON_GetObjectItem(root,"result");
+    if(NULL == child) {        
+        PR_ERR("%s",data);
+        cJSON_Delete(root);
+        return OPRT_CJSON_GET_ERR;
+    }
+
+    if(strlen(cJSON_GetObjectItem(child,"url")->valuestring) == 0) {
+        cJSON_Delete(root);
+        return OPRT_FW_NOT_EXIST;
+    }
+
+    if(NULL == cJSON_GetObjectItem(child,"auto") || \
+       NULL == cJSON_GetObjectItem(child,"md5") || \
+       NULL == cJSON_GetObjectItem(child,"url") || \
+       NULL == cJSON_GetObjectItem(child,"version")) {
+        PR_ERR("%s",data);
+        cJSON_Delete(root);
+        return OPRT_CJSON_GET_ERR;
+    }
+    
+    // auto 
+    fw_ug.auto_ug = cJSON_GetObjectItem(child,"auto")->valueint;
+    
+    // md5
+    snprintf(fw_ug.fw_md5,sizeof(fw_ug.fw_md5),"%s",\
+             cJSON_GetObjectItem(child,"md5")->valuestring);
+    
+    // url
+    snprintf(fw_ug.fw_url,sizeof(fw_ug.fw_url),"%s",\
+             cJSON_GetObjectItem(child,"url")->valuestring);
+    
+    // version
+    snprintf(fw_ug.sw_ver,sizeof(fw_ug.sw_ver),"%s",\
+             cJSON_GetObjectItem(child,"version")->valuestring);
+
+    cJSON_Delete(root);
+    return OPRT_OK;
+}
+
+/***********************************************************
+*  Function: httpc_get_fw_ug_info
+*  Input: etag
+*  Output: p_fw_ug
+*  Return: OPERATE_RET
+***********************************************************/
+OPERATE_RET httpc_get_fw_ug_info(IN CONST CHAR *etag,OUT FW_UG_S *p_fw_ug)
+{
+    if(NULL == etag) {
+        return OPRT_INVALID_PARM;
+    }
+
+    HTTP_URL_H_S *hu_h = create_http_url_h(0,10);
+    if(NULL == hu_h) {
+        PR_ERR("create_http_url_h error");
+        return OPRT_CR_HTTP_URL_H_ERR;
+    }
+
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+    OPERATE_RET op_ret;
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_FW_UG_INFO);
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    // make data content
+    cJSON *root=cJSON_CreateObject();
+    if(NULL == root) {
+        op_ret = OPRT_CR_CJSON_ERR;
+        goto ERR_EXIT;
+    }
+
+    cJSON_AddStringToObject(root,"etag",etag);
+    CHAR *out=cJSON_PrintUnformatted(root);
+    cJSON_Delete(root),root = NULL;
+    if(out == NULL) {
+        op_ret = OPRT_CJSON_GET_ERR;
+        goto ERR_EXIT;
+    }
+
+    CHAR *buf;
+    op_ret = httpc_data_aes_proc(out,strlen(out),gw_cntl->active.key,&buf);
+    Free(out),out = NULL;
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    op_ret = make_full_url(hu_h,gw_cntl->active.key);
+    if(op_ret != OPRT_OK) {
+        Free(buf);
+        goto ERR_EXIT;
+    }
+
+    op_ret = http_client_post(hu_h->buf,STANDARD_HDR_FLAGS|HDR_ADD_CONN_KEEP_ALIVE|HDR_ADD_CONTENT_TYPE_FORM_URLENCODE,\
+                              __httpc_get_fui_cb,(BYTE *)buf,strlen(buf));
+    Free(buf);
+    del_http_url_h(hu_h);
+
+    if(OPRT_OK == op_ret) {
+        memcpy(p_fw_ug,&fw_ug,sizeof(fw_ug));
+    }
+    
+    return op_ret;
+
+ERR_EXIT:
+    del_http_url_h(hu_h);
+    return op_ret;
+}
+
+/***********************************************************
+*  Function: httpc_up_fw_ug_stat
+*  Input: etag devid stat
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *etag,\
+                                IN CONST CHAR *devid,\
+                                IN CONST FW_UG_STAT_E stat)
+{
+    if(NULL == etag || \
+       UG_IDLE == stat) {
+        return OPRT_INVALID_PARM;
+    }
+
+    HTTP_URL_H_S *hu_h = create_http_url_h(0,10);
+    if(NULL == hu_h) {
+        PR_ERR("create_http_url_h error");
+        return OPRT_CR_HTTP_URL_H_ERR;
+    }
+
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+    OPERATE_RET op_ret;
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_FW_STAT);
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    // make data content
+    cJSON *root=cJSON_CreateObject();
+    if(NULL == root) {
+        op_ret = OPRT_CR_CJSON_ERR;
+        goto ERR_EXIT;
+    }
+
+    cJSON_AddStringToObject(root,"etag",etag);
+    cJSON_AddNumberToObject(root,"upgradeStatus",stat);
+    if(devid) {
+        cJSON_AddStringToObject(root,"devId",devid);
+    }
+
+    CHAR *out=cJSON_PrintUnformatted(root);
+    cJSON_Delete(root),root = NULL;
+    if(out == NULL) {
+        op_ret = OPRT_CJSON_GET_ERR;
+        goto ERR_EXIT;
+    }
+
+    CHAR *buf;
+    op_ret = httpc_data_aes_proc(out,strlen(out),gw_cntl->active.key,&buf);
+    Free(out),out = NULL;
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    op_ret = make_full_url(hu_h,gw_cntl->active.key);
+    if(op_ret != OPRT_OK) {
+        Free(buf);
+        goto ERR_EXIT;
+    }
+
+    op_ret = http_client_post(hu_h->buf,STANDARD_HDR_FLAGS|HDR_ADD_CONN_KEEP_ALIVE|HDR_ADD_CONTENT_TYPE_FORM_URLENCODE,\
+                              __httpc_common_cb,(BYTE *)buf,strlen(buf));
+    Free(buf);
+    del_http_url_h(hu_h);
+    
+    return op_ret;
+
+ERR_EXIT:
+    del_http_url_h(hu_h);
+    return op_ret;
+}
+
+/***********************************************************
+*  Function: httpc_upgrade_fw
+*  Input: url_str
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+OPERATE_RET httpc_upgrade_fw(CONST CHAR *url_str)
+{
+    if(NULL == url_str) {
+        return OPRT_INVALID_PARM;
+    }
+
+    struct partition_entry *p = rfget_get_passive_firmware();
+
+    int ret;
+    ret = rfget_client_mode_update(url_str,p);
+    if(WM_SUCCESS != ret) {
+        return OPRT_FW_UG_FAILED;
+    }
+
+    return OPRT_OK;
+}
+
+
+
+
+
+
 
 

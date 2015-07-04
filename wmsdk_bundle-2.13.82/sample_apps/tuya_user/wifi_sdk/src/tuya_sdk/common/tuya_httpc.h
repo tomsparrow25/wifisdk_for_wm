@@ -27,7 +27,7 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#if 0
+#if 1
 #define TY_SMART_DOMAIN "http://192.168.0.19:7002/atop/gw.json"
 #else
     #if 1
@@ -39,10 +39,8 @@
 
 // gw interface
 #define TI_GW_ACTIVE "s.gw.active" // gw active
-#define TI_GW_RESET "s.gw.reset" // gw reset
+//#define TI_GW_RESET "s.gw.reset" // gw reset
 #define TI_GW_HB "s.gw.heartbeat" // gw heart beat
-//#define TI_GW_QU_UG "s.gw.is.upgrade" // query gw whether need upgrade
-//#define TI_GET_GW_UGP "s.gw.firmware.url" // get gw upg url
 #define TI_GW_INFO_UP "s.gw.update" // update gw base info
 
 #define TI_BIND_DEV "s.gw.dev.bind" // dev bind
@@ -52,6 +50,10 @@
 #define TI_DEV_DP_REP "s.gw.dev.dp.report" // dev dp report
 
 #define TI_GET_GW_ACL "s.gw.group.get" // get gw access list
+
+// firmware upgrade by gw
+#define TI_FW_UG_INFO "s.gw.upgrade" // get gw/dev firmware info
+#define TI_FW_STAT "s.gw.upgrade.updatestatus"
 
 /*
 ** is_end: 指示传输是否结束
@@ -66,6 +68,25 @@ typedef OPERATE_RET (*HTTPC_CB)(IN CONST BOOL is_end,\
                                 IN CONST BYTE *data,\
                                 IN CONST UINT len);
 
+// fw upgrade status
+typedef enum {
+    UG_IDLE = 0,
+    UG_RD,
+    UPGRADING,
+    UG_FIN,
+    UG_EXECPTION,
+}FW_UG_STAT_E;
+
+// firmware upgrade
+#define FW_URL_LEN 255
+#define FW_MD5_LEN 32
+
+typedef struct {
+    CHAR fw_url[FW_URL_LEN+1];
+    CHAR fw_md5[FW_MD5_LEN+1];
+    CHAR sw_ver[SW_VER_LEN+1];
+    BOOL auto_ug;
+}FW_UG_S;
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
@@ -100,6 +121,7 @@ OPERATE_RET httpc_aes_set(IN CONST BYTE *key,IN CONST BYTE *iv);
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_gw_active();
 
+#if 0
 /***********************************************************
 *  Function: httpc_gw_reset
 *  Input: 
@@ -108,6 +130,7 @@ OPERATE_RET httpc_gw_active();
 ***********************************************************/
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_gw_reset(VOID);
+#endif
 
 /***********************************************************
 *  Function: httpc_gw_update
@@ -194,6 +217,35 @@ OPERATE_RET httpc_dev_raw_dp_report(IN CONST CHAR *id,IN CONST BYTE dpid,\
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_dev_obj_dp_report(IN CONST CHAR *id,IN CONST CHAR *data);
 #endif
+
+/***********************************************************
+*  Function: httpc_get_fw_ug_info
+*  Input: etag
+*  Output: p_fw_ug
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_get_fw_ug_info(IN CONST CHAR *etag,OUT FW_UG_S *p_fw_ug);
+
+/***********************************************************
+*  Function: httpc_up_fw_ug_stat
+*  Input: etag devid stat
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *etag,\
+                                IN CONST CHAR *devid,\
+                                IN CONST FW_UG_STAT_E stat);
+
+/***********************************************************
+*  Function: httpc_upgrade_fw
+*  Input: url_str
+*  Output: 
+*  Return: OPERATE_RET
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_upgrade_fw(CONST CHAR *url_str);
 
 #ifdef __cplusplus
 }

@@ -7,10 +7,14 @@
 #include "sysdata_adapter.h"
 #include "cJSON.h"
 #include "tuya_httpc.h"
+#include "device.h"
 
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
+#define GW_VER SW_VER
+#define GW_DEF_NAME DEF_NAME
+#define GW_TAG DEV_ETAG
 
 /***********************************************************
 *************************variable define********************
