@@ -191,16 +191,15 @@ OPERATE_RET ws_db_set_gw_actv(IN CONST GW_ACTV_IF_S *gw_actv)
         return OPRT_CR_CJSON_ERR;
     }
 
-    if(!gw_actv->token[0]) {
-        cJSON_AddNullToObject(root,"token");
-    }else {
-        cJSON_AddStringToObject(root,"token",gw_actv->token);
-    }
-
-    if(!gw_actv->key[0]) {
-        cJSON_AddNullToObject(root,"key");
-    }else {
-        cJSON_AddStringToObject(root,"key",gw_actv->key);
+    CHAR *pp_str[] = {"token","key","http_url","mq_url","mq_url_bak"};
+    CONST CHAR *pp_dec_str[] = {gw_actv->token,gw_actv->key,gw_actv->http_url,gw_actv->mq_url,gw_actv->mq_url_bak};
+    INT i;
+    for(i = 0; i < CNTSOF(pp_str);i++) {
+        if(!pp_dec_str[i][0]) {
+            cJSON_AddNullToObject(root,pp_str[i]);
+        }else {
+            cJSON_AddStringToObject(root,pp_str[i],pp_dec_str[i]);
+        }
     }
 
     if(0 == gw_actv->uid_cnt) {
@@ -276,47 +275,37 @@ OPERATE_RET ws_db_get_gw_actv(OUT GW_ACTV_IF_S *gw_actv)
     }
     Free(buf);
 
-    CHAR *pp_str[] = {"token","key","uid_acl"};
+    CHAR *pp_str[] = {"token","key","http_url","mq_url","mq_url_bak"};
+    CHAR *pp_dec_str[] = {gw_actv->token,gw_actv->key,gw_actv->http_url,gw_actv->mq_url,gw_actv->mq_url_bak};
     cJSON *json;
     INT i;
 
-    for(i = 0; i < CNTSOF(pp_str);i++) {
+    for(i = 0;i < CNTSOF(pp_str);i++) {
         json = cJSON_GetObjectItem(root,pp_str[i]);
-        if(NULL == json) {
-            cJSON_Delete(root);
-            return OPRT_CJSON_GET_ERR;
+        if(NULL == json || \
+           cJSON_NULL == json->type) {
+            pp_dec_str[i][0] = 0;
+            continue;
         }
 
-        if(i == 0) {
-            if(json->type != cJSON_NULL) {
-                strcpy(gw_actv->token,json->valuestring);
-            }else {
-                gw_actv->token[0] = 0;
-            }
-        }
-        else if(i == 1) {
-            if(json->type != cJSON_NULL) {
-                strcpy(gw_actv->key,json->valuestring);
-            }else {
-                gw_actv->key[0] = 0;
-            }
-        }else {
-            if(json->type == cJSON_NULL) {
-                gw_actv->uid_cnt = 0;
-                break;
-            }
+        strcpy(pp_dec_str[i],json->valuestring);
+    }
 
-            cJSON *tmp_json;
-            gw_actv->uid_cnt = cJSON_GetArraySize(json);
-            INT j;
-            for(j = 0;j < gw_actv->uid_cnt;j++) {
-                tmp_json = cJSON_GetArrayItem(json,j);
-                if(NULL == tmp_json) {
-                    cJSON_Delete(root);
-                    return OPRT_CJSON_GET_ERR;
-                }
-                strcpy(gw_actv->uid_acl[j],tmp_json->valuestring);
+    if(json->type == cJSON_NULL) {
+        gw_actv->uid_cnt = 0;
+    }else {
+        json = cJSON_GetObjectItem(root,"uid_acl");
+        
+        cJSON *tmp_json;
+        gw_actv->uid_cnt = cJSON_GetArraySize(json);
+        INT j;
+        for(j = 0;j < gw_actv->uid_cnt;j++) {
+            tmp_json = cJSON_GetArrayItem(json,j);
+            if(NULL == tmp_json) {
+                cJSON_Delete(root);
+                return OPRT_CJSON_GET_ERR;
             }
+            strcpy(gw_actv->uid_acl[j],tmp_json->valuestring);
         }
     }
 
@@ -365,7 +354,7 @@ OPERATE_RET ws_db_set_dev_if(IN CONST DEV_DESC_IF_S *dev_if)
 
     CHAR *out;
     out=cJSON_PrintUnformatted(root);
-    cJSON_Delete(root);
+    cJSON_Delete(root),root = NULL;
     PR_DEBUG_RAW("%s\r\n",out);
 
     INT ret;

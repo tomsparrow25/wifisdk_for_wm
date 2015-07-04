@@ -667,16 +667,21 @@ STATIC OPERATE_RET __httpc_gw_active_cb(IN CONST BOOL is_end,\
     return OPRT_OK;
 }
 
-STATIC OPERATE_RET httpc_fill_com_param(INOUT HTTP_URL_H_S *hu_h,IN CONST CHAR *gwid,IN CONST CHAR *ifname)
+STATIC OPERATE_RET httpc_fill_com_param(INOUT HTTP_URL_H_S *hu_h,IN CONST GW_CNTL_S *gw_cntl,IN CONST CHAR *ifname)
 {
+    CONST CHAR *http = TY_SMART_DOMAIN;
+    if(gw_cntl->active.http_url[0]) {
+        http = gw_cntl->active.http_url;
+    }
+
     OPERATE_RET op_ret;
-    op_ret = fill_url_head(hu_h,TY_SMART_DOMAIN);
+    op_ret = fill_url_head(hu_h,http);
     if(op_ret != OPRT_OK) {
         return op_ret;
     }
 
     fill_url_param(hu_h,"a",ifname);
-    fill_url_param(hu_h,"gwId",gwid);
+    fill_url_param(hu_h,"gwId",gw_cntl->gw.id);
 
     // fill time
     CHAR time[15];
@@ -704,7 +709,7 @@ OPERATE_RET httpc_gw_active()
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw->id,TI_GW_ACTIVE);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_GW_ACTIVE);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -796,7 +801,7 @@ OPERATE_RET httpc_gw_update(IN CONST CHAR *name,IN CONST CHAR *sw_ver)
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw->id,TI_GW_INFO_UP);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_GW_INFO_UP);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -887,7 +892,7 @@ OPERATE_RET httpc_gw_reset(VOID)
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw->id,TI_GW_RESET);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_GW_RESET);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -953,7 +958,7 @@ OPERATE_RET httpc_gw_hearat(VOID)
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_GW_HB);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_GW_HB);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1026,7 +1031,7 @@ OPERATE_RET httpc_dev_bind(IN CONST DEV_DESC_IF_S *dev_if)
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_BIND_DEV);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_BIND_DEV);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1105,7 +1110,7 @@ OPERATE_RET httpc_dev_unbind(IN CONST CHAR *id)
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_UNBIND_DEV);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_UNBIND_DEV);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1174,7 +1179,7 @@ OPERATE_RET httpc_dev_update(IN CONST DEV_DESC_IF_S *dev_if)
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_DEV_INFO_UP);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_DEV_INFO_UP);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1252,7 +1257,7 @@ OPERATE_RET httpc_dev_stat_report(IN CONST CHAR *id,IN CONST BOOL online)
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_DEV_REP_STAT);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_DEV_REP_STAT);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1330,7 +1335,7 @@ STATIC OPERATE_RET httpc_dev_dp_report(IN CONST CHAR *id,IN CONST DP_TYPE_E type
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_DEV_DP_REP);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_DEV_DP_REP);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1471,7 +1476,7 @@ OPERATE_RET httpc_device_dp_report(IN CONST DP_TYPE_E type,\
     }
 
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_DEV_DP_REP);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_DEV_DP_REP);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1628,7 +1633,7 @@ OPERATE_RET httpc_get_fw_ug_info(IN CONST CHAR *etag,OUT FW_UG_S *p_fw_ug)
 
     GW_CNTL_S *gw_cntl = get_gw_cntl();
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_FW_UG_INFO);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_FW_UG_INFO);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1683,12 +1688,10 @@ ERR_EXIT:
 *  Output: 
 *  Return: OPERATE_RET
 ***********************************************************/
-OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *etag,\
-                                IN CONST CHAR *devid,\
+OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *devid,\
                                 IN CONST FW_UG_STAT_E stat)
 {
-    if(NULL == etag || \
-       UG_IDLE == stat) {
+    if(UG_IDLE == stat) {
         return OPRT_INVALID_PARM;
     }
 
@@ -1700,7 +1703,7 @@ OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *etag,\
 
     GW_CNTL_S *gw_cntl = get_gw_cntl();
     OPERATE_RET op_ret;
-    op_ret = httpc_fill_com_param(hu_h,gw_cntl->gw.id,TI_FW_STAT);
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_FW_STAT);
     if(op_ret != OPRT_OK) {
         goto ERR_EXIT;
     }
@@ -1712,7 +1715,6 @@ OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *etag,\
         goto ERR_EXIT;
     }
 
-    cJSON_AddStringToObject(root,"etag",etag);
     cJSON_AddNumberToObject(root,"upgradeStatus",stat);
     if(devid) {
         cJSON_AddStringToObject(root,"devId",devid);

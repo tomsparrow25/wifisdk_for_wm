@@ -252,20 +252,32 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                 if(WM_SUCCESS == os_timer_is_active(&mq_cntl.alive_timer)) {
                     os_timer_deactivate(&mq_cntl.alive_timer);
                 }
-                
+
                 CHAR ip[16];
                 #ifdef MQ_DOMAIN_NAME
+                CHAR *mq_url = MQ_DOMAIN_ADDR;
+                CHAR *mq_url_bak = MQ_DOMAIN_ADDR1;
+
+                GW_CNTL_S *gw_cntl = get_gw_cntl();
+                if(gw_cntl->active.mq_url[0]) {
+                    mq_url = gw_cntl->active.mq_url;
+                }
+
+                if(gw_cntl->active.mq_url_bak[0]) {
+                    mq_url_bak = gw_cntl->active.mq_url_bak;
+                }
+                
                 STATIC INT who_fir = 1;
                 if(who_fir) {
-                    if(0 != domain2ip(MQ_DOMAIN_ADDR,ip)) {
-                        if(0 != domain2ip(MQ_DOMAIN_ADDR1,ip)) {
+                    if(0 != domain2ip(mq_url,ip)) {
+                        if(0 != domain2ip(mq_url_bak,ip)) {
                             os_thread_sleep(os_msec_to_ticks(3000));
                             continue;
                         }
                     }
                 }else {
-                    if(0 != domain2ip(MQ_DOMAIN_ADDR1,ip)) {
-                        if(0 != domain2ip(MQ_DOMAIN_ADDR,ip)) {
+                    if(0 != domain2ip(mq_url_bak,ip)) {
+                        if(0 != domain2ip(mq_url,ip)) {
                             os_thread_sleep(os_msec_to_ticks(3000));
                             continue;
                         }

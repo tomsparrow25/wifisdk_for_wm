@@ -123,7 +123,7 @@ OPERATE_RET smart_frame_init(IN CONST SMART_FRAME_CB cb)
 
     // mqtt init
     GW_CNTL_S *gw_cntl = get_gw_cntl();
-    #if 0
+    #if 1
     // make mqtt passwd
     CHAR mq_passwd[16+1];
     unsigned char decrypt[16];
@@ -243,7 +243,7 @@ static void sf_ctrl_task(os_thread_arg_t arg)
                 PR_DEBUG("now,we'll go to upgrade firmware");
                 OPERATE_RET op_ret;
                 
-                op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UPGRADING);
+                op_ret = httpc_up_fw_ug_stat(get_single_wf_dev()->dev_if.id,UPGRADING);
                 if(OPRT_OK != op_ret) {
                     PR_DEBUG("httpc_up_fw_ug_stat error:%d",op_ret);
                     break;
@@ -254,7 +254,7 @@ static void sf_ctrl_task(os_thread_arg_t arg)
                 if(OPRT_OK != op_ret) {
                     PR_ERR("httpc_upgrade_fw err:%d",op_ret);
 
-                    op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UG_EXECPTION);
+                    op_ret = httpc_up_fw_ug_stat(get_single_wf_dev()->dev_if.id,UG_EXECPTION);
                     if(OPRT_OK != op_ret) {
                         PR_DEBUG("httpc_up_fw_ug_stat error:%d",op_ret);
                     }
@@ -262,7 +262,7 @@ static void sf_ctrl_task(os_thread_arg_t arg)
                     break;
                 }
 
-                op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UG_FIN);
+                op_ret = httpc_up_fw_ug_stat(get_single_wf_dev()->dev_if.id,UG_FIN);
                 if(OPRT_OK != op_ret) {
                     PR_DEBUG("httpc_up_fw_ug_stat error:%d",op_ret);
                 }
@@ -623,8 +623,33 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
                 gw_cntl->active.uid_cnt = 1;
                 strcpy(gw_cntl->active.uid_acl[0],json->valuestring);
                 gw_cntl->active.key[0] = 0;
-                ws_db_set_gw_actv(&gw_cntl->active);
 
+                // add by nzy 20150704 process http mqtt url
+                if((json = cJSON_GetObjectItem(root,"httpUrl"))) {
+                    snprintf(gw_cntl->active.http_url,\
+                             sizeof(gw_cntl->active.http_url),\
+                             "%s",json->valuestring);
+                }else {
+                    gw_cntl->active.http_url[0] = 0;
+                }
+
+                if((json = cJSON_GetObjectItem(root,"mqUrl"))) {
+                    snprintf(gw_cntl->active.mq_url,\
+                             sizeof(gw_cntl->active.mq_url),\
+                             "%s",json->valuestring);
+                }else {
+                    gw_cntl->active.mq_url[0] = 0;
+                }
+                
+                if((json = cJSON_GetObjectItem(root,"mqUrlBak"))) {
+                    snprintf(gw_cntl->active.mq_url_bak,\
+                             sizeof(gw_cntl->active.mq_url_bak),\
+                             "%s",json->valuestring);
+                }else {
+                    gw_cntl->active.mq_url_bak[0] = 0;
+                }
+
+                ws_db_set_gw_actv(&gw_cntl->active);
                 start_active_gateway();
                 cJSON_Delete(root);
 
@@ -674,6 +699,13 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
 
         case FRM_TP_CMD: {
             cJSON *root = NULL;
+
+            if(UPGRADING == get_fw_ug_stat()) {
+                gw_lan_respond(fr->socket, fr->frame_num, fr->frame_type,\
+                               1,"device is upgrading...",strlen("device is upgrading..."));
+                goto FRM_TP_CMD_ERR;
+            }
+            
             root = cJSON_Parse(fr->data);
             if(NULL == root) {
                 gw_lan_respond(fr->socket, fr->frame_num, fr->frame_type,\
@@ -1676,13 +1708,15 @@ static void fw_ug_timer_cb(os_timer_arg_t arg)
                 goto ERR_RET;
             }
         }else {
-            op_ret = httpc_up_fw_ug_stat(DEV_ETAG,get_single_wf_dev()->dev_if.id,UG_RD);
+            op_ret = httpc_up_fw_ug_stat(get_single_wf_dev()->dev_if.id,UG_RD);
             if(OPRT_OK != op_ret) {
                 PR_ERR("up_fw_ug_stat error:%d",op_ret);
                 goto ERR_RET;
             }
             set_fw_ug_stat(UG_RD);
         }
+    }else {
+        PR_DEBUG("do't need to upgrade firmware");
     }
 
     os_timer_change(&smt_frm_cntl.fw_ug_t,os_msec_to_ticks(UG_TIME_VAL*1000),0);

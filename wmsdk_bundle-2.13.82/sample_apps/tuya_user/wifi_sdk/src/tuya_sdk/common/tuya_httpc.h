@@ -27,14 +27,10 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#if 1
+#if 0
 #define TY_SMART_DOMAIN "http://192.168.0.19:7002/atop/gw.json"
 #else
-    #if 1
-    #define TY_SMART_DOMAIN "http://121.40.64.43:8080/atop-web-1.0.1/gw.json"
-    #else
-    #define TY_SMART_DOMAIN "http://192.168.20.115:8081/"
-    #endif
+#define TY_SMART_DOMAIN "http://121.40.64.43:8080/atop-web-1.0.1/gw.json"
 #endif
 
 // gw interface
@@ -234,8 +230,7 @@ OPERATE_RET httpc_get_fw_ug_info(IN CONST CHAR *etag,OUT FW_UG_S *p_fw_ug);
 *  Return: OPERATE_RET
 ***********************************************************/
 __TUYA_HTTPC_EXT \
-OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *etag,\
-                                IN CONST CHAR *devid,\
+OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *devid,\
                                 IN CONST FW_UG_STAT_E stat);
 
 /***********************************************************

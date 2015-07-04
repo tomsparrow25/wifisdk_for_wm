@@ -34,6 +34,8 @@
 #define SCHEMA_ID_LEN 10 
 #define UI_ID_LEN 10
 #define ETAG_LEN 10
+#define HTTP_URL_LMT 128
+#define MQ_URL_LMT 128
 
 // gateway access ability
 typedef INT GW_ABI;
@@ -173,6 +175,9 @@ typedef struct dev_cntl_n_s {
 typedef struct {
     CHAR token[SEC_KEY_LEN+1];
     CHAR key[SEC_KEY_LEN+1];
+    CHAR http_url[HTTP_URL_LMT+1];
+    CHAR mq_url[MQ_URL_LMT+1];
+    CHAR mq_url_bak[MQ_URL_LMT+1];
     INT uid_cnt;
     CHAR uid_acl[UID_ACL_LMT][UID_LEN+1];
 }GW_ACTV_IF_S;
@@ -196,7 +201,7 @@ typedef struct {
     GW_DESC_IF_S gw;
     GW_ACTV_IF_S active;
     GW_STAT_E stat;
-    GW_WIFI_STAT_E wf_stat;    
+    GW_WIFI_STAT_E wf_stat;
     INT dev_num;
     DEV_CNTL_N_S *dev;
 }GW_CNTL_S;

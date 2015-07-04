@@ -28,7 +28,7 @@
 ***********************************************************/
 typedef VOID (*MQ_CALLBACK)(BYTE *data,UINT len);
 
-//#define MQ_DOMAIN_NAME
+#define MQ_DOMAIN_NAME
 #ifdef MQ_DOMAIN_NAME // ”Ú√˚
 #define MQ_DOMAIN_ADDR "mq.gw.airtakeapp.com"
 #define MQ_DOMAIN_ADDR1 "mq.gw1.airtakeapp.com"
