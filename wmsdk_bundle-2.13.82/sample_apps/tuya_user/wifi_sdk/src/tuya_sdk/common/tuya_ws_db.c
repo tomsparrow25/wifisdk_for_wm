@@ -291,11 +291,10 @@ OPERATE_RET ws_db_get_gw_actv(OUT GW_ACTV_IF_S *gw_actv)
         strcpy(pp_dec_str[i],json->valuestring);
     }
 
+    json = cJSON_GetObjectItem(root,"uid_acl");
     if(json->type == cJSON_NULL) {
         gw_actv->uid_cnt = 0;
     }else {
-        json = cJSON_GetObjectItem(root,"uid_acl");
-        
         cJSON *tmp_json;
         gw_actv->uid_cnt = cJSON_GetArraySize(json);
         INT j;

@@ -343,7 +343,7 @@ OPERATE_RET gw_lc_bind_device(IN CONST DEV_DESC_IF_S *dev_if,\
         }else if(!strcmp(child->valuestring,"value")) {
             dp_desc->prop_tp = PROP_VALUE;
 
-            CHAR *str[] = {"max","min","step","scale"};
+            CHAR *str[] = {"max","min","scale"};
             INT i;
             for(i = 0; i < CNTSOF(str);i++) {
                 child = cJSON_GetObjectItem(next,str[i]);
@@ -357,8 +357,8 @@ OPERATE_RET gw_lc_bind_device(IN CONST DEV_DESC_IF_S *dev_if,\
                     switch(i) {
                         case 0: prop->prop_value.max = child->valueint; break;
                         case 1: prop->prop_value.min = child->valueint; break;
-                        case 2: prop->prop_value.step = child->valueint; break;
-                        case 3: prop->prop_value.scale = child->valueint; break;
+                        //case 2: prop->prop_value.step = child->valueint; break;
+                        case 2: prop->prop_value.scale = child->valueint; break;
                     }
                 }
             }

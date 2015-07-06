@@ -1461,6 +1461,7 @@ int main()
 	modules_init();
 
 	dbg("Build Time: " __DATE__ " " __TIME__ "");
+    //PR_DEBUG("******i am the new firmware********");
     
 	appln_config_init();
     tuya_mac_init();
