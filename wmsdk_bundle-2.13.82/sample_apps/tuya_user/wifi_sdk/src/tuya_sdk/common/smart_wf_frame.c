@@ -123,7 +123,7 @@ OPERATE_RET smart_frame_init(IN CONST SMART_FRAME_CB cb)
 
     // mqtt init
     GW_CNTL_S *gw_cntl = get_gw_cntl();
-    #if 1
+    #if 0
     // make mqtt passwd
     CHAR mq_passwd[16+1];
     unsigned char decrypt[16];
