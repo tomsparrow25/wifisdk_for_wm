@@ -24,7 +24,7 @@
 *************************micro define***********************
 ***********************************************************/
 // device information define
-#define SW_VER "1.0.1"
+#define SW_VER "1.0.0"
 #define DEF_NAME "油汀"
 #define SCHEMA_ID "a"
 #define UI_ID "a"

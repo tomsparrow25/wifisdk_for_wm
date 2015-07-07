@@ -1,4 +1,4 @@
-/***********************************************************
+ï»¿/***********************************************************
 *  File: device.c 
 *  Author: nzy
 *  Date: 20150605
@@ -77,7 +77,6 @@ extern void single_dev_reset_factory(void);
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
-//CONST CHAR dp_schemas[] = "[ {\"id\": 1, \"code\": \"switch\", \"name\": \"å¼€å…³\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }},{\"id\": 2, \"code\": \"temperature\", \"name\": \"æ¸©åº¦\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"value\", \"unit\": \"â„ƒ\", \"min\": 5, \"max\": 37, \"step\": 1 }}, { \"id\": 3, \"code\": \"gear\", \"name\": \"æ¡£ä½\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": { \"type\": \"enum\", \"range\": [ \"1\", \"2\", \"3\" ] }}, {\"id\": 4, \"code\": \"lock\", \"name\": \"ç«¥é”\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }}, {\"id\": 5, \"code\": \"eco\", \"name\": \"ecoèŠ‚èƒ½æ¨¡å¼\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }},{ \"id\": 6, \"code\": \"appoint\", \"name\": \"é¢„çº¦\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": { \"type\": \"enum\", \"range\": [ \"0\", \"30\", \"60\", \"120\", \"180\", \"240\", \"300\", \"360\", \"420\", \"480\", \"540\"],\"unit\":\"m\" }}]";
 CONST CHAR dp_schemas[] = "[ {\"id\": 1, \"code\": \"switch\", \"name\": \"¿ª¹Ø\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }},{\"id\": 2, \"code\": \"temperature\", \"name\": \"ÎÂ¶È\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"value\", \"unit\": \"¡æ\", \"min\": 5, \"max\": 37, \"step\": 1 }}, { \"id\": 3, \"code\": \"gear\", \"name\": \"µµÎ»\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": { \"type\": \"enum\", \"range\": [ \"1\", \"2\", \"3\" ] }}, {\"id\": 4, \"code\": \"lock\", \"name\": \"Í¯Ëø\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }}, {\"id\": 5, \"code\": \"eco\", \"name\": \"eco½ÚÄÜÄ£Ê½\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": {\"type\": \"bool\" }},{ \"id\": 6, \"code\": \"appoint\", \"name\": \"Ô¤Ô¼\", \"mode\": \"rw\", \"type\": \"obj\", \"property\": { \"type\": \"value\", \"unit\": \"m\", \"min\": 0, \"max\": 540, \"step\": 1, \"range\": [ \"0\", \"30\", \"60\", \"120\", \"180\", \"240\", \"300\", \"360\", \"420\", \"480\", \"540\"],\"unit\":\"m\" }}]";
 
 // KEY
@@ -116,7 +115,12 @@ STATIC INT yt_query_msg_proc_upload(CHAR* yt_buf)
     CHAR dpid[10];
     CHAR dpid1[10];
     snprintf(dpid,10,"%d",yt_buf[3]); 
-    snprintf(dpid1,10,"%d",(yt_buf[4]*60 + yt_buf[5]));
+
+    if(yt_buf[4] == 0) {/*å®šæ—¶æ—¶é—´*/
+        snprintf(dpid1,10,"%d",yt_buf[5]);
+    }else {
+        snprintf(dpid1,10,"%d",(yt_buf[4]*60));
+    }
 
     if(yt_buf[3] == 0) { /*èŠ‚èƒ½æ¨¡å¼*/
         Value = gw_cntl->dev->dp[2].prop.prop_enum.value;
@@ -135,7 +139,7 @@ STATIC INT yt_query_msg_proc_upload(CHAR* yt_buf)
     cJSON_AddStringToObject(root_test,"3",dpid);
     cJSON_AddBoolToObject(root_test,"4",yt_buf[8]&0x01);
     cJSON_AddBoolToObject(root_test,"5",yt_buf[3]);
-    cJSON_AddNumberToObject(root_test,"6",atoi(dpid1));
+    cJSON_AddStringToObject(root_test,"6",dpid1);
 
     CHAR *out;
     out=cJSON_PrintUnformatted(root_test);
@@ -341,31 +345,19 @@ INT yt_msg_cmd_type_value(cJSON *root, BYTE *param1, BYTE *param2)
     {
         case cJSON_False:*param1 = 0x00;break;
         case cJSON_True:*param1 = 0x01;break;
-        case cJSON_Number:{
+        case cJSON_Number:*param1 = root->valueint;break;
+        case cJSON_String:{
             if(yt_msg.cmd == 6) {
-                #if 0
-                if(atoi(root->valueint)/60 < 1) {
-                    *param2 = atoi(root->valueint); 
+                if(atoi(root->valuestring)/60 < 1) {
+                    *param2 = atoi(root->valuestring); 
                     *param1 = 0;
                 } else {
-                        *param1 = atoi(root->valueint)/60;
+                    *param1 = atoi(root->valuestring)/60;
                 }
-                #else
-                if((root->valueint)/60 < 1) {
-                    *param2 = root->valueint;
-                    *param1 = 0;
-                }else {
-                    *param1 = root->valueint/60;
-                }
-                #endif
-            }else{
-                *param1 = root->valueint;
-            }  
-        }
-        break;
-        
-        case cJSON_String:{
+            }
+            else{
                 *param1 = atoi(root->valuestring);
+            }        
         }
         break;
         default:break;
@@ -486,21 +478,7 @@ VOID device_cb(SMART_CMD_E cmd,cJSON *root)
         frame_num--;
     }
     Free(RecvBuf);
-#else // debug mode
-    CHAR *buf = cJSON_PrintUnformatted(root);
-    if(NULL == buf) {
-        PR_ERR("malloc error");
-        return;
-    }
-    PR_DEBUG("buf:%s",buf);
-
-    OPERATE_RET op_ret;
-    op_ret = sf_obj_dp_report(get_single_wf_dev()->dev_if.id,buf);
-    Free(buf);
-    if(op_ret != OPRT_OK) {
-        PR_ERR("sf_obj_dp_report error:%d",op_ret);
-    }
-#endif
+#endif   
 }
 
 /***********************************************************
