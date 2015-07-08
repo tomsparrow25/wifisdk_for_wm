@@ -3,6 +3,8 @@
 #$2: choose board
 
 chmod +x wmsdk-2.13.82/tools/bin/Linux/*
+chmod +x wmsdk-2.13.82/tools/bin/flash_pack.py
+chmod +x flashpatch/flashpatch
 # set app bin name
 if [ -z "$1" ];then
 	echo "please input the app bin name(no suffix \".bin\")!!!"
