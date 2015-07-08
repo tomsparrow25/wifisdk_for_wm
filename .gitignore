@@ -42,18 +42,12 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-/wmsdk_bundle-2.13.82/bin
-/wmsdk_bundle-2.13.82/output
-/wmsdk_bundle-2.13.82/boot2-1.0.23/bin
-/wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/src/backup
+wmsdk_bundle-2.13.82/bin
+wmsdk_bundle-2.13.82/output
+wmsdk_bundle-2.13.82/boot2-1.0.23/bin
+wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/src/backup
 wmsdk_bundle-2.13.82/sample_apps/tuya_user/dev_access/xf_oil_heater/src/board.c
 wmsdk_bundle-2.13.82/flashpatch/config.txt
-*.bin
-*.o
-*.d
-*.axf
-*.ftfs
-*.map
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/app_framework/libapp_framework.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/core/cli/libcli.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/core/diagnostics/libdiagnostics.a
@@ -98,3 +92,9 @@ wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/core/wmstdio/libwmstdio.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/core/wmtime/libwmtime.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/drivers/mc200/libdrv.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/drivers/peripherals/dtp_driver/libdtp.a
+*.bin
+*.o
+*.d
+*.axf
+*.ftfs
+*.map

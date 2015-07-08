@@ -1,21 +1,20 @@
 #
 # Automatically generated make config: don't edit
-# WMSDK version:
+# WMSDK version: 
 
 #
 # System Type
 #
-
 CONFIG_CPU_MC200=y
+# CONFIG_WiFi_878x is not set
 CONFIG_WiFi_8801=y
+CONFIG_OS_FREERTOS=y
+CONFIG_LWIP_STACK=y
 
 #
-# Command Line Interface support
+# Application Framework
 #
-
-#
-# Peripheral Drivers
-#
+CONFIG_APP_FRM_PROV_WPS=y
 
 #
 # Modules
@@ -24,10 +23,49 @@ CONFIG_WiFi_8801=y
 #
 # WLAN
 #
+
+#
+# Wifi driver
+#
 CONFIG_HOST_SUPP=y
-# CONFIG_WPS2 is not set
+# CONFIG_EXT_SCAN is not set
+CONFIG_WMM=y
 CONFIG_11N=y
+CONFIG_11D=y
+CONFIG_WLAN_FW_HEARTBEAT=y
+CONFIG_5GHz_SUPPORT=y
 # CONFIG_WLAN_FAST_PATH is not set
+CONFIG_MAX_AP_ENTRIES=20
+CONFIG_WLAN_KNOWN_NETWORKS=5
+
+#
+# uAP configuration
+#
+CONFIG_WIFI_UAP_WORKAROUND_STICKY_TIM=y
+
+#
+# Wifi extra debug options
+#
+# CONFIG_WIFI_EXTRA_DEBUG is not set
+# CONFIG_WIFI_UAP_DEBUG is not set
+# CONFIG_WIFI_EVENTS_DEBUG is not set
+# CONFIG_WIFI_CMD_RESP_DEBUG is not set
+# CONFIG_WIFI_SCAN_DEBUG is not set
+# CONFIG_WIFI_IO_DEBUG is not set
+# CONFIG_WIFI_IO_DUMP is not set
+# CONFIG_WIFI_MEM_DEBUG is not set
+# CONFIG_WIFI_AMPDU_DEBUG is not set
+# CONFIG_WIFI_TIMER_DEBUG is not set
+# CONFIG_P2P is not set
+# CONFIG_WPS2 is not set
+
+#
+# WPA2 Enterprise Support
+#
+# CONFIG_WPA2_ENTP is not set
+# CONFIG_HOSTAPD_RADIUS is not set
+# CONFIG_FREE_RADIUS is not set
+CONFIG_MLAN_WMSDK=y
 
 #
 # MDNS
@@ -35,26 +73,91 @@ CONFIG_11N=y
 # CONFIG_MDNS_QUERY is not set
 
 #
-# Application Framework
+# TLS
 #
-CONFIG_APP_FRM_PROV_WPS=y
+# CONFIG_ENABLE_TLS is not set
+# CONFIG_CYASSL is not set
+
+#
+# HTTP Server
+#
+CONFIG_ENABLE_HTTP=y
+# CONFIG_ENABLE_HTTPS is not set
+
+#
+# JSON
+#
+# CONFIG_JSON_FLOAT is not set
+
+#
+# XZ Decompression
+#
+CONFIG_XZ_DECOMPRESSION=y
+
+#
+# WiFi Firmware Upgrade Support
+#
+CONFIG_WIFI_FW_UPGRADE=y
+
+#
+# Peripheral Drivers
+#
+CONFIG_MRVL_DRV_TUNL_DRIVER=y
+# CONFIG_LCD_DRIVER is not set
+# CONFIG_XFLASH_DRIVER is not set
+# CONFIG_SPI_FLASH_DRIVER is not set
+# CONFIG_USB_DRIVER is not set
+# CONFIG_USB_DRIVER_HOST is not set
 
 #
 # Miscellaneous
 #
 # CONFIG_UART_RS485 is not set
+# CONFIG_UART_LARGE_RCV_BUF is not set
 # CONFIG_SW_WATCHDOG is not set
+CONFIG_HW_RTC=y
 
 #
 # Development and Debugging
 #
+CONFIG_ENABLE_ERROR_LOGS=y
+CONFIG_ENABLE_WARNING_LOGS=y
+CONFIG_DEBUG_BUILD=y
+# CONFIG_ENABLE_FREERTOS_RUNTIME_STATS_SUPPORT is not set
+# CONFIG_RUNTIME_STATS_USE_GPT0 is not set
+# CONFIG_RUNTIME_STATS_USE_GPT1 is not set
+# CONFIG_RUNTIME_STATS_USE_GPT2 is not set
+# CONFIG_RUNTIME_STATS_USE_GPT3 is not set
+# CONFIG_ENABLE_ASSERTS is not set
+# CONFIG_DEBUG_OUTPUT is not set
 # CONFIG_WLCMGR_DEBUG is not set
+# CONFIG_HEALTHMON_DEBUG is not set
 # CONFIG_HTTPD_DEBUG is not set
+# CONFIG_TLS_DEBUG is not set
+# CONFIG_WIFI_DEBUG is not set
+# CONFIG_PWR_DEBUG is not set
+# CONFIG_WAKELOCK_DEBUG is not set
+# CONFIG_WPS_DEBUG is not set
+# CONFIG_P2P_DEBUG is not set
 # CONFIG_DHCP_SERVER_DEBUG is not set
 # CONFIG_PROVISIONING_DEBUG is not set
+# CONFIG_SUPPLICANT_DEBUG is not set
+# CONFIG_HTTPC_DEBUG is not set
+# CONFIG_CRC_DEBUG is not set
+# CONFIG_RFGET_DEBUG is not set
+# CONFIG_CRYPTO_DEBUG is not set
+# CONFIG_JSON_DEBUG is not set
+# CONFIG_FLASH_DEBUG is not set
 # CONFIG_MDNS_DEBUG is not set
 # CONFIG_MDNS_CHECK_ARGS is not set
+# CONFIG_APP_DEBUG is not set
+# CONFIG_APP_FRAME_INTERNAL_DEBUG is not set
+# CONFIG_LL_DEBUG is not set
+# CONFIG_OS_DEBUG is not set
 # CONFIG_HEAP_DEBUG is not set
+# CONFIG_PSM_DEBUG is not set
+# CONFIG_FTFS_DEBUG is not set
+# CONFIG_SEMAPHORE_DEBUG is not set
 # CONFIG_ENABLE_TESTS is not set
 # CONFIG_HTTPD_TESTS is not set
 # CONFIG_JSON_TESTS is not set
