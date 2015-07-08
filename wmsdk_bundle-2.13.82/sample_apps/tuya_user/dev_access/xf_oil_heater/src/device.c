@@ -14,7 +14,7 @@
 #include "tuya_ws_db.h"
 #include "mem_pool.h"
 #include "smart_wf_frame.h"
-#include "../tuya_sdk/driver/key.h"
+#include "key.h"
 
 /***********************************************************
 *************************micro define***********************

@@ -32,8 +32,8 @@
 #define DEV_ETAG "a"
 
 // reset key define
-#define WF_RESET_KEY GPIO_10
-//#define WF_RESET_KEY GPIO_27
+//#define WF_RESET_KEY GPIO_10
+#define WF_RESET_KEY GPIO_27
 
 
 // wifi direct led

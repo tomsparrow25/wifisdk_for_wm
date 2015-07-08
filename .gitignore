@@ -45,21 +45,6 @@ Temporary Items
 /wmsdk_bundle-2.13.82/bin
 /wmsdk_bundle-2.13.82/output
 /wmsdk_bundle-2.13.82/boot2-1.0.23/bin
-/wmsdk_bundle-2.13.82/sample_apps/helloworld
-/wmsdk_bundle-2.13.82/sample_apps/io_demo
-/wmsdk_bundle-2.13.82/sample_apps/mfg
-/wmsdk_bundle-2.13.82/sample_apps/module_demo
-/wmsdk_bundle-2.13.82/sample_apps/perf_demo
-/wmsdk_bundle-2.13.82/sample_apps/pm_demo
-/wmsdk_bundle-2.13.82/sample_apps/power_measure_demo
-/wmsdk_bundle-2.13.82/sample_apps/toolchains
-/wmsdk_bundle-2.13.82/sample_apps/wlan
-/wmsdk_bundle-2.13.82/sample_apps/baremetal
-/wmsdk_bundle-2.13.82/sample_apps/cloud_demo
-/wmsdk_bundle-2.13.82/sample_apps/cloud_server
-/wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/obj
-/wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/bin
-/wmsdk_bundle-2.13.82/sample_apps/README
 *.d
 *.o
 *.a
@@ -70,3 +55,5 @@ Temporary Items
 *.dep
 *.txt
 /wmsdk_bundle-2.13.82/sample_apps/tuya_user/wifi_sdk/src/backup
+wmsdk_bundle-2.13.82/sample_apps/tuya_user/dev_access/xf_oil_heater/src/board.c
+wmsdk_bundle-2.13.82/flashpatch/config.txt

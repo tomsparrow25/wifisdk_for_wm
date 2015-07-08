@@ -1,0 +1,294 @@
+===========================
+    SAMPLE APPS README
+===========================
+
+APP NAME:    helloworld
+APP PATH:    helloworld
+DESCRIPTION: This app prints "Hello World" every 5 seconds on the
+             serial console. The serial console is set on UART-0.  A
+             serial terminal program like HyperTerminal, putty, or
+             minicom can be used to see the program output.
+
+APP NAME:    baremetal
+APP PATH:    baremetal
+DESCRIPTION: This app is similar to the helloworld described above,
+	     but the difference is that this app is written as a no-OS
+	     app. The OS is never initialized.
+
+APP NAME:    gpio
+APP PATH:    io_demo/gpio
+DESCRIPTION: This is an 88MC200 GPIO demo app. This application is
+	     written using APIs exposed by MDEV layer of GPIO Driver
+	     and Pinmux Driver. The application configures push button
+	     of the HW board, such that when user presses this button
+	     on board, a LED will glow. When user again presses the
+	     button, the LED will be turned off.
+
+APP NAME:    i2c_master_demo
+APP PATH:    io_demo/i2c/i2c_master_demo
+DESCRIPTION: This app demonstrates the use of 88MC200 I2C peripheral
+             in master mode. I2C MDEV APIs are used in this app.  The
+             I2C1 port is configured as master. The master receives 16
+             bytes of data from slave iteratively as the response to a
+             single byte command. The received data is printed on
+             console.
+
+APP NAME:    i2c_slave_demo
+APP PATH:    io_demo/i2c/i2c_slave_demo
+DESCRIPTION: This app demonstrates the use of 88MC200 I2C peripheral
+             in slave mode. I2C MDEV APIs are used in this app.  The
+             I2C1 port is configured as slave. The slave transmits 16
+             bytes of data to master iteratively as the response to a
+             single byte command received from master.
+
+APP NAME:    ssp_master_demo
+APP PATH:    io_demo/ssp/ssp_master_demo
+DESCRIPTION: This app demonstrates the use of 88MC200 SSP peripheral
+             in master mode (using SPI protocol). The MDEV APIs are
+             used in this app to configure the SSP. The master
+             transmits 16 bytes of data to SSP slave device after
+             regular interval of 100 msec.
+
+APP NAME:    ssp_slave_demo
+APP PATH:    io_demo/ssp/ssp_slave_demo
+DESCRIPTION: This app demonstrates the use of 88MC200 SSP peripheral
+             in slave mode (using SPI protocol). The MDEV APIs are
+             used in this app to configure the SSP. The slave receives
+             and prints 16 bytes of data from SSP master device after
+             regular interval of 100 msec.
+
+APP NAME:    ssp_full_duplex_demo
+APP PATH:    io_demo/ssp/ssp_full_duplex_demo
+DESCRIPTION: This application uses APIs exposed by mdev layer of SSP
+             driver to demonstrate full duplex communication (using
+             SPI protocol). By default, SSP is configured in master
+             mode. It can be configured as slave by defining
+             SSP_FULL_DUPLEX_SLAVE macro in the application. The
+             application sends 16 bytes data to other SPI device and
+             reads 16 bytes data after every 1000 msec and prints it
+             on the console.
+
+APP NAME:    uart_echo_demo
+APP PATH:    io_demo/uart/uart_echo_demo
+DESCRIPTION: This app loops back data on UART1 port. MDEV APIs are
+             used to initialize and configure UART1 at 115200 baud
+             rate with 8N1 configuration. The application echoes back
+             the data on console (UART1).
+
+APP NAME:    uart_dma_tx_demo
+APP PATH:    io_demo/uart/uart_dma_tx_demo
+DESCRIPTION: This app shows how to enable DMA on uart mdev
+             layer. UART1 is configured at baud rate of 115200 and
+             enabled as 8bit with DMA support. Application sends
+             2KBytes of data in one DMA write operation on UART1
+             interface.
+
+APP NAME:    uart_dma_rx_demo
+APP PATH:    io_demo/uart/uart_dma_rx_demo
+DESCRIPTION: This app shows how to enable DMA on uart mdev
+             layer. UART1 is configured at baud rate of 115200 and
+             enabled as 8bit with DMA support. Application receives
+             2KBytes of data in one DMA read operation on UART1
+             interface.
+
+APP NAME:    usb_client_cdc
+APP PATH:    io_demo/usb/usb_client_cdc
+DESCRIPTION: This application exposes a USB CDC class device. The
+             device is detected as a USB Serial device. An echo server
+             is implemented. The application creates a (very minimal)
+             usb-rw thread for read and write-back (echo server) in
+             continuous manner using usb client driver, provided
+             usb_drv_{read/write} APIs provided by the USB client
+             driver.
+
+APP NAME:    usb_host_cdc
+APP PATH:    io_demo/usb/usb_host_cdc
+DESCRIPTION: This application exposes a USB CDC class host. A USB CDC
+	     class client device can be connected to the USB OTG
+	     port. This application will continuously send a stream of
+	     data with a baud rate of 9600 8N1. The application
+	     expects an echo server at the end other of the
+	     communication.
+
+APP NAME:    usb_host_uvc
+APP PATH:    io_demo/usb/usb_host_uvc
+DESCRIPTION: The application implements the USB video camera streaming
+             over WiFi. The USB camera is connected to the device over
+             the USB-OTG interface. The application starts a micro-AP
+             network and a web server. The video stream read from the
+             USB camera is streamed over this web server.
+
+APP NAME:    usb_host_uac
+APP PATH:    io_demo/usb/usb_host_uac
+DESCRIPTION: The application implements a USB audio streaming over
+	     WiFi. The USB headset is connected to the device over the
+	     USB-OTG interface. The application starts a micro-AP
+	     network and a web server. The audio stream read from the
+	     USB headset is streamed over this web server.
+
+APP NAME:    adc
+APP PATH:    io_demo/adc
+DESCRIPTION: The application demonstrates the use of ADC. This
+	     application uses ADC to sample an analog signal at
+	     GPIO_7. It takes 500 samples and prints teh output of ADC
+	     on the console.
+
+
+APP NAME:    pm_i2c_master
+APP PATH:    pm_demo/pm_i2c_master
+DESCRIPTION: This application demonstrates the usecase of 88MC200
+             peripheral communication with low power mode support.
+             I2C peripheral is used here in master mode to demonstrate
+             the data transfer, when low power modes are enabled.  Two
+             88MC200 I2C devices are connected for data transfer, and
+             88MC200 can enter into low power mode (PM2)
+             opportunistically.
+
+APP NAME:    pm_i2c_slave
+APP PATH:    pm_demo/pm_i2c_slave
+DESCRIPTION: This application demonstrates the usecase of 88MC200
+             peripheral communication with low power mode support.
+             I2C peripheral is used here in slave mode to demonstrate
+             the data transfer when low power modes are enabled.  Two
+             88MC200 I2C devices are connected for data transfer, and
+             88MC200 can enter into low power mode (PM2)
+             opportunistically.
+
+APP NAME:    cli_demo
+APP PATH:    module_demo/cli_demo
+DESCRIPTION: This application exercises the application specific
+             command line interface(CLI) use and registration. The app
+             registers a command with the CLI module. The 'echo'
+             command is registered, which simply echoes the arguments
+             are passed to it as its input.
+
+APP NAME:    psm_demo
+APP PATH:    module_demo/psm_demo
+DESCRIPTION: This application demonstrates Persistent Storage Manager
+             (PSM) usage. The application maintains a count of how
+             many times the application was booted up. This count is
+             maintained in PSM. Since the value is written to PSM, the
+             count is maintained across system reboot events.
+
+APP NAME:    tls_demo
+APP PATH:    module_demo/tls_demo
+DESCRIPTION: This application demonstrates the use of TLS library for
+             HTTPS connections. The app provides a command
+             'tls-http-client' that can be used to open a connection
+             with an https (HTTP over TLS) website. The command
+             connects to the website, downloads the data and dumps the
+             same on the console.
+
+APP NAME:    pm_mc200_demo
+APP PATH:    power_measure_demo/pm_mc200_demo
+DESCRIPTION: This application is used for the power measurement of the
+	     various power modes of MC200. It exposes a CLI that can
+	     be used to put the MC200 in all the relevant power modes.
+
+APP NAME:    pm_mc200_demo
+APP PATH:    power_measure_demo/pm_mc200_demo
+DESCRIPTION: This application is used for the power measurement of the
+	     various power modes of MC200. It exposes a CLI that can
+	     be used to put the MC200 in all the relevant power modes.
+
+APP NAME:    pm_mc200_wifi_demo
+APP PATH:    power_measure_demo/pm_mc200_wifi_demo
+DESCRIPTION: This application is used for the power measurement of the
+	     various power modes of MC200 + WiFi chipset. It exposes
+	     CLI commands that can be used to put the MC200 and the
+	     WiFi chipset in all the relevant power mode combinations.
+
+APP NAME:    xively_demo
+APP PATH:    cloud_demo/xively_demo
+DESCRIPTION: This application demonstrates communication with Xively's
+	     device cloud. Once the device is provisioned, it
+	     communicates with the Xively cloud. A pre-configured
+	     device's credentials are used for this communication. The
+	     device informs the cloud about its LED state. A Web URI
+	     is provided that shows the update of this state on the
+	     cloud.
+
+APP NAME:    arrayent_demo
+APP PATH:    cloud_demo/arrayent_demo
+DESCRIPTION: This application demonstrates communication with
+	     Arrayent's device cloud. Once the device is provisioned,
+	     it communicates with the Arraent cloud. A pre-configured
+	     device's credentials are used for this communication. The
+	     device informs the cloud about its LED state. A Web URI
+	     is provided that shows the update of this state on the
+	     cloud.
+
+APP NAME:    p2p_demo
+APP PATH:    wlan/p2p_demo
+DESCRIPTION: This application shows how to use WMSDK Wi-Fi Direct(WFD)
+             feature. When user initiates the P2P connection request
+             from smart-phone to Marvell P2P device or vice versa, the
+             P2P registration protocols get started and after
+             successful connection, the device gets connected with
+             smartphone. After boot-up, the WLAN sub-system is
+             started, and it starts up the WFD sub-system and
+             initializes the device as P2P device. On boot up device
+             comes up as a Wi-Fi Direct device and can be discoverable
+             on Wi-Fi Direct supported smart-phones. The support for
+             power modes of MC200 is present. When P2P device is
+             discoverable, MC200 can go in PM2 mode. Also when WiFi is
+             in P2P Deep Sleep mode, MC200 can go in PM4 mode.
+
+APP NAME:    wlan_prov
+APP PATH:    wlan/wlan_prov
+DESCRIPTION: This application demonstrates the simple use-case of
+             provisioning the device. This application uses the
+             Application Framework to perform network provisioning of
+             the device. Network provisioning can be performed by
+             either using a webapp based wizard over the Micro-AP
+             interface or using the WPS (WiFi Protect Setup)
+             protocol. Once the network provisioning is successful,
+             the network credentials are recorded in the PSM
+             (Persistent Storage Manager). From next bootup onwards,
+             once the WLAN sub-system is initialized, the application
+             knows that the network credentials are already present,
+             and the application directly starts the station
+             interface.
+
+APP NAME:    wlan_uap
+APP PATH:    wlan/wlan_uap
+DESCRIPTION: This is a simple WLAN application using micro-AP
+             interface. This application starts a Micro-AP network. It
+             announce a mDNS/DNS-SD service on this network. It also
+             starts a Web Server and makes available a web URI
+             http://192.168.10.1/hello.  The application is written
+             using Application Framework that simplifies development
+             of WLAN networking applications.
+
+APP NAME:    wm_demo
+APP PATH:    wlan/wm_demo
+DESCRIPTION: This app demonstrates a real world use-case of WLAN based
+             application, with support for device provisioning using
+             micro-AP, data communication with cloud over station
+             interface, support for overlays etc. Application
+             developers can use this app as a reference for developing
+             their application based on WMSDK subsytem.
+
+APP NAME:    wpa2_enterprise
+APP PATH:    wlan/wpa2_enterprise
+DESCRIPTION: This is a simple WLAN application using WPA2 Enterprise
+             connection for Station interface. This application
+             connects to a WPA2 Enterprise based WLAN network using
+             pre-defined certificates, key and network
+             parameters. Since the WPA2 Enterprise association is
+             happening with EAP-TLS, the required network
+             configuration parameters like the certificates/keys,
+             network SSID etc. are pre-configured in the device. In
+             this application these certificates are stored in the
+             header files cacert.h, client-cert.h and client-key.h.
+
+APP NAME:    wlan_sniffer
+APP PATH:    wlan/wlan_sniffer
+DESCRIPTION: This application configures the WiFi firmware to act as a
+	     sniffer. Information about all the received frames is
+	     printed on the console.
+
+// add by nzy 20150518
+APP PATH:	 tuya_user
+DESCRIPTION: This application uses to develop code for coder who work in the tuya company.
+

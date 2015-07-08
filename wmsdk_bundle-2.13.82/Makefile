@@ -37,7 +37,7 @@
 CONFIG_CMD_FILE=.config_cmd
 
 -include Makefile.devel
--include $(CONFIG_CMD_FILE)
+#-include $(CONFIG_CMD_FILE)
 
 # Optional variables to be passed
 # All of the bundled components
@@ -185,8 +185,10 @@ endif
 
 # make flashpatch add by nzy 20150516
 # set by user which bins want to flashpatch.
-APP_BIN_NAME ?= hello_world.bin
-APP_BIN_FTFS := $(wildcard $(APP_BIN_PATH)/$(basename $(APP_BIN_NAME)).ftfs)
+APP_BIN_NAME ?= default
+APP_BIN_NAME_SF ?= $(APP_BIN_NAME).bin
+APP_BIN_FULL_NAME ?= $(APP_BIN_NAME)_full.bin
+APP_BIN_FTFS := $(wildcard $(APP_BIN_PATH)/$(APP_BIN_NAME).ftfs)
 WIFI_FW_NAME = sd8801_uapsta_beta.bin.xz
 WIFI_FW_PATH = $(CURDIR)/wifi-firmware
 BOOT2_NAME = boot2.bin
@@ -196,14 +198,14 @@ OUTPUT = $(CURDIR)/output
 flashpatch: apps
 	${AT}cp -a $(SDK_BIN_PATH)/tools/mc200/OpenOCD/layout.txt $(FLASH_PATCH_PATH)
 	${AT}echo boot2 $(FLASH_PATCH_PATH)/$(BOOT2_NAME) > $(FLASH_PATCH_PATH)/config.txt
-	${AT}echo mc200fw $(APP_BIN_PATH)/$(APP_BIN_NAME) >> $(FLASH_PATCH_PATH)/config.txt
+	${AT}echo mc200fw $(APP_BIN_PATH)/$(APP_BIN_NAME_SF) >> $(FLASH_PATCH_PATH)/config.txt
 	${AT}echo wififw $(WIFI_FW_PATH)/$(WIFI_FW_NAME) >> $(FLASH_PATCH_PATH)/config.txt
 ifneq ($(APP_BIN_FTFS),)
 	${AT}echo ftfs $(APP_BIN_FTFS) >> $(FLASH_PATCH_PATH)/config.txt;
 endif
 	${AT}$(FLASH_PATCH_PATH)/flashpatch -l $(FLASH_PATCH_PATH)/layout.txt -b $(FLASH_PATCH_PATH)/config.txt
 	${AT} mkdir -p $(OUTPUT)
-	${AT} mv iflash.bin $(OUTPUT)/$(APP_BIN_NAME)
+	${AT} mv iflash.bin $(OUTPUT)/$(APP_BIN_FULL_NAME)
 	${AT} rm -f xflash.bin flashprog.config flashprog.layout
 
 # Clean everything
@@ -224,7 +226,7 @@ apps: preq sdk
 	@echo ""
 	@echo "[Building Sample Applications]"
 	${AT}$(MAKE) $(SILENT) $(WMSDK_PARALLEL_MAKE) -C $(SAMPLE_APP_DIR) SDK_PATH=$(SDK_BIN_PATH) BOARD_FILE=$(BOARD_FILE) all $(CYG_COMPAT)
-	${AT}$(MAKE) $(SILENT) -C $(SAMPLE_APP_DIR) SDK_PATH=$(SDK_BIN_PATH) install INSTALL_DIR=$(APP_BIN_PATH) $(CYG_COMPAT) TUYA_USER=$(TUYA_USER)
+	${AT}$(MAKE) $(SILENT) -C $(SAMPLE_APP_DIR) SDK_PATH=$(SDK_BIN_PATH) install INSTALL_DIR=$(APP_BIN_PATH) $(CYG_COMPAT)
 
 # Clean Sample Applications
 apps_clean:
