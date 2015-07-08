@@ -1,7 +1,8 @@
 #!/bin/sh
 #$1: auto add suffix .bin
-#$2: chose board
+#$2: choose board
 
+chmod +x wmsdk-2.13.82/tools/bin/Linux/*
 # set app bin name
 if [ -z "$1" ];then
 	echo "please input the app bin name(no suffix \".bin\")!!!"

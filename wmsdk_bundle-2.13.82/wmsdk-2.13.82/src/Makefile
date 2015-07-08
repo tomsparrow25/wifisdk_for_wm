@@ -155,8 +155,8 @@ endif
 
 create_symlinks:
 ifeq ($(OS), Linux)
-	@if [ -e ./incl/platform/arch/arch -a ! -L ./incl/platform/arch/arch  ]; then echo "Error: ./src/incl/platform/arch/arch/ is not a link"; false; fi;
-	-@rm -f ./incl/platform/arch/arch
+	@if [ -e ./incl/platform/arch/arch -a ! -L ./incl/platform/arch/arch  ]; then echo "Error: ./src/incl/platform/arch/arch/ is not a link"; fi;
+	-@rm -fr ./incl/platform/arch/arch
 	@ln -s $(CURDIR)/incl/platform/arch/arch-$(ARCH_NAME-y)/ $(CURDIR)/incl/platform/arch/arch
 else
 # On cygwin, the compilers get confused if a symlink is used
