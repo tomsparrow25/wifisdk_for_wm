@@ -92,6 +92,7 @@ wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/core/wmstdio/libwmstdio.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/core/wmtime/libwmtime.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/drivers/mc200/libdrv.a
 wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/drivers/peripherals/dtp_driver/libdtp.a
+wmsdk_bundle-2.13.82/wmsdk-2.13.82/src/incl/platform/arch/arch
 *.bin
 *.o
 *.d

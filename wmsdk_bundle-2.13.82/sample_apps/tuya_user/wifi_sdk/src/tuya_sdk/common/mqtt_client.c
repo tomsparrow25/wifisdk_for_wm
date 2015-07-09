@@ -261,12 +261,20 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                 GW_CNTL_S *gw_cntl = get_gw_cntl();
                 if(gw_cntl->active.mq_url[0]) {
                     mq_url = gw_cntl->active.mq_url;
+                }else {
+                    if(gw_cntl->active.mq_url_bak[0]) {
+                        mq_url = gw_cntl->active.mq_url_bak;
+                    }
                 }
 
                 if(gw_cntl->active.mq_url_bak[0]) {
                     mq_url_bak = gw_cntl->active.mq_url_bak;
+                }else {
+                    if(gw_cntl->active.mq_url[0]) {
+                        mq_url_bak = gw_cntl->active.mq_url;
+                    }
                 }
-                
+
                 STATIC INT who_fir = 1;
                 if(who_fir) {
                     if(0 != domain2ip(mq_url,ip)) {
