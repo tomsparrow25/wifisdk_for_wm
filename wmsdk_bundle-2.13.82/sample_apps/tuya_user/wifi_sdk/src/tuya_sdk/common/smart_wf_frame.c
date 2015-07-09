@@ -195,6 +195,11 @@ OPERATE_RET smart_frame_init(IN CONST SMART_FRAME_CB cb)
         return OPRT_CR_TIMER_ERR;
     }
 
+    ret = os_semaphore_create_counting(&smt_frm_cntl.sem,"wfs_sem", 1,0);
+    if(ret != WM_SUCCESS) {
+        return OPRT_SEM_CR_ERR;
+    }
+
     ret = os_thread_create(&smt_frm_cntl.thread,"sf_task",\
 			               sf_ctrl_task,0, &sf_stack, OS_PRIO_3);
     if(ret != WM_SUCCESS) {
@@ -537,14 +542,6 @@ STATIC int __scan_cb(unsigned int count)
     smt_frm_cntl.wfs_num = 0;
     Free(smt_frm_cntl.wfs_da),smt_frm_cntl.wfs_da = NULL;
 
-    if(NULL == smt_frm_cntl.sem) {
-        err = os_semaphore_create_counting(&smt_frm_cntl.sem,"wfs_sem", 1,0);
-        if(err != WM_SUCCESS) {
-            PR_ERR("os_semaphore_create_counting err:%d",err);
-            return 0;
-        }
-    }
-    
     if (count == 0) {
         PR_DEBUG("no networks found");
         os_semaphore_put(&smt_frm_cntl.sem);
@@ -572,8 +569,17 @@ STATIC int __scan_cb(unsigned int count)
         }
     }
 
-    smt_frm_cntl.wfs_da = cJSON_PrintUnformatted(array);
-    cJSON_Delete(array);
+    cJSON *root=cJSON_CreateObject();
+    if(NULL == root) {
+        PR_ERR("cJSON_CreateObject error");
+        cJSON_Delete(array);
+        os_semaphore_put(&smt_frm_cntl.sem);
+        return 0;
+    }
+    cJSON_AddItemToObject(root,"ssid_list",array);
+
+    smt_frm_cntl.wfs_da = cJSON_PrintUnformatted(root);
+    cJSON_Delete(root);
     if(NULL == smt_frm_cntl.wfs_da) {
         PR_ERR("malloc error");
         os_semaphore_put(&smt_frm_cntl.sem);
@@ -878,9 +884,6 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
                                1,"wifi scan failed",strlen("wifi scan failed"));
                 Free(smt_frm_cntl.wfs_da),smt_frm_cntl.wfs_da = NULL;
                 break;
-            }
-            if(NULL == smt_frm_cntl.sem) {
-                os_thread_sleep(os_msec_to_ticks(2*1000));
             }
             os_semaphore_get(&smt_frm_cntl.sem, os_msec_to_ticks(10*1000));
 
