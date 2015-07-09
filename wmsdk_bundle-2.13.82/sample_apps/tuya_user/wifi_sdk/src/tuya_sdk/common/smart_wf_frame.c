@@ -12,6 +12,7 @@
 #include "app_agent.h"
 #include "md5.h"
 #include "device.h"
+#include <wlan.h>
 
 /***********************************************************
 *************************micro define***********************
@@ -49,6 +50,11 @@ typedef struct {
     TIMER_ID fw_ug_t;
     FW_UG_STAT_E stat;
     FW_UG_S fw_ug;
+
+    // wifi scan
+    os_semaphore_t sem;
+    UINT wfs_num; // wifi scan ssid num
+    CHAR *wfs_da; // ["Tuya","tuya"]
 }SMT_FRM_CNTL_S;
 
 #define SMT_FRM_MAX_EVENTS 10
@@ -522,6 +528,66 @@ OPERATE_RET smart_frame_send_msg(IN CONST UINT msgid,\
     return OPRT_OK;
 }
 
+STATIC int __scan_cb(unsigned int count)
+{
+    struct wlan_scan_result res;
+    int i;
+    int err;
+
+    smt_frm_cntl.wfs_num = 0;
+    Free(smt_frm_cntl.wfs_da),smt_frm_cntl.wfs_da = NULL;
+
+    if(NULL == smt_frm_cntl.sem) {
+        err = os_semaphore_create_counting(&smt_frm_cntl.sem,"wfs_sem", 1,0);
+        if(err != WM_SUCCESS) {
+            PR_ERR("os_semaphore_create_counting err:%d",err);
+            return 0;
+        }
+    }
+    
+    if (count == 0) {
+        PR_DEBUG("no networks found");
+        os_semaphore_put(&smt_frm_cntl.sem);
+        return 0;
+    }
+
+    cJSON *array = NULL;
+    array = cJSON_CreateArray();
+    if(NULL == array) {
+        PR_ERR("cJSON_CreateArray err");
+        os_semaphore_put(&smt_frm_cntl.sem);
+        return 0;
+    }
+
+    PR_DEBUG("%d network%s found.", count, count == 1 ? "" : "s");
+    for (i = 0; i < count; i++) {
+        err = wlan_get_scan_result(i, &res);
+        if (err) {
+            PR_ERR("can't get scan res %d", i);
+            continue;
+        }
+
+        if (res.ssid[0]) {
+            cJSON_AddItemToArray(array, cJSON_CreateString(res.ssid));
+        }
+    }
+
+    smt_frm_cntl.wfs_da = cJSON_PrintUnformatted(array);
+    cJSON_Delete(array);
+    if(NULL == smt_frm_cntl.wfs_da) {
+        PR_ERR("malloc error");
+        os_semaphore_put(&smt_frm_cntl.sem);
+        return 0;
+    }
+
+    smt_frm_cntl.wfs_num = count;
+    PR_DEBUG_RAW("%s\r\n",smt_frm_cntl.wfs_da);
+
+    os_semaphore_put(&smt_frm_cntl.sem);
+    return 0;
+}
+
+
 STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
 {
     if(NULL == fr) {
@@ -804,6 +870,33 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
         }
         break;
 
+        case FRM_SSID_QUERY: {
+            int ret;
+            ret = wlan_scan(__scan_cb);
+            if(WLAN_ERROR_NONE != ret) {
+                gw_lan_respond(fr->socket, fr->frame_num, fr->frame_type,\
+                               1,"wifi scan failed",strlen("wifi scan failed"));
+                Free(smt_frm_cntl.wfs_da),smt_frm_cntl.wfs_da = NULL;
+                break;
+            }
+            if(NULL == smt_frm_cntl.sem) {
+                os_thread_sleep(os_msec_to_ticks(2*1000));
+            }
+            os_semaphore_get(&smt_frm_cntl.sem, os_msec_to_ticks(10*1000));
+
+            if(0 == smt_frm_cntl.wfs_num) {
+                gw_lan_respond(fr->socket, fr->frame_num, fr->frame_type,\
+                               1,"network not found",strlen("network not found"));
+            }else {
+                gw_lan_respond(fr->socket, fr->frame_num, fr->frame_type,\
+                               0,smt_frm_cntl.wfs_da,strlen(smt_frm_cntl.wfs_da));
+            }
+            
+            Free(smt_frm_cntl.wfs_da),smt_frm_cntl.wfs_da = NULL;
+            smt_frm_cntl.wfs_num = 0;
+        }
+        break;
+        
         default: {
             PR_ERR("unsupport frame type:%d",fr->frame_type);
         }

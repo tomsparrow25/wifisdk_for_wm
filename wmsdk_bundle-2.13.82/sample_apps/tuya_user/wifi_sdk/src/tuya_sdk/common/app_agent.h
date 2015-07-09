@@ -31,7 +31,8 @@
 #define FRM_TP_CMD 7
 #define FRM_TP_STAT_REPORT 8
 #define FRM_TP_HB 9
-#define FRM_QUERY_STAT 10
+#define FRM_QUERY_STAT 0x0a
+#define FRM_SSID_QUERY 0x0b
 
 /***********************************************************
 *************************variable define********************
