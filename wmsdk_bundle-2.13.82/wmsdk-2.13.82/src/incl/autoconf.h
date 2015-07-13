@@ -97,12 +97,12 @@
 /*
  * WiFi Firmware Upgrade Support
  */
-#define CONFIG_WIFI_FW_UPGRADE 1
+#undef CONFIG_WIFI_FW_UPGRADE
 
 /*
  * Peripheral Drivers
  */
-#define CONFIG_MRVL_DRV_TUNL_DRIVER 1
+#undef CONFIG_MRVL_DRV_TUNL_DRIVER
 #undef CONFIG_LCD_DRIVER
 #undef CONFIG_XFLASH_DRIVER
 #undef CONFIG_SPI_FLASH_DRIVER
