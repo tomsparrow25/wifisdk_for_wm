@@ -35,7 +35,7 @@
 
 // gw interface
 #define TI_GW_ACTIVE "s.gw.active" // gw active
-//#define TI_GW_RESET "s.gw.reset" // gw reset
+#define TI_GW_RESET "s.gw.reset" // gw reset
 #define TI_GW_HB "s.gw.heartbeat" // gw heart beat
 #define TI_GW_INFO_UP "s.gw.update" // update gw base info
 
@@ -117,7 +117,6 @@ OPERATE_RET httpc_aes_set(IN CONST BYTE *key,IN CONST BYTE *iv);
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_gw_active();
 
-#if 0
 /***********************************************************
 *  Function: httpc_gw_reset
 *  Input: 
@@ -126,7 +125,6 @@ OPERATE_RET httpc_gw_active();
 ***********************************************************/
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_gw_reset(VOID);
-#endif
 
 /***********************************************************
 *  Function: httpc_gw_update

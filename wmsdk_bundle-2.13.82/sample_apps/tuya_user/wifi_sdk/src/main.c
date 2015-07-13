@@ -108,19 +108,10 @@
 // include by NETWORK_MOD_NAME
 #define VAR_UAP_SSID		"uap_ssid"
 //#define VAR_PROV_KEY        "prov_key"
-#define WF_CFG_MODE   "wf_cfg_mode" // include by NETWORK_MOD_NAME
-#define SMART_CFG_SUCCESS  "smart_cfg_success" // include by NETWORK_MOD_NAME
-typedef enum {
-    SMART_CFG = 0,
-    AP_CFG
-}WF_CFG_MODE_E;
-
-typedef struct wi_cfg_cntl_s {
-    WF_CFG_MODE_E wf_cfg_mode;
-    int is_smart_cfg_ok;
-}WF_CFG_CNTL_S;
 
 /*-----------------------function declarations----------------------*/
+extern void tuya_wf_cfg_init(void);
+
 
 /*-----------------------Global declarations----------------------*/
 static char g_uap_ssid[IEEEtypes_SSID_SIZE + 1];
@@ -136,15 +127,9 @@ char *ftfs_part_name = "ftfs";
 struct fs *fs;
 
 static os_timer_t uap_down_timer;
-static WF_CFG_CNTL_S wf_cfg_cntl;
 
 /*-----------------------function declarations----------------------*/
-static int set_smart_cfg_ok(const int is_ok);
-static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg);
-static int select_cfg_mode_for_next(void);
-static void set_smart_cfg(void);
 static int tuya_user_init(void);
-void single_dev_reset_factory(void);
 
 // lan net config
 int lan_set_net_work(char *ssid,char *passphrase)
@@ -486,7 +471,7 @@ static void event_wlan_init_done(void *data)
         #endif
         #endif
         #else
-        if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+        if(SMART_CFG == tuya_get_wf_cfg_mode()){
             set_wf_gw_status(STAT_UNPROVISION);
             app_ezconnect_provisioning_start(NULL, 0);
         }else {
@@ -608,7 +593,7 @@ static void event_prov_done(void *data)
 	app_ezconnect_provisioning_stop();
     #endif /* APPCONFIG_PROV_EZCONNECT */
     #else
-    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+    if(SMART_CFG == tuya_get_wf_cfg_mode()){
         app_ezconnect_provisioning_stop();
     }else {
         #if APPCONFIG_WPS_ENABLE
@@ -646,7 +631,7 @@ static void event_prov_client_done(void *data)
 		dbg("Error: Failed to Stop Micro-AP");
     #endif
     #else
-    if(AP_CFG == wf_cfg_cntl.wf_cfg_mode) {
+    if(AP_CFG == tuya_get_wf_cfg_mode()) {
         int ret;
         ret = app_uap_stop();
 	    if (ret != WM_SUCCESS) {
@@ -927,7 +912,7 @@ static void event_normal_reset_prov(void *data)
     #endif
     #else
     
-    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode){
+    if(SMART_CFG == tuya_get_wf_cfg_mode()){
         set_wf_gw_status(STAT_UNPROVISION);
         app_ezconnect_provisioning_start(NULL, 0);
     }else {
@@ -1251,32 +1236,8 @@ static struct cli_command test_cmds[] = {
     {"show-mem-info","",show_memory},
 };
 
-static void tuya_wf_cfg_init(void)
-{
-    // initiate for wifi config
-    memset(&wf_cfg_cntl,0,sizeof(WF_CFG_CNTL_S));
-    int ret;
-    char tmp_buf[10];
-    ret = psm_get_single(NETWORK_MOD_NAME, WF_CFG_MODE, tmp_buf,
-			             sizeof(tmp_buf));
-    if(WM_SUCCESS == ret) {
-        wf_cfg_cntl.wf_cfg_mode = atoi(tmp_buf);
-    }else {
-        psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"0");
-    }
-
-    ret = psm_get_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS, tmp_buf,sizeof(tmp_buf));
-    if(WM_SUCCESS == ret) {
-        wf_cfg_cntl.is_smart_cfg_ok = atoi(tmp_buf);
-    }else {
-        psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
-    }
-}
-
 static int tuya_user_init(void)
 {
-    tuya_wf_cfg_init();
-
     OPERATE_RET op_ret;
     op_ret = device_init();
     if(OPRT_OK != op_ret) {
@@ -1348,112 +1309,6 @@ static void tuya_mac_init()
         ascs2hex(mac,(BYTE *)prod_if.mac,strlen(prod_if.mac));
         wlan_set_mac_addr(mac);
     }
-}
-
-static int set_smart_cfg_ok(const int is_ok)
-{
-    wf_cfg_cntl.is_smart_cfg_ok = is_ok;
-    if(is_ok) {
-        return psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"1");
-    }else {
-        return psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
-    }
-}
-
-static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg)
-{
-    wf_cfg_cntl.wf_cfg_mode = cfg;
-    if(AP_CFG == cfg) {
-        return psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"1");
-    }else {
-        return psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"0");
-    }
-}
-
-static void set_smart_cfg(void)
-{
-    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
-        if(0 == wf_cfg_cntl.is_smart_cfg_ok) {
-            set_smart_cfg_ok(1);
-            dbg("%s:%d save smart cfg ok.",__FILE__,__LINE__);
-            return;
-        }
-    }
-
-    dbg("%s:%d nothing to do.",__FILE__,__LINE__);
-}
-    
-static int select_cfg_mode_for_next(void)
-{
-    int ret;
-    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode && \
-       wf_cfg_cntl.is_smart_cfg_ok) {
-        ret = set_smart_cfg_ok(0);
-        if(ret != WM_SUCCESS) {
-            return ret;
-        }
-        PR_DEBUG("set next smartconfig mode.");
-    }else if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
-        ret = set_wf_cfg_mode(AP_CFG);
-        if(ret != WM_SUCCESS) {
-            return ret;
-        }
-        PR_DEBUG("set next ap mode.");
-    }else { // AP_CFG
-        ret = set_wf_cfg_mode(SMART_CFG);
-        if(ret != WM_SUCCESS) {
-            return ret;
-        }
-        PR_DEBUG("set next smartconfig mode.");
-        if(wf_cfg_cntl.is_smart_cfg_ok) {
-            set_smart_cfg_ok(0);
-        }
-    }
-
-    app_network_set_nw_state(0);
-
-    return WM_SUCCESS;
-}
-
-void auto_select_wf_cfg(void)
-{
-    int ret;
-    
-    ret = select_cfg_mode_for_next();
-    if(WM_SUCCESS != ret) {
-        PR_ERR("select_cfg_mode_for_next error:%d",ret);
-        return;
-    }
-
-    pm_reboot_soc();
-}
-
-void select_smart_cfg_wf(void)
-{
-    set_smart_cfg_ok(0);
-    set_wf_cfg_mode(SMART_CFG);
-    app_network_set_nw_state(0);
-    pm_reboot_soc();
-}
-
-void select_ap_cfg_wf(void)
-{
-    set_smart_cfg_ok(0);
-    set_wf_cfg_mode(AP_CFG);
-    app_network_set_nw_state(0);
-    pm_reboot_soc();
-}
-
-void single_dev_reset_factory(void)
-{
-    int ret;
-    
-    ret = select_cfg_mode_for_next();
-    if(WM_SUCCESS != ret) {
-        PR_ERR("select_cfg_mode_for_next error:%d",ret);
-        return;
-    }
-    set_gw_data_fac_reset();
 }
 
 int main()

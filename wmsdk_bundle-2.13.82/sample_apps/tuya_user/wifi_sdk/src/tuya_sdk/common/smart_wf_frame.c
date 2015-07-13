@@ -13,6 +13,9 @@
 #include "md5.h"
 #include "device.h"
 #include <wlan.h>
+#include <psm.h>
+#include "app_psm.h" // include NETWORK_MOD_NAME
+#include "app_network_config.h"
 
 /***********************************************************
 *************************micro define***********************
@@ -64,21 +67,34 @@ typedef struct {
 #define PRO_ADD_USER 6
 #define PRO_DEL_USER 7
 #define PRO_FW_UG_CFM 10
+#define PRO_GW_RESET 11
 
 #define UG_TIME_VAL (24*3600)
+
+// wifi config
+#define WF_CFG_MODE   "wf_cfg_mode" // include by NETWORK_MOD_NAME
+#define SMART_CFG_SUCCESS  "smart_cfg_success" // include by NETWORK_MOD_NAME
+
+typedef struct wi_cfg_cntl_s {
+    WF_CFG_MODE_E wf_cfg_mode;
+    int is_smart_cfg_ok;
+}WF_CFG_CNTL_S;
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
 SMT_FRM_CNTL_S smt_frm_cntl;
 static os_queue_pool_define(smt_frm_queue_data,SMT_FRM_MAX_EVENTS * sizeof(MESSAGE));
-static os_thread_stack_define(sf_stack, 1024);
-static void fw_ug_timer_cb(os_timer_arg_t arg);
-STATIC OPERATE_RET sw_ver_change(IN CONST CHAR *ver,OUT UINT *change);
-VOID set_fw_ug_stat(IN CONST FW_UG_STAT_E stat);
+static os_thread_stack_define(sf_stack, 2048);
+static WF_CFG_CNTL_S wf_cfg_cntl;
 
 /***********************************************************
 *************************function define********************
 ***********************************************************/
+static void fw_ug_timer_cb(os_timer_arg_t arg);
+STATIC OPERATE_RET sw_ver_change(IN CONST CHAR *ver,OUT UINT *change);
+VOID set_fw_ug_stat(IN CONST FW_UG_STAT_E stat);
+static int set_smart_cfg_ok(const int is_ok);
+static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg);
 static void sf_ctrl_task(os_thread_arg_t arg);
 STATIC VOID mq_callback(BYTE *data,UINT len);
 STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr);
@@ -88,6 +104,8 @@ STATIC CHAR *mk_json_obj_data(IN CONST DEV_CNTL_N_S *dev_cntl,IN CONST BOOL vlc_
 STATIC OPERATE_RET __sf_com_mk_obj_dp_rept_data(IN CONST DEV_CNTL_N_S *dev_cntl,OUT CHAR **pp_out);
 STATIC OPERATE_RET sf_obj_dp_qry_dpid(IN CONST CHAR *id,IN CONST BYTE *dpid,IN CONST BYTE num);
 STATIC void smt_frm_cmd_prep(IN CONST SMART_CMD_E cmd,IN CONST BYTE *data,IN CONST UINT len);
+static void tuya_wf_cfg_init(void);
+static void remote_sd_ret_fac(void);
 
 VOID gw_lan_respond(IN CONST INT fd,IN CONST UINT fr_num,IN CONST UINT fr_tp,\
                     IN CONST UINT ret_code,IN CONST CHAR *data,IN CONST UINT len)
@@ -113,6 +131,9 @@ OPERATE_RET smart_frame_init(IN CONST SMART_FRAME_CB cb)
     if(smt_frm_cntl.is_start) {
         return OPRT_OK;
     }
+
+    // tuya wf cfg    
+    tuya_wf_cfg_init();
 
     // memory pool init
     OPERATE_RET op_ret;
@@ -488,7 +509,11 @@ STATIC VOID mq_callback(BYTE *data,UINT len)
         if(OPRT_OK != op_ret) {
             PR_ERR("sf_fw_ug_msg_infm:%d",op_ret);
         }
-    }else {
+    }else if(PRO_GW_RESET == mq_pro) {
+        PR_DEBUG("remote single device reset");
+        remote_sd_ret_fac();
+    }
+    else {
         goto JSON_PROC_ERR;
     }
 
@@ -2041,3 +2066,212 @@ STATIC OPERATE_RET sw_ver_change(IN CONST CHAR *ver,OUT UINT *change)
 
     return OPRT_OK;
 }
+
+static int set_smart_cfg_ok(const int is_ok)
+{
+    wf_cfg_cntl.is_smart_cfg_ok = is_ok;
+    if(is_ok) {
+        return psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"1");
+    }else {
+        return psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
+    }
+}
+
+static int set_wf_cfg_mode(const WF_CFG_MODE_E cfg)
+{
+    wf_cfg_cntl.wf_cfg_mode = cfg;
+    if(AP_CFG == cfg) {
+        return psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"1");
+    }else {
+        return psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"0");
+    }
+}
+
+/***********************************************************
+*  Function: select_cfg_mode_for_next
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: 
+***********************************************************/
+int select_cfg_mode_for_next(void)
+{
+    int ret;
+    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode && \
+       wf_cfg_cntl.is_smart_cfg_ok) {
+        ret = set_smart_cfg_ok(0);
+        if(ret != WM_SUCCESS) {
+            return ret;
+        }
+        PR_DEBUG("set next smartconfig mode.");
+    }else if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
+        ret = set_wf_cfg_mode(AP_CFG);
+        if(ret != WM_SUCCESS) {
+            return ret;
+        }
+        PR_DEBUG("set next ap mode.");
+    }else { // AP_CFG
+        ret = set_wf_cfg_mode(SMART_CFG);
+        if(ret != WM_SUCCESS) {
+            return ret;
+        }
+        PR_DEBUG("set next smartconfig mode.");
+        if(wf_cfg_cntl.is_smart_cfg_ok) {
+            set_smart_cfg_ok(0);
+        }
+    }
+
+    app_network_set_nw_state(0);
+
+    return WM_SUCCESS;
+}
+
+/***********************************************************
+*  Function: auto_select_wf_cfg
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void auto_select_wf_cfg(void)
+{
+    int ret;
+    
+    ret = select_cfg_mode_for_next();
+    if(WM_SUCCESS != ret) {
+        PR_ERR("select_cfg_mode_for_next error:%d",ret);
+        return;
+    }
+
+    pm_reboot_soc();
+}
+
+/***********************************************************
+*  Function: select_smart_cfg_wf
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void select_smart_cfg_wf(void)
+{
+    set_smart_cfg_ok(0);
+    set_wf_cfg_mode(SMART_CFG);
+    app_network_set_nw_state(0);
+    pm_reboot_soc();
+}
+
+/***********************************************************
+*  Function: select_ap_cfg_wf
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void select_ap_cfg_wf(void)
+{
+    set_smart_cfg_ok(0);
+    set_wf_cfg_mode(AP_CFG);
+    app_network_set_nw_state(0);
+    pm_reboot_soc();
+}
+
+/***********************************************************
+*  Function: single_dev_reset_factory
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void single_dev_reset_factory(void)
+{
+    if(STAT_WORK == get_gw_status() && \
+       STAT_STA_CONN == get_wf_gw_status()) {
+        OPERATE_RET op_ret;
+        op_ret = httpc_gw_reset();
+        if(OPRT_OK != op_ret) {
+            PR_ERR("httpc_gw_reset err:%d",op_ret);
+        }
+    }
+
+    int ret;
+    ret = select_cfg_mode_for_next();
+    if(WM_SUCCESS != ret) {
+        PR_ERR("select_cfg_mode_for_next error:%d",ret);
+        return;
+    }
+    set_gw_data_fac_reset();
+}
+
+static void remote_sd_ret_fac(void)
+{
+    int ret;
+    ret = select_cfg_mode_for_next();
+    if(WM_SUCCESS != ret) {
+        PR_ERR("select_cfg_mode_for_next error:%d",ret);
+        return;
+    }
+    set_gw_data_fac_reset();
+}
+
+/***********************************************************
+*  Function: tuya_wf_cfg_init
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void tuya_wf_cfg_init(void)
+{
+    // initiate for wifi config
+    memset(&wf_cfg_cntl,0,sizeof(WF_CFG_CNTL_S));
+    int ret;
+    char tmp_buf[10];
+    ret = psm_get_single(NETWORK_MOD_NAME, WF_CFG_MODE, tmp_buf,
+			             sizeof(tmp_buf));
+    if(WM_SUCCESS == ret) {
+        wf_cfg_cntl.wf_cfg_mode = atoi(tmp_buf);
+    }else {
+        psm_set_single(NETWORK_MOD_NAME, WF_CFG_MODE,"0");
+    }
+
+    ret = psm_get_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS, tmp_buf,sizeof(tmp_buf));
+    if(WM_SUCCESS == ret) {
+        wf_cfg_cntl.is_smart_cfg_ok = atoi(tmp_buf);
+    }else {
+        psm_set_single(NETWORK_MOD_NAME, SMART_CFG_SUCCESS,"0");
+    }
+}
+
+/***********************************************************
+*  Function: tuya_get_wf_cfg_mode
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+WF_CFG_MODE_E tuya_get_wf_cfg_mode(VOID)
+{
+    return wf_cfg_cntl.wf_cfg_mode;
+}
+
+/***********************************************************
+*  Function: set_smart_cfg
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void set_smart_cfg(void)
+{
+    if(SMART_CFG == wf_cfg_cntl.wf_cfg_mode) {
+        if(0 == wf_cfg_cntl.is_smart_cfg_ok) {
+            set_smart_cfg_ok(1);
+            PR_ERR("save smart cfg ok");
+            return;
+        }
+    }
+
+    PR_DEBUG("nothing to do");
+}
+

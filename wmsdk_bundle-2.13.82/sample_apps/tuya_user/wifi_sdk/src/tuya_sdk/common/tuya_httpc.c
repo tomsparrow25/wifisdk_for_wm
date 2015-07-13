@@ -874,7 +874,6 @@ ERR_EXIT:
     return op_ret;
 }
 
-#if 0
 /***********************************************************
 *  Function: httpc_gw_reset
 *  Input: 
@@ -884,7 +883,6 @@ ERR_EXIT:
 OPERATE_RET httpc_gw_reset(VOID)
 {
     GW_CNTL_S *gw_cntl = get_gw_cntl();
-    GW_DESC_IF_S *gw = &gw_cntl->gw;
     HTTP_URL_H_S *hu_h = create_http_url_h(0,10);
     if(NULL == hu_h) {
         PR_ERR("create_http_url_h error");
@@ -913,7 +911,6 @@ ERR_EXIT:
 
     return op_ret;
 }
-#endif
 
 STATIC OPERATE_RET __httpc_gw_heart_cb(IN CONST BOOL is_end,\
                                        IN CONST UINT offset,\

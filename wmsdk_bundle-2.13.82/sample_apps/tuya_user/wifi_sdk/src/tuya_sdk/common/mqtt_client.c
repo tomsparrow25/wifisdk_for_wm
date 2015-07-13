@@ -55,7 +55,7 @@ typedef struct {
     BYTE topic_msg_buf[MQ_RECV_BUF];
 }MQ_CNTL_S;
 
-static os_thread_stack_define(mq_stack, 1024);
+static os_thread_stack_define(mq_stack, 2048);
 
 /***********************************************************
 *************************variable define********************

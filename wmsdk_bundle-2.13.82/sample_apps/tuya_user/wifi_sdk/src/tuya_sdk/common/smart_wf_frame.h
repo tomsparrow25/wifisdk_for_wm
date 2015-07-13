@@ -42,6 +42,10 @@ typedef enum {
     CFG_AUTH_FAIL,
 }LAN_WF_CFG_RESULT_E;
 
+typedef enum {
+    SMART_CFG = 0,
+    AP_CFG
+}WF_CFG_MODE_E;
 /***********************************************************
 *************************variable define********************
 ***********************************************************/
@@ -121,6 +125,76 @@ FW_UG_STAT_E get_fw_ug_stat(VOID);
 ***********************************************************/
 __SMART_WF_FRAME_EXT \
 OPERATE_RET sf_fw_ug_msg_infm(VOID);
+
+/***********************************************************
+*  Function: tuya_get_wf_cfg_mode
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+WF_CFG_MODE_E tuya_get_wf_cfg_mode(VOID);
+
+/***********************************************************
+*  Function: single_dev_reset_factory
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+void single_dev_reset_factory(void);
+
+/***********************************************************
+*  Function: select_ap_cfg_wf
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+void select_ap_cfg_wf(void);
+
+/***********************************************************
+*  Function: select_smart_cfg_wf
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+void select_smart_cfg_wf(void);
+
+/***********************************************************
+*  Function: auto_select_wf_cfg
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+void auto_select_wf_cfg(void);
+
+/***********************************************************
+*  Function: set_smart_cfg
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+void set_smart_cfg(void);
+
+/***********************************************************
+*  Function: select_cfg_mode_for_next
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: 
+***********************************************************/
+__SMART_WF_FRAME_EXT \
+int select_cfg_mode_for_next(void);
 
 #ifdef __cplusplus
 }
