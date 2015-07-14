@@ -432,7 +432,6 @@ STATIC INT yt_msg_proc(CHAR* buf)
 ***********************************************************/
 VOID device_cb(SMART_CMD_E cmd,cJSON *root)
 {
-#if 1 //husai_test    
     PR_DEBUG("cmd:%d",cmd);
     cJSON *nxt = root->child;
     while(nxt) {
@@ -478,7 +477,6 @@ VOID device_cb(SMART_CMD_E cmd,cJSON *root)
         frame_num--;
     }
     Free(RecvBuf);
-#endif   
 }
 
 /***********************************************************

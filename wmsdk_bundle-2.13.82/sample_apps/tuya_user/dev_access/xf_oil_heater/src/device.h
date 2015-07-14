@@ -26,15 +26,13 @@
 // device information define
 #define SW_VER "1.0.0"
 #define DEF_NAME "油汀"
-#define SCHEMA_ID "a"
-#define UI_ID "a"
+#define SCHEMA_ID "000000000a"
+#define UI_ID "000000000a"
 #define DEF_DEV_ABI DEV_SINGLE
-#define DEV_ETAG "a"
+#define DEV_ETAG "000000000a"
 
 // reset key define
 #define WF_RESET_KEY GPIO_10
-//#define WF_RESET_KEY GPIO_27
-
 
 // wifi direct led
 #define WF_DIR_LEN GPIO_11
