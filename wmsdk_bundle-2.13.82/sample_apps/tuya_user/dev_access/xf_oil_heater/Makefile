@@ -91,7 +91,7 @@ EXTRACFLAGS += -I$(WF_SDK_PATH)/tuya_sdk/common
 EXTRACFLAGS += -I$(WF_SDK_PATH)/tuya_sdk/driver
 SRCS += $(SRCS-y)
 
-MAKE_FTFS = 1
+MAKE_FTFS = 0
 FTFS_DIR  = ./www
 FTFS_API_VERSION = 100
 

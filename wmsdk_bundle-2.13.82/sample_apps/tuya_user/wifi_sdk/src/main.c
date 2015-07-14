@@ -121,10 +121,13 @@ appln_config_t appln_cfg = {
 	.reset_prov_pb_gpio = -1
 };
 
+// add by nzy 20150714
+#ifdef TY_HTTP_SERV
 int ftfs_api_version = 100;
 char *ftfs_part_name = "ftfs";
 
 struct fs *fs;
+#endif
 
 static os_timer_t uap_down_timer;
 
@@ -170,8 +173,6 @@ ERR_OUT:
     return err;
 }
 
-
-
 /** Provisioning done timer call back function
  * Once the provisioning is done, we wait for provisioning client to send
  * AF_EVT_PROV_CLIENT_DONE which stops uap and dhcp server. But if any case
@@ -193,29 +194,6 @@ static void uap_down_timer_cb(os_timer_arg_t arg)
  */
 void appln_init_ssid()
 {
-    #if 0
-	if (psm_get_single(NETWORK_MOD_NAME, VAR_UAP_SSID, g_uap_ssid,
-			sizeof(g_uap_ssid)) == WM_SUCCESS) {
-		dbg("Using %s as the uAP SSID", g_uap_ssid);
-		appln_cfg.ssid = g_uap_ssid;
-		// appln_cfg.hostname = g_uap_ssid;
-	} else {
-			uint8_t my_mac[6];
-
-			memset(g_uap_ssid, 0, sizeof(g_uap_ssid));
-			wlan_get_mac_address(my_mac);
-			/* Provisioning SSID */
-			snprintf(g_uap_ssid, sizeof(g_uap_ssid),
-				 "TuyaSmart-%02X%02X", my_mac[4], my_mac[5]);
-			dbg("Using %s as the uAP SSID", g_uap_ssid);
-			appln_cfg.ssid = g_uap_ssid;
-			// appln_cfg.hostname = g_uap_ssid;
-
-            // store UAP_SSID 
-            psm_set_single(NETWORK_MOD_NAME, VAR_UAP_SSID, appln_cfg.ssid);
-	}
-    #else
-
     uint8_t my_mac[6];
     
     memset(g_uap_ssid, 0, sizeof(g_uap_ssid));
@@ -226,7 +204,6 @@ void appln_init_ssid()
     dbg("Using %s as the uAP SSID", g_uap_ssid);
     appln_cfg.ssid = g_uap_ssid;
     // appln_cfg.hostname = g_uap_ssid;
-    #endif
 }
 
 #if 0
@@ -259,42 +236,6 @@ int wmdemo_get_prov_key(uint8_t *prov_key)
 }
 #endif
 
-/*
- * A simple HTTP Web-Service Handler
- *
- * Returns the string "Hello World" when a GET on http://<IP>/hello
- * is done.
- */
-// delete by nzy 20150606
-#if 0
-char *hello_world_string = "Hello World\n";
-
-int hello_handler(httpd_request_t *req)
-{
-	char *content = hello_world_string;
-	httpd_send_response(req, HTTP_RES_200,
-			    content, strlen(content),
-			    HTTP_CONTENT_PLAIN_TEXT_STR);
-	return WM_SUCCESS;
-}
-
-static int wm_demo_get_ui_link(httpd_request_t *req)
-{
-	return cloud_get_ui_link(req);
-}
-
-struct httpd_wsgi_call wm_demo_http_handlers[] = {
-	{"/hello", HTTPD_DEFAULT_HDR_FLAGS, 0,
-	hello_handler, NULL, NULL, NULL},
-	{"/cloud_ui", HTTPD_DEFAULT_HDR_FLAGS | HTTPD_HDR_ADD_PRAGMA_NO_CACHE,
-	0, wm_demo_get_ui_link, NULL, NULL, NULL},
-};
-
-static int wm_demo_handlers_no =
-	sizeof(wm_demo_http_handlers) / sizeof(struct httpd_wsgi_call);
-
-#endif
-
 /* This function is defined for handling critical error.
  * For this application, we just stall and do nothing when
  * a critical error occurs.
@@ -306,19 +247,6 @@ void appln_critical_error_handler(void *data)
 		;
 	/* do nothing -- stall */
 }
-
-/*
- * Register Web-Service handlers
- *
- */
-// delete by nzy 20150606
-#if 0
-int register_httpd_handlers()
-{
-	return httpd_register_wsgi_handlers(wm_demo_http_handlers,
-		wm_demo_handlers_no);
-}
-#endif
 
 /* This function must initialize the variables required (network name,
  * passphrase, etc.) It should also register all the event handlers that are of
@@ -333,11 +261,6 @@ int appln_config_init()
     appln_cfg.wps_pb_gpio = board_button_1();
     #endif
 
-    #if 0
-	/* Initialize reset to provisioning push button settings */
-	appln_cfg.reset_prov_pb_gpio = board_button_2();
-    #endif
-
     /* Initialize power management */
 	hp_pm_init();
 	return 0;
@@ -345,34 +268,7 @@ int appln_config_init()
 
 /*-----------------------Local declarations----------------------*/
 static int provisioned;
-#if 0
-static uint8_t mdns_announced;
-#endif
 
-/* This function stops various services when
- * device gets disconnected or reset to provisioning is done.
- */
-	// delete by nzy 20150606
-#if 0
-static void stop_services()
-{
-	wm_demo_cloud_stop();
-	led_off(board_led_1());
-}
-#endif
-
-/* This function starts various services when
- * device get connected to a network.
- */
-
-// delete by nzy 20150606
-#if 0
-static void start_services()
-{
-	dbg("Start Cloud");
-	wm_demo_cloud_start();
-}
-#endif
 /*
  * Event: INIT_DONE
  *
@@ -452,25 +348,7 @@ static void event_wlan_init_done(void *data)
 	if (provisioned) {
         set_wf_gw_status(STAT_STA_UNCONN);
 		app_sta_start();
-        #if 0
-		/* Load  CLOUD overlay in memory */
-		wm_demo_load_cloud_overlay();
-        #endif        
 	} else {
-        #if 0
-        #ifndef APPCONFIG_PROV_EZCONNECT
-		app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
-		/* Load WPS overlay in memory */
-		wm_demo_load_wps_overlay();
-        #else
-        #if 0
-		int keylen = wmdemo_get_prov_key(prov_key);
-		app_ezconnect_provisioning_start(prov_key, keylen);
-        #else
-        app_ezconnect_provisioning_start(NULL, 0);
-        #endif
-        #endif
-        #else
         if(SMART_CFG == tuya_get_wf_cfg_mode()){
             set_wf_gw_status(STAT_UNPROVISION);
             app_ezconnect_provisioning_start(NULL, 0);
@@ -478,13 +356,7 @@ static void event_wlan_init_done(void *data)
             set_wf_gw_status(STAT_AP_STA_UNCONN);
             app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
         }
-        #endif
 	}
-
-#if 0
-	if (provisioned)
-		hp_configure_reset_prov_pushbutton();
-#endif
 
 #if APPCONFIG_MDNS_ENABLE
 	/*
@@ -494,6 +366,8 @@ static void event_wlan_init_done(void *data)
 	app_mdns_start(appln_cfg.hostname);
 #endif /* APPCONFIG_MDNS_ENABLE */
 
+// add by nzy 20150714
+#ifdef TY_HTTP_SERV
 	/*
 	 * Start http server and enable webapp in the
 	 * FTFS partition on flash
@@ -501,14 +375,15 @@ static void event_wlan_init_done(void *data)
 	ret = app_httpd_with_fs_start(ftfs_api_version, ftfs_part_name, &fs);
 	if (ret != WM_SUCCESS)
 		dbg("Error: Failed to start HTTPD");
+    
+	ret = ftfs_cli_init(fs);
+	if (ret != WM_SUCCESS)
+		dbg("Error: ftfs_cli_init failed");
 
-	/*
-	 * Register /hello http handler
-	 */
-	// delete by nzy 20150606
-	#if 0
-	register_httpd_handlers();
-    #endif
+	ret = rfget_cli_init();
+	if (ret != WM_SUCCESS)
+		dbg("Error: rfget_cli_init failed");
+#endif
 
 	/*
 	 * Initialize CLI Commands for some of the modules:
@@ -521,21 +396,9 @@ static void event_wlan_init_done(void *data)
 	ret = psm_cli_init();
 	if (ret != WM_SUCCESS)
 		dbg("Error: psm_cli_init failed");
-	ret = ftfs_cli_init(fs);
-	if (ret != WM_SUCCESS)
-		dbg("Error: ftfs_cli_init failed");
-	ret = rfget_cli_init();
-	if (ret != WM_SUCCESS)
-		dbg("Error: rfget_cli_init failed");
 	ret = wlan_cli_init();
 	if (ret != WM_SUCCESS)
 		dbg("Error: wlan_cli_init failed");
-
-	if (!provisioned) {
-		/* Start Slow Blink */
-		//led_slow_blink(board_led_2());
-	}
-
 }
 
 /*
@@ -582,17 +445,6 @@ static void event_prov_done(void *data)
 	hp_configure_reset_prov_pushbutton();
     #endif
 
-    #if 0
-    #ifndef APPCONFIG_PROV_EZCONNECT
-    #if APPCONFIG_WPS_ENABLE
-	hp_unconfigure_wps_pushbutton();
-    #endif /* APPCONFIG_WPS_ENABLE */
-	wm_demo_wps_cli_deinit();
-	app_provisioning_stop();
-    #else
-	app_ezconnect_provisioning_stop();
-    #endif /* APPCONFIG_PROV_EZCONNECT */
-    #else
     if(SMART_CFG == tuya_get_wf_cfg_mode()){
         app_ezconnect_provisioning_stop();
     }else {
@@ -605,7 +457,6 @@ static void event_prov_done(void *data)
         #endif
         app_provisioning_stop();
     }
-    #endif
 
 	dbg("Provisioning successful");
 }
@@ -621,16 +472,6 @@ static void event_prov_done(void *data)
  */
 static void event_prov_client_done(void *data)
 {
-    #if 0
-    #ifndef APPCONFIG_PROV_EZCONNECT
-	int ret;
-
-	//hp_mdns_deannounce(net_get_uap_handle());
-	ret = app_uap_stop();
-	if (ret != WM_SUCCESS)
-		dbg("Error: Failed to Stop Micro-AP");
-    #endif
-    #else
     if(AP_CFG == tuya_get_wf_cfg_mode()) {
         int ret;
         ret = app_uap_stop();
@@ -638,7 +479,6 @@ static void event_prov_client_done(void *data)
 		    dbg("Error: Failed to Stop Micro-AP");
         }
     }
-    #endif
 }
 
 /*
@@ -688,12 +528,14 @@ static void event_prov_wps_ssid_select_req(void *data)
  */
 static void event_prov_wps_successful(void *data)
 {
+#ifdef TY_HTTP_SERV
 	int ret;
 
 	ret = app_httpd_with_fs_start(ftfs_api_version, ftfs_part_name, &fs);
 	if (ret != WM_SUCCESS) {
 		dbg("Error starting HTTP server");
 	}
+#endif
 
 	return;
 }
@@ -708,12 +550,16 @@ static void event_prov_wps_successful(void *data)
  */
 static void event_prov_wps_unsuccessful(void *data)
 {
+
+#ifdef TY_HTTP_SERV
 	int ret;
 
 	ret = app_httpd_with_fs_start(ftfs_api_version, ftfs_part_name, &fs);
 	if (ret != WM_SUCCESS) {
 		dbg("Error starting HTTP server");
 	}
+#endif
+
 	return;
 }
 
@@ -736,8 +582,6 @@ static void event_normal_connecting(void *data)
 {
 	net_dhcp_hostname_set(appln_cfg.hostname);
 	dbg("Connecting to Home Network");
-	/* Start Fast Blink */
-	//led_fast_blink(board_led_2());
 }
 
 /* Event: AF_EVT_NORMAL_CONNECTED
@@ -753,29 +597,8 @@ static void event_normal_connected(void *data)
 	//void *iface_handle;
 	char ip[16];
 
-	//led_off(board_led_2());
-
-	//led_on(board_led_1());
-
 	app_network_ip_get(ip);
 	dbg("Connected to Home Network with IP address = %s", ip);
-
-    #if 0
-	iface_handle = net_get_sta_handle();
-	if (!mdns_announced) {
-		hp_mdns_announce(iface_handle, UP);
-		mdns_announced = 1;
-	} else {
-		hp_mdns_down_up(iface_handle);
-	}
-    #endif
-
-    //  delete by nzy 20150606
-    #if 0
-	/* Load CLOUD overlay in memory */
-	wm_demo_load_cloud_overlay();
-	start_services();
-    #endif
 
     if(is_uap_started()) {
         set_wf_gw_status(STAT_AP_STA_CONN);
@@ -825,7 +648,6 @@ static void event_connect_failed(void *data)
 
 	os_thread_sleep(os_msec_to_ticks(2000));
 	dbg("Application Error: Connection Failed: %s", failure_reason);
-	//led_off(board_led_1());
 }
 
 /*
@@ -837,7 +659,6 @@ static void event_connect_failed(void *data)
  */
 static void event_normal_user_disconnect(void *data)
 {
-	//led_off(board_led_1());
 	dbg("User disconnect");
 }
 
@@ -856,27 +677,14 @@ static void event_normal_link_lost(void *data)
 
 static void event_normal_pre_reset_prov(void *data)
 {
-	//hp_mdns_deannounce(net_get_mlan_handle());
 }
 
 static void event_normal_dhcp_renew(void *data)
 {
-	//void *iface_handle = net_get_mlan_handle();
-	//hp_mdns_announce(iface_handle, REANNOUNCE);
 }
 
 static void event_normal_reset_prov(void *data)
 {
-	//led_on(board_led_2());
-	/* Start Slow Blink */
-	//led_slow_blink(board_led_2());
-
-    // delete by nzy 20150606
-    #if 0
-	/* Stop services like cloud */
-	stop_services();
-    #endif
-
 	/* Cancel the UAP down timer timer */
 	os_timer_deactivate(&uap_down_timer);
 
@@ -890,27 +698,6 @@ static void event_normal_reset_prov(void *data)
 
 	/* Reset to provisioning */
 	provisioned = 0;
-
-    #if 0
-	//mdns_announced = 0;
-	hp_unconfigure_reset_prov_pushbutton();
-    #ifndef APPCONFIG_PROV_EZCONNECT
-	if (is_uap_started() == false) {
-		app_uap_start_with_dhcp(appln_cfg.ssid, appln_cfg.passphrase);
-	} else {
-        #ifdef APPCONFIG_WPS_ENABLE
-		hp_configure_wps_pushbutton();
-		wm_demo_wps_cli_init();
-		app_provisioning_start(PROVISIONING_WLANNW |
-				       PROVISIONING_WPS);
-        #else
-		app_provisioning_start(PROVISIONING_WLANNW);
-        #endif /* APPCONFIG_WPS_ENABLE */
-	}
-    #else
-    app_ezconnect_provisioning_start(NULL, 0);
-    #endif
-    #else
     
     if(SMART_CFG == tuya_get_wf_cfg_mode()){
         set_wf_gw_status(STAT_UNPROVISION);
@@ -930,8 +717,8 @@ static void event_normal_reset_prov(void *data)
         }
 
     }
-    #endif
 }
+
 void ps_state_to_desc(char *ps_state_desc, int ps_state)
 {
 	switch (ps_state) {
@@ -1106,6 +893,8 @@ static void modules_init()
 		appln_critical_error_handler((void *) -WM_FAIL);
 	}
 
+// add by nzy 20150714 
+#ifdef TY_WT_CLI_DEF
 	/*
 	 * Register Time CLI Commands
 	 */
@@ -1114,7 +903,10 @@ static void modules_init()
 		dbg("Error: wmtime_cli_init failed");
 		appln_critical_error_handler((void *) -WM_FAIL);
 	}
+#endif
 
+// add by nzy 20150714 
+#ifdef TY_PM_DEF
 	/*
 	 * Initialize Power Management Subsystem
 	 */
@@ -1138,6 +930,7 @@ static void modules_init()
 		dbg("Error: pm_mc200_cli_init failed");
 		appln_critical_error_handler((void *) -WM_FAIL);
 	}
+#endif
 
 	ret = gpio_drv_init();
 	if (ret != WM_SUCCESS) {
@@ -1161,20 +954,12 @@ static void modules_init()
 	healthmon_set_final_about_to_die_handler
 		((void (*)())diagnostics_write_stats);
 
+// add by nzy 20150714
+#ifdef TY_HTTP_SERV
 	app_sys_register_diag_handler();
-
 	app_sys_register_upgrade_handler();
+#endif
 	return;
-}
-
-static void heart_beat_test(int argc, char **argv)
-{        
-    OPERATE_RET op_ret;
-    op_ret = httpc_gw_hearat();
-    if(OPRT_OK != op_ret) {
-        PR_ERR("op_ret:%d",op_ret);
-        return;
-    }
 }
 
 static void dev_wifi_reset(int argc, char **argv)
@@ -1232,7 +1017,6 @@ static struct cli_command test_cmds[] = {
     {"mk-prod-info","mk-prod-info <prodect info index> <mac addr>",mk_prod_info},
     {"dev-wf-reset","",dev_wifi_reset},
     {"dev-fac-restore","",dev_fac_restore},
-    {"heart-beat","",heart_beat_test},
     {"show-mem-info","",show_memory},
 };
 
@@ -1245,12 +1029,11 @@ static int tuya_user_init(void)
         return 1;
     }
 
-#if 1
+    // for debug
     int i;
     for(i = 0;i < CNTSOF(test_cmds);i++) {
         cli_register_command(&test_cmds[i]);
     }
-#endif
 
     return 0;
 }
@@ -1316,7 +1099,6 @@ int main()
 	modules_init();
 
 	dbg("Build Time: " __DATE__ " " __TIME__ "");
-    //PR_DEBUG("******i am the new firmware********");
     
 	appln_config_init();
     tuya_mac_init();
