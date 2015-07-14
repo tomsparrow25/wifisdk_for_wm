@@ -60,7 +60,7 @@ endif
 
 WF_SDK_PATH = ../../wifi_sdk/src
 
-DST_NAME = xf_oil_heater
+DST_NAME = sample
 
 SRCS = $(WF_SDK_PATH)/main.c \
 	$(WF_SDK_PATH)/led_indicator.c \
