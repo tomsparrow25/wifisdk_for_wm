@@ -1774,8 +1774,3 @@ OPERATE_RET httpc_upgrade_fw(CONST CHAR *url_str)
 
 
 
-
-
-
-
-

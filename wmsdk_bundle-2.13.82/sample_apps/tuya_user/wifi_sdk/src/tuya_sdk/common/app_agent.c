@@ -68,7 +68,7 @@ typedef struct {
 }LAN_PRO_CNTL_S;
 
 typedef enum {
-    TSS_INIT = 0,    
+    TSS_INIT = 0,
     TSS_CR_SERV,
     TSS_SELECT,
 }TCP_SERV_STAT_E;
@@ -91,7 +91,6 @@ static int setup_tcp_serv_socket(int port);
 static OPERATE_RET ag_select(int max_sock, const fd_set *readfds,
 			                 fd_set *active_readfds, int timeout_secs,\
 			                 int *actv_cnt);
-STATIC VOID lpc_close_all_socket(VOID);
 STATIC VOID lpc_close_socket(IN CONST INT socket);
 INT *get_lpc_sockets(VOID);
 INT get_lpc_socket_num(VOID); 
@@ -537,7 +536,7 @@ static void lpc_task_cb(os_thread_arg_t arg)
     }
 }
 
-STATIC VOID lpc_close_all_socket(VOID)
+VOID lpc_close_all_socket(VOID)
 {
     INT i;
 

@@ -456,7 +456,9 @@ STATIC VOID mq_callback(BYTE *data,UINT len)
         BYTE *buf = (BYTE *)cJSON_PrintUnformatted(json);
         smt_frm_cmd_prep(MQ_CMD,buf,strlen((CHAR *)buf));
         Free(buf);
-    }else if(PRO_ADD_USER == mq_pro || \
+    }
+    #if 0
+    else if(PRO_ADD_USER == mq_pro || \
              PRO_DEL_USER == mq_pro) {
         if(gw_cntl->active.uid_cnt >= UID_ACL_LMT && \
            PRO_ADD_USER == mq_pro) {
@@ -497,7 +499,9 @@ STATIC VOID mq_callback(BYTE *data,UINT len)
         }
 
         ws_db_set_gw_actv(&gw_cntl->active);
-    }else if(PRO_FW_UG_CFM == mq_pro) {
+    }
+    #endif
+    else if(PRO_FW_UG_CFM == mq_pro) {
         if((NULL == cJSON_GetObjectItem(json,"devId") || \
            strcasecmp(cJSON_GetObjectItem(json,"devId")->valuestring,\
            get_single_wf_dev()->dev_if.id))) {
@@ -818,6 +822,7 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
                 goto FRM_TP_CMD_ERR;
             }
 
+            #if 0
             INT i;
             GW_CNTL_S *gw_cntl = get_gw_cntl();
             for(i = 0;i < gw_cntl->active.uid_cnt;i++) {
@@ -830,6 +835,7 @@ STATIC VOID sf_mlcfa_proc(IN CONST SF_MLCFA_FR_S *fr)
                                1,"no permission",strlen("no permission"));
                 goto FRM_TP_CMD_ERR;
             }
+            #endif
 
             cJSON_DeleteItemFromObject(root,"uid");
             
@@ -2200,6 +2206,8 @@ void single_dev_reset_factory(void)
         PR_ERR("select_cfg_mode_for_next error:%d",ret);
         return;
     }
+
+    lpc_close_all_socket();
     set_gw_data_fac_reset();
 }
 
@@ -2211,6 +2219,8 @@ static void remote_sd_ret_fac(void)
         PR_ERR("select_cfg_mode_for_next error:%d",ret);
         return;
     }
+
+    lpc_close_all_socket();
     set_gw_data_fac_reset();
 }
 
