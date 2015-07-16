@@ -2207,7 +2207,6 @@ void single_dev_reset_factory(void)
         return;
     }
 
-    lpc_close_all_socket();
     set_gw_data_fac_reset();
 }
 
@@ -2220,7 +2219,6 @@ static void remote_sd_ret_fac(void)
         return;
     }
 
-    lpc_close_all_socket();
     set_gw_data_fac_reset();
 }
 

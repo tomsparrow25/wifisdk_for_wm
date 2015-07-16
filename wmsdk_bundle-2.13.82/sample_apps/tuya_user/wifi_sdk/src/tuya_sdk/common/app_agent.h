@@ -68,9 +68,6 @@ INT *get_lpc_sockets(VOID);
 __APP_AGENT_EXT \
 INT get_lpc_socket_num(VOID);
 
-__APP_AGENT_EXT \
-VOID lpc_close_all_socket(VOID);
-
 #ifdef __cplusplus
 }
 #endif

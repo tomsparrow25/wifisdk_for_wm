@@ -10,6 +10,7 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
+#define LONG_KEY_PRESS_PROC 1
 #if 0
 typedef struct {
     KEY_STAT_E status;
@@ -149,15 +150,30 @@ STATIC VOID key_handle(VOID)
             break;
             
             case KEY_DOWNNING: {
+                #if LONG_KEY_PRESS_PROC
+                STATIC BOOL is_press = 0; // 用于长按键不松开处理效果
+                #endif
+                
                 if(0 == __read_gpio_level(gpio_no)) {
                     if(0 == key_mag.p_tbl[i].down_time) {
                         key_mag.p_tbl[i].down_time = (key_mag.timer_space)*2;
                     }else {
                         key_mag.p_tbl[i].down_time += (key_mag.timer_space);
                     }
+
+                    #if LONG_KEY_PRESS_PROC
+                    // add by nzy 20150716 长按键不松开处理
+                    if((key_mag.p_tbl[i].down_time >= key_mag.p_tbl[i].long_key_time) && \
+                        0 == is_press && \
+                        key_mag.p_tbl[i].seq_key_cnt < 1) {                      
+                        is_press = 1;
+                        key_mag.p_tbl[i].call_back(key_mag.p_tbl[i].gpio_no,LONG_KEY,key_mag.p_tbl[i].seq_key_cnt);
+                    }
+                    #endif
                 }else {
                     key_mag.p_tbl[i].status = KEY_UP_CONFIRM;
                     key_mag.p_tbl[i].up_time = 0;
+                    is_press = 0;
                 }
             }
             break;
@@ -206,7 +222,13 @@ STATIC VOID key_handle(VOID)
                 
                 if(key_mag.p_tbl[i].seq_key_cnt < 1) {
                     if(key_mag.p_tbl[i].down_time >= key_mag.p_tbl[i].long_key_time) {
+                        #if LONG_KEY_PRESS_PROC
+                        key_mag.p_tbl[i].status = KEY_DOWN;
+                        break;
+                        #else
                         type = LONG_KEY;
+                        key_mag.p_tbl[i].status = KEY_DOWN;
+                        #endif
                     }else {
                         type = NORMAL_KEY;
                     }

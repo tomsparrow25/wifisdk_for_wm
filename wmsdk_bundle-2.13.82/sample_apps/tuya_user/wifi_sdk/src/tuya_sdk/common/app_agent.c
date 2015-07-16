@@ -102,6 +102,7 @@ extern OPERATE_RET smart_frame_recv_appmsg(IN CONST INT socket,\
                                            IN CONST UINT frame_type,\
                                            IN CONST CHAR *data,\
                                            IN CONST UINT len);
+STATIC VOID lpc_close_all_socket(VOID);
 
 
 /***********************************************************
@@ -536,7 +537,7 @@ static void lpc_task_cb(os_thread_arg_t arg)
     }
 }
 
-VOID lpc_close_all_socket(VOID)
+STATIC VOID lpc_close_all_socket(VOID)
 {
     INT i;
 
