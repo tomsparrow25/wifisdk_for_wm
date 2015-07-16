@@ -515,8 +515,22 @@ static int _http_parse_URL(char *URL, parsed_url_t *parsed_url)
 
 	parsed_url->hostname = pos;
 
+    // add by nzy 20150716 防止解析端口时与JSON格式中的":"冲突
+    int tmp = 0;
+    char *tmp_token = strchr(pos, '/');
+    if(tmp_token) {
+        *tmp_token = 0;
+        tmp = 1;
+    }
+    
 	/* Check for the port number */
 	token = strchr(pos, ':');
+
+    // add by nzy 20150716 数据恢复
+    if(tmp) {
+        *tmp_token = '/';
+    }
+
 	if (token) {
 		*token = 0;
 		httpc_d("Parse: Hostname: %s", pos);
