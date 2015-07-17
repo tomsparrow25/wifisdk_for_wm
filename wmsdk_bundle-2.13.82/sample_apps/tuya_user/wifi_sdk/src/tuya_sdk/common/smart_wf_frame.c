@@ -68,6 +68,7 @@ typedef struct {
 #define PRO_DEL_USER 7
 #define PRO_FW_UG_CFM 10
 #define PRO_GW_RESET 11
+#define PRO_HB_REQ 12
 
 #define UG_TIME_VAL (24*3600)
 
@@ -516,6 +517,13 @@ STATIC VOID mq_callback(BYTE *data,UINT len)
     }else if(PRO_GW_RESET == mq_pro) {
         PR_DEBUG("remote single device reset");
         remote_sd_ret_fac();
+    }
+    else if(PRO_HB_REQ == mq_pro) {
+        OPERATE_RET op_ret;
+        op_ret = httpc_gw_hearat();
+        if(op_ret != OPRT_OK) {
+            PR_ERR("httpc_gw_hearat error:%d",op_ret);
+        }
     }
     else {
         goto JSON_PROC_ERR;

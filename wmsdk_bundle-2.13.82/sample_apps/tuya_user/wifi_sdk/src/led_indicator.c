@@ -107,8 +107,8 @@ void led_blink(int led_no, int on_duty_cycle, int off_duty_cycle)
 	led_data[idx].on_duty_cycle = on_duty_cycle;
 	led_data[idx].off_duty_cycle = off_duty_cycle;
 
-	board_led_off(led_no);
-	led_data[idx].curr_state = LED_OFF;
+	board_led_on(led_no);
+	led_data[idx].curr_state = LED_ON;
 
 	err = os_timer_create(&led_data[idx].timer,
 			      "led-timer",

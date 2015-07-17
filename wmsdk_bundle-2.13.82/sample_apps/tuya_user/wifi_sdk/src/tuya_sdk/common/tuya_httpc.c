@@ -1772,5 +1772,100 @@ OPERATE_RET httpc_upgrade_fw(CONST CHAR *url_str)
     return OPRT_OK;
 }
 
+/***********************************************************
+*  Function: httpc_gw_dev_active 
+*  Input: dev_if
+*  Output: 
+*  Return: OPERATE_RET
+*  说明:用于单品设备绑定+实体网关附带虚拟设备绑定
+***********************************************************/
+OPERATE_RET httpc_gw_dev_active(IN CONST DEV_DESC_IF_S *dev_if)
+{
+    if(NULL == dev_if) {
+        return OPRT_OK;
+    }
 
+    GW_CNTL_S *gw_cntl = get_gw_cntl();
+    GW_DESC_IF_S *gw = &gw_cntl->gw;
+    CHAR *out = NULL;
+    HTTP_URL_H_S *hu_h = create_http_url_h(0,10);
+    if(NULL == hu_h) {
+        PR_ERR("create_http_url_h error");
+        return OPRT_CR_HTTP_URL_H_ERR;
+    }
+
+    OPERATE_RET op_ret;
+    op_ret = httpc_fill_com_param(hu_h,gw_cntl,TI_GW_DEV_ACTIVE);
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    // fill uid
+    cJSON *root=cJSON_CreateObject();
+    if(NULL == root) {
+        return OPRT_CR_CJSON_ERR;
+    }
+    cJSON_AddStringToObject(root,"uid",gw_cntl->active.uid_acl[0]);
+    out=cJSON_PrintUnformatted(root);
+    cJSON_Delete(root);
+    root = NULL;
+    if(NULL == out) {
+        op_ret = OPRT_MALLOC_FAILED;
+        goto ERR_EXIT;
+    }
+
+    fill_url_param(hu_h,"other",out);
+    Free(out);
+    out = NULL;
+
+    // make content
+    root=cJSON_CreateObject();
+    if(NULL == root) {
+        op_ret = OPRT_CR_CJSON_ERR;
+        goto ERR_EXIT;
+    }
+    cJSON_AddStringToObject(root,"id",gw->id);
+    cJSON_AddStringToObject(root,"gwName",gw->name);
+    cJSON_AddStringToObject(root,"devName",dev_if->name);
+    cJSON_AddStringToObject(root,"verSw",gw->sw_ver);
+    cJSON_AddNumberToObject(root,"ability",gw->ability);
+    cJSON_AddStringToObject(root,"etag",DEV_ETAG);
+    cJSON_AddStringToObject(root,"schemaId",dev_if->schema_id);
+    cJSON_AddStringToObject(root,"uiId",dev_if->ui_id);
+    
+    out=cJSON_PrintUnformatted(root);
+    cJSON_Delete(root),root = NULL;
+    if(NULL == out) {
+        op_ret = OPRT_MALLOC_FAILED;
+        goto ERR_EXIT;
+    }
+
+    CHAR *buf;
+    op_ret = httpc_data_aes_proc(out,strlen(out),gw_cntl->active.token,&buf);
+    if(op_ret != OPRT_OK) {
+        goto ERR_EXIT;
+    }
+
+    op_ret = make_full_url(hu_h,gw_cntl->active.token);
+    if(op_ret != OPRT_OK) {
+        Free(buf);
+        goto ERR_EXIT;
+    }
+
+    op_ret = http_client_post(hu_h->buf,STANDARD_HDR_FLAGS|HDR_ADD_CONN_KEEP_ALIVE|HDR_ADD_CONTENT_TYPE_FORM_URLENCODE,\
+                              __httpc_gw_active_cb,(BYTE *)buf,strlen(buf));
+    Free(buf);
+    Free(out);
+    del_http_url_h(hu_h);
+
+    return op_ret;
+
+ERR_EXIT:
+    if(out) {
+        Free(out);
+    }
+    del_http_url_h(hu_h);
+
+    return op_ret;
+}
 

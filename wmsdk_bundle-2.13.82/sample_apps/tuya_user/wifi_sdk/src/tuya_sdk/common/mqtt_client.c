@@ -358,7 +358,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                 if(msg_ack_type != MQTTParseMessageType(&mq_cntl.recv_buf[0])) {
                     PR_ERR("msg_ack_type:%d.",msg_ack_type);
                     goto MQ_EXE_ERR;
-                }                
+                }
 
                 if(MQ_CONN_RESP == mq_cntl.status) {
                     if(mq_cntl.recv_buf[3] != 0) {

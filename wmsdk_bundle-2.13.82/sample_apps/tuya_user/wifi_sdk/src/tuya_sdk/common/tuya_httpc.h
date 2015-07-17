@@ -51,6 +51,8 @@
 #define TI_FW_UG_INFO "s.gw.upgrade" // get gw/dev firmware info
 #define TI_FW_STAT "s.gw.upgrade.updatestatus"
 
+#define TI_GW_DEV_ACTIVE "s.gw.dev.active" // gateway device active
+
 /*
 ** is_end: 指示传输是否结束
 ** offset: 累积数据偏移
@@ -239,6 +241,16 @@ OPERATE_RET httpc_up_fw_ug_stat(IN CONST CHAR *devid,\
 ***********************************************************/
 __TUYA_HTTPC_EXT \
 OPERATE_RET httpc_upgrade_fw(CONST CHAR *url_str);
+
+/***********************************************************
+*  Function: httpc_gw_dev_active 
+*  Input: dev_if
+*  Output: 
+*  Return: OPERATE_RET
+*  说明:用于单品设备绑定+实体网关附带虚拟设备绑定
+***********************************************************/
+__TUYA_HTTPC_EXT \
+OPERATE_RET httpc_gw_dev_active(IN CONST DEV_DESC_IF_S *dev_if);
 
 #ifdef __cplusplus
 }

@@ -437,7 +437,7 @@ OPERATE_RET gw_lc_bind_device(IN CONST DEV_DESC_IF_S *dev_if,\
     }
 
     return OPRT_OK;
-        
+
 ERR_EXIT:
     if(dev_cntl) {
         Free(dev_cntl);
@@ -472,12 +472,29 @@ static void gw_actv_timer_cb(os_timer_arg_t arg)
     }
 
     OPERATE_RET op_ret;
+    #if NO_DEF_GW_DEV_ACTV_IF
     op_ret = httpc_gw_active();
     if(OPRT_OK != op_ret) {
         PR_ERR("op_ret:%d",op_ret);
         return;
     }
+    #else
+    op_ret = httpc_gw_dev_active(&(gw_cntl.dev->dev_if));
+    if(OPRT_OK != op_ret) {
+        PR_ERR("httpc_gw_dev_active error:%d",op_ret);
+        return;
+    }
 
+    os_mutex_get(&gw_mutex, OS_WAIT_FOREVER);
+    gw_cntl.dev->dev_if.bind = TRUE;
+    gw_cntl.dev->dev_if.sync = FALSE;
+    os_mutex_put(&gw_mutex);
+    
+    op_ret = ws_db_set_dev_if(&gw_cntl.dev->dev_if);
+    if(OPRT_OK != op_ret) {
+        PR_ERR("ws_db_set_dev_if error,op_ret:%d",op_ret);
+    }
+    #endif
     check_all_dev_if_update();
 
     os_timer_deactivate(&gw_actv_timer);
