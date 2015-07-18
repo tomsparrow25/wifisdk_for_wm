@@ -186,16 +186,6 @@ void auto_select_wf_cfg(void);
 __SMART_WF_FRAME_EXT \
 void set_smart_cfg(void);
 
-/***********************************************************
-*  Function: select_cfg_mode_for_next
-*  Input: none
-*  Output: 
-*  Return: none
-*  Note: 
-***********************************************************/
-__SMART_WF_FRAME_EXT \
-int select_cfg_mode_for_next(void);
-
 #ifdef __cplusplus
 }
 #endif

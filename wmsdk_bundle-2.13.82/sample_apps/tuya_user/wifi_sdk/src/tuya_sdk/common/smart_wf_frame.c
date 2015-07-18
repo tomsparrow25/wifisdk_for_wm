@@ -24,6 +24,8 @@
 #define SF_MSG_LAN_CMD_FROM_APP 0 // 局域网控制命令
 #define SF_MSG_LAN_STAT_REPORT 1 // 局域网数据状态主动上报
 #define SF_MSG_UG_FM 2 // 通知固件升级
+#define SF_MSG_DEV_RESET_FAC 3 // 恢复出厂设置
+#define SF_MSG_WF_RESET 4 // WIFI复位
 
 // msg frame 
 typedef struct {
@@ -107,6 +109,8 @@ STATIC OPERATE_RET sf_obj_dp_qry_dpid(IN CONST CHAR *id,IN CONST BYTE *dpid,IN C
 STATIC void smt_frm_cmd_prep(IN CONST SMART_CMD_E cmd,IN CONST BYTE *data,IN CONST UINT len);
 static void tuya_wf_cfg_init(void);
 static void remote_sd_ret_fac(void);
+static void __auto_select_wf_cfg(void);
+static void __single_dev_reset_factory(void);
 
 VOID gw_lan_respond(IN CONST INT fd,IN CONST UINT fr_num,IN CONST UINT fr_tp,\
                     IN CONST UINT ret_code,IN CONST CHAR *data,IN CONST UINT len)
@@ -304,6 +308,17 @@ static void sf_ctrl_task(os_thread_arg_t arg)
                 pm_reboot_soc();
             }
             break;
+
+            case SF_MSG_DEV_RESET_FAC: {
+                __single_dev_reset_factory();
+            }
+            break;
+
+            case SF_MSG_WF_RESET: {
+                __auto_select_wf_cfg();
+            }
+            break;
+            
         }
 
         Free(msg);
@@ -2140,14 +2155,7 @@ int select_cfg_mode_for_next(void)
     return WM_SUCCESS;
 }
 
-/***********************************************************
-*  Function: auto_select_wf_cfg
-*  Input: none
-*  Output: 
-*  Return: none
-*  Note: none
-***********************************************************/
-void auto_select_wf_cfg(void)
+static void __auto_select_wf_cfg(void)
 {
     int ret;
     
@@ -2158,6 +2166,18 @@ void auto_select_wf_cfg(void)
     }
 
     pm_reboot_soc();
+}
+
+/***********************************************************
+*  Function: auto_select_wf_cfg
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void auto_select_wf_cfg(void)
+{
+    smart_frame_send_msg(SF_MSG_WF_RESET,NULL,0);
 }
 
 /***********************************************************
@@ -2190,14 +2210,7 @@ void select_ap_cfg_wf(void)
     pm_reboot_soc();
 }
 
-/***********************************************************
-*  Function: single_dev_reset_factory
-*  Input: none
-*  Output: 
-*  Return: none
-*  Note: none
-***********************************************************/
-void single_dev_reset_factory(void)
+static void __single_dev_reset_factory(void)
 {
     if(STAT_WORK == get_gw_status() && \
        STAT_STA_CONN == get_wf_gw_status()) {
@@ -2216,6 +2229,18 @@ void single_dev_reset_factory(void)
     }
 
     set_gw_data_fac_reset();
+}
+
+/***********************************************************
+*  Function: single_dev_reset_factory
+*  Input: none
+*  Output: 
+*  Return: none
+*  Note: none
+***********************************************************/
+void single_dev_reset_factory(void)
+{
+    smart_frame_send_msg(SF_MSG_DEV_RESET_FAC,NULL,0);
 }
 
 static void remote_sd_ret_fac(void)

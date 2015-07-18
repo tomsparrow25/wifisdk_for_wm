@@ -964,15 +964,7 @@ static void modules_init()
 
 static void dev_wifi_reset(int argc, char **argv)
 {
-    int ret;
-    ret = select_cfg_mode_for_next();
-    if(WM_SUCCESS != ret) {
-        PR_DEBUG("ret:%d.",ret);
-    }else {
-        app_network_set_nw_state(0);
-    }
-
-    pm_reboot_soc();
+    auto_select_wf_cfg();
 }
 
 static void mk_prod_info(int argc, char **argv)
