@@ -1,3 +1,4 @@
 boot2 /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/flashpatch/boot2.bin
-mc200fw /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/bin/tuya_mv_01/sample.bin
+mc200fw /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/bin/tuya_mv_01/xf_oil_heater.bin
 wififw /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/wifi-firmware/sd8801_uapsta_beta.bin.xz
+ftfs /home/share/samba/github_linux/wifisdk_for_wm/wmsdk_bundle-2.13.82/bin/tuya_mv_01/xf_oil_heater.ftfs

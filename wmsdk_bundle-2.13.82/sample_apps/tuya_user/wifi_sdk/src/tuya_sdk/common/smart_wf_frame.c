@@ -318,7 +318,6 @@ static void sf_ctrl_task(os_thread_arg_t arg)
                 __auto_select_wf_cfg();
             }
             break;
-            
         }
 
         Free(msg);
