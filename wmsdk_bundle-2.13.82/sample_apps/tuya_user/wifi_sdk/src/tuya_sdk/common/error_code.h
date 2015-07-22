@@ -70,6 +70,7 @@
 #define OPRT_VER_FMT_ERR INCREMENT(OPRT_EC_STARAT,44)
 #define OPRT_FW_NOT_EXIST INCREMENT(OPRT_EC_STARAT,45)
 #define OPRT_SEM_CR_ERR INCREMENT(OPRT_EC_STARAT,46)
+#define OPRT_SELECT_TIMEOUT INCREMENT(OPRT_EC_STARAT,47)
 
 /***********************************************************
 *************************variable define********************

@@ -12,7 +12,7 @@
 /***********************************************************
 *************************micro define***********************
 ***********************************************************/
-#define MQTT_ALIVE_TIME_S 30
+#define MQTT_ALIVE_TIME_S 60
 #define RESP_TIMEOUT 5 // sec
 #define PRE_TOPIC "smart/gw/"
 #define PRE_TOPIC_LEN 9
@@ -279,14 +279,14 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                 if(who_fir) {
                     if(0 != domain2ip(mq_url,ip)) {
                         if(0 != domain2ip(mq_url_bak,ip)) {
-                            os_thread_sleep(os_msec_to_ticks(3000));
+                            os_thread_sleep(os_msec_to_ticks(2000));
                             continue;
                         }
                     }
                 }else {
                     if(0 != domain2ip(mq_url_bak,ip)) {
                         if(0 != domain2ip(mq_url,ip)) {
-                            os_thread_sleep(os_msec_to_ticks(3000));
+                            os_thread_sleep(os_msec_to_ticks(2000));
                             continue;
                         }
                     }
@@ -306,7 +306,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                 op_ret = mq_client_sock_conn();
                 if(OPRT_OK != op_ret) {
                     PR_ERR("op_ret:%d.",op_ret);
-                    os_thread_sleep(os_msec_to_ticks(3000));
+                    os_thread_sleep(os_msec_to_ticks(2000));
                     mq_cntl.status = MQTT_GET_SERVER_IP;
                     continue;
                 }
@@ -326,7 +326,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                 if(1 != ret) {
                     PR_ERR("ret:%d.",ret);
                     mq_close();
-                    os_thread_sleep(os_msec_to_ticks(3000));
+                    os_thread_sleep(os_msec_to_ticks(2000));
                     mq_cntl.status = MQTT_GET_SERVER_IP;
                     continue;
                 }
@@ -387,7 +387,7 @@ static void mq_ctrl_task(os_thread_arg_t arg)
                     os_timer_deactivate(&mq_cntl.resp_timer);
                 }
                 mq_close();
-                os_thread_sleep(os_msec_to_ticks(3000));
+                os_thread_sleep(os_msec_to_ticks(2000));
                 mq_cntl.status = MQTT_GET_SERVER_IP;
                 continue;
             }
