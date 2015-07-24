@@ -48,6 +48,7 @@ typedef struct
 #define RECV_BUF_LMT 1024
 typedef struct {
     INT serv_fd;
+    
     // fd_set readfds;
     INT c_fd_cnt;
     INT c_fd[CLIENT_LMT];
@@ -320,7 +321,9 @@ static OPERATE_RET ag_select(int max_sock, const fd_set *readfds,\
 	if (activefds_cnt < 0) {
 		PR_ERR("Select failed: %d,errno:%d", errno);
 		return OPRT_SELECT_ERR;
-	}
+	}else if(0 == activefds_cnt) {
+        return OPRT_SELECT_TIMEOUT;
+    }
 
 	if (activefds_cnt) {
 		/* Update users copy of fd_set only if he wants */
@@ -341,6 +344,8 @@ static void lpc_task_cb(os_thread_arg_t arg)
     TCP_SERV_STAT_E status = TSS_INIT;
     INT max_sockfd = -1;
 
+    INT port = SERV_PORT_TCP;
+
     while(1) {
         // PR_DEBUG("status:%d",status);
         switch(status) {
@@ -357,7 +362,10 @@ static void lpc_task_cb(os_thread_arg_t arg)
             break;
 
             case TSS_CR_SERV: {
-                lan_pro_cntl.serv_fd = setup_tcp_serv_socket(SERV_PORT_TCP);
+                //port += rand() % 100;
+                PR_DEBUG("port:%d",port);
+
+                lan_pro_cntl.serv_fd = setup_tcp_serv_socket(port);
                 if(lan_pro_cntl.serv_fd < 0) {
                     PR_ERR("create server socket err");
                     os_thread_sleep(os_msec_to_ticks(1500));
@@ -379,6 +387,9 @@ static void lpc_task_cb(os_thread_arg_t arg)
 
                 FD_ZERO(&readfds);
                 FD_ZERO(&active_readfds);
+
+                time_t time = wmtime_time_get_posix();
+                check_socket_tm(time);
                 
                 // set readfd
                 FD_SET(lan_pro_cntl.serv_fd,&readfds);
@@ -387,15 +398,19 @@ static void lpc_task_cb(os_thread_arg_t arg)
                 }
 
                 op_ret = ag_select(max_sockfd, &readfds,\
-                                   &active_readfds, -1,&actv_cnt);
+                                   &active_readfds, 35,&actv_cnt);
                 if(op_ret != OPRT_OK) {
+                    #if 1
+                    if(OPRT_SELECT_TIMEOUT == op_ret) {
+                        //PR_DEBUG("ag_select timeout");
+                        break;
+                    }
+                    #endif
+                    
                     PR_ERR("ag_select op_ret:%d errno:%d",op_ret,errno);
                     goto TSS_SELECT_ERR;
                 }
 
-                time_t time = wmtime_time_get_posix();
-                check_socket_tm(time);
-                
                 #if 0
                 PR_DEBUG("actv_cnt:%d",actv_cnt);
                 #endif
@@ -425,6 +440,11 @@ static void lpc_task_cb(os_thread_arg_t arg)
                         max_sockfd = cfd;
                     }
 
+                    int one;
+                    // set reuse                    
+                    setsockopt(cfd, SOL_SOCKET, SO_REUSEADDR,
+                               (char *)&one, sizeof(one));
+                    
                     // set no block 
                     int flags = fcntl(cfd, F_GETFL, 0);
                     fcntl(cfd, F_SETFL, flags | O_NONBLOCK);
@@ -631,6 +651,10 @@ STATIC VOID up_socket_time(IN CONST INT socket,IN CONST time_t time)
 
 STATIC VOID check_socket_tm(IN CONST time_t time)
 {
+    if(0 == lan_pro_cntl.c_fd_cnt) {
+        return;
+    }
+
     INT close_fd[CLIENT_LMT];
     INT cnt = 0;
     INT i;

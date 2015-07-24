@@ -632,8 +632,20 @@ static void test_wlan_remove(int argc, char **argv)
 	}
 }
 
+#if 0
+extern int wlan_set_channel(char *name,int channel);
+#endif
+
 static void test_wlan_connect(int argc, char **argv)
 {
+    #if 0
+    // usr for choose channel test
+    if(argc >= 3) {
+        int channel = atoi(argv[2]);
+        wlan_set_channel(argc >= 2 ? argv[1] : NULL,channel);
+    }
+    #endif
+
 	int ret = wlan_connect(argc >= 2 ? argv[1] : NULL);
 
 	if (ret == WLAN_ERROR_STATE) {

@@ -3518,6 +3518,37 @@ int wlan_connect(char *name)
 	return WLAN_ERROR_PARAM;
 }
 
+#if 0
+int wlan_set_channel(char *name,int channel) 
+{
+    if(channel < 1 || channel > 13) {
+        return WLAN_ERROR_PARAM;
+    }
+
+	unsigned int len = name ? strlen(name) : 0;
+	int i = 0;
+
+	if (!wlan.running)
+		return WLAN_ERROR_STATE;
+
+	if (wlan.num_networks == 0 || len == 0)
+		return WLAN_ERROR_PARAM;
+
+    /* connect to a specific network */
+    for (i = 0; i < ARRAY_SIZE(wlan.networks); i++)
+        if (wlan.networks[i].name[0] != '\0' &&
+            strlen(wlan.networks[i].name) == len &&
+            !strncmp(wlan.networks[i].name, name, len)) {
+
+            wlan.networks[i].channel = channel;
+            return WLAN_ERROR_NONE;
+        }
+
+    /* specified network was not found */
+    return WLAN_ERROR_PARAM;
+}
+#endif
+
 int wlan_start_network(const char *name)
 {
 	int i;
